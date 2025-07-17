@@ -1,0 +1,36 @@
+src/
+├── app/                    # Configuración global de la aplicación
+│   ├── providers/         # Providers de la aplicación (Redux, Router, etc)
+│   ├── styles/            # Estilos globales
+│   └── index.js          # Punto de entrada
+│
+├── pages/                 # Páginas/rutas de la aplicación
+│   └── stock/            # Página de stock
+│
+├── widgets/              # Composición de features
+│   └── stock/           # Widgets relacionados con stock
+│
+├── features/            # Funcionalidades de negocio
+│   └── stock/
+│       ├── hilado/
+│       │   ├── ui/      # Componentes de UI
+│       │   ├── model/   # Lógica de negocio (slices, hooks)
+│       │   └── api/     # Llamadas a API
+│       └── posicion/
+│           ├── ui/
+│           ├── model/
+│           └── api/
+│
+├── entities/            # Entidades de negocio
+│   ├── hilado/
+│   │   ├── ui/
+│   │   └── model/
+│   └── posicion/
+│       ├── ui/
+│       └── model/
+│
+└── shared/             # Código reutilizable
+    ├── api/           # Configuración de API
+    ├── ui/            # Componentes UI básicos
+    ├── lib/           # Utilidades y helpers
+    └── config/        # Configuraciones 
