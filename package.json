@@ -28,7 +28,7 @@
         "xlsx": "^0.18.5"
     },
     "scripts": {
-        "start": "react-scripts start",
+        "start": "set PORT=3001 && set BROWSER=none && react-scripts start",
         "predeploy": "npm run build",
         "deploy": "gh-pages -d build",
         "build": "react-scripts build",
