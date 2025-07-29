@@ -45,7 +45,7 @@ const Login = () => {
           navigate('/deposito_dw_front/compras');
           break;
         case 'deposito':
-        case 'usuario':
+        case 'salida':
         default:
           navigate('/deposito_dw_front/deposito');
           break;
