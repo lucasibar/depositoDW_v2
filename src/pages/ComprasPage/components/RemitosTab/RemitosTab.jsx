@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Box, Typography, Button, CircularProgress, Alert } from "@mui/material";
-import { fetchRemitos, createRemito } from "../../../../features/remitos/model/slice";
+import { fetchRemitosData, createRemito } from "../../../../features/remitos/model/slice";
 import { selectRemitos, selectRemitosLoading, selectRemitosError } from "../../../../features/remitos/model/selectors";
+import { CreateRemitoEntradaForm } from "../../../../widgets/remitos/CreateRemitoEntradaForm/CreateRemitoEntradaForm";
 import styles from "./RemitosTab.module.css";
 
 export const RemitosTab = () => {
@@ -10,14 +11,24 @@ export const RemitosTab = () => {
   const remitos = useSelector(selectRemitos);
   const isLoading = useSelector(selectRemitosLoading);
   const error = useSelector(selectRemitosError);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchRemitos());
-  }, [dispatch]);
+    // Solo cargar datos si no están ya cargados
+    if (remitos.length === 0) {
+      dispatch(fetchRemitosData());
+    }
+  }, [dispatch, remitos.length]);
 
   const handleCreateRemito = () => {
-    // Aquí puedes abrir un modal o navegar a un formulario de creación
-    console.log("Crear nuevo remito");
+    setShowForm(!showForm);
+  };
+
+  const handleRemitoCreated = (remitoData) => {
+    console.log('Remito creado:', remitoData);
+    setShowForm(false);
+    // Recargar la lista de remitos
+    dispatch(fetchRemitosData());
   };
 
   if (isLoading) {
@@ -40,9 +51,15 @@ export const RemitosTab = () => {
           onClick={handleCreateRemito}
           sx={{ mb: 2 }}
         >
-          Crear Nuevo Remito
+          {showForm ? 'Ocultar Formulario' : 'Crear Nuevo Remito'}
         </Button>
       </Box>
+
+      {showForm && (
+        <Box sx={{ mb: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, backgroundColor: '#fafafa' }}>
+          <CreateRemitoEntradaForm onRemitoCreated={handleRemitoCreated} />
+        </Box>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>

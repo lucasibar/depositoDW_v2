@@ -2,8 +2,8 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { remitosApi } from '../api/remitosApi';
 
 // Async thunks
-export const fetchRemitos = createAsyncThunk(
-  'remitos/fetchRemitos',
+export const fetchRemitosData = createAsyncThunk(
+  'remitos/fetchRemitosData',
   async (_, { rejectWithValue }) => {
     try {
       const response = await remitosApi.getDataRemitoRecepcion();
@@ -42,6 +42,8 @@ export const createRemitoSalida = createAsyncThunk(
 
 const initialState = {
   remitos: [],
+  items: [],
+  proveedores: [],
   isLoading: false,
   error: null,
   selectedRemito: null,
@@ -61,15 +63,16 @@ const remitosSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Fetch remitos
-      .addCase(fetchRemitos.pending, (state) => {
+      .addCase(fetchRemitosData.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchRemitos.fulfilled, (state, action) => {
+      .addCase(fetchRemitosData.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.remitos = action.payload;
+        state.items = action.payload.items;
+        state.proveedores = action.payload.proveedores;
       })
-      .addCase(fetchRemitos.rejected, (state, action) => {
+      .addCase(fetchRemitosData.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
