@@ -1,0 +1,13 @@
+.materialList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 48px;
+  color: #666;
+  font-size: 18px;
+}

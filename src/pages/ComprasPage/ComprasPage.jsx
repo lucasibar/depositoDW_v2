@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './ComprasPage.module.css';
+import { TabNavigation } from '../../shared/ui/TabNavigation/TabNavigation';
+import { RemitosTab } from './components/RemitosTab/RemitosTab';
+import { StockTab } from './components/StockTab/StockTab';
+import { OrdenesCompraTab } from './components/OrdenesCompraTab/OrdenesCompraTab';
+import { PresupuestoTab } from './components/PresupuestoTab/PresupuestoTab';
 import { authService } from '../../services/authService';
+import styles from './ComprasPage.module.css';
+
+const TABS = [
+  { id: 'remitos', label: 'Remitos', component: RemitosTab },
+  { id: 'stock', label: 'Stock', component: StockTab },
+  { id: 'ordenes', label: 'Órdenes de Compra', component: OrdenesCompraTab },
+  { id: 'presupuesto', label: 'Presupuesto', component: PresupuestoTab },
+];
 
 export const ComprasPage = () => {
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('proveedores');
+  const [activeTab, setActiveTab] = useState('stock');
 
   useEffect(() => {
     const currentUser = authService.getUser();
@@ -19,38 +31,7 @@ export const ComprasPage = () => {
     window.location.href = '/deposito_dw_front/';
   };
 
-  const renderProveedoresTab = () => (
-    <div className={styles.tabContent}>
-      <h3>Gestión de Proveedores</h3>
-      <div className={styles.card}>
-        <h4>Lista de Proveedores</h4>
-        <p>Aquí se mostrarán los proveedores registrados en el sistema.</p>
-        <button className={styles.primaryButton}>Agregar Proveedor</button>
-      </div>
-    </div>
-  );
-
-  const renderOrdenesTab = () => (
-    <div className={styles.tabContent}>
-      <h3>Órdenes de Compra</h3>
-      <div className={styles.card}>
-        <h4>Órdenes Pendientes</h4>
-        <p>Gestión de órdenes de compra y seguimiento de pedidos.</p>
-        <button className={styles.primaryButton}>Nueva Orden</button>
-      </div>
-    </div>
-  );
-
-  const renderPresupuestosTab = () => (
-    <div className={styles.tabContent}>
-      <h3>Presupuestos</h3>
-      <div className={styles.card}>
-        <h4>Control de Presupuestos</h4>
-        <p>Análisis y control de presupuestos de compras.</p>
-        <button className={styles.primaryButton}>Crear Presupuesto</button>
-      </div>
-    </div>
-  );
+  const ActiveComponent = TABS.find(tab => tab.id === activeTab)?.component;
 
   return (
     <div className={styles.container}>
@@ -83,32 +64,17 @@ export const ComprasPage = () => {
         </div>
       </header>
 
-      <nav className={styles.navigation}>
-        <button 
-          className={`${styles.navButton} ${activeTab === 'proveedores' ? styles.active : ''}`}
-          onClick={() => setActiveTab('proveedores')}
-        >
-          Proveedores
-        </button>
-        <button 
-          className={`${styles.navButton} ${activeTab === 'ordenes' ? styles.active : ''}`}
-          onClick={() => setActiveTab('ordenes')}
-        >
-          Órdenes de Compra
-        </button>
-        <button 
-          className={`${styles.navButton} ${activeTab === 'presupuestos' ? styles.active : ''}`}
-          onClick={() => setActiveTab('presupuestos')}
-        >
-          Presupuestos
-        </button>
-      </nav>
-
       <main className={styles.main}>
-        {activeTab === 'proveedores' && renderProveedoresTab()}
-        {activeTab === 'ordenes' && renderOrdenesTab()}
-        {activeTab === 'presupuestos' && renderPresupuestosTab()}
+        <TabNavigation 
+          tabs={TABS}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+        
+        <div className={styles.tabContent}>
+          <ActiveComponent />
+        </div>
       </main>
     </div>
   );
-}; 
+};

@@ -1,0 +1,22 @@
+import axios from 'axios';
+import { API_CONFIG } from '../../../config/api';
+
+export const stockApi = {
+  // Obtener stock total de un item
+  getStockTotal: (idItem) => axios.get(`${API_CONFIG.BASE_URL}/stock/total/${idItem}`),
+  
+  // Obtener stock detallado de un item
+  getStockByItem: (idItem) => axios.get(`${API_CONFIG.BASE_URL}/stock/${idItem}`),
+  
+  // Obtener stock por posición
+  getStockByPosition: (dataPosicion) => axios.post(`${API_CONFIG.BASE_URL}/stock/posicion`, dataPosicion),
+  
+  // Obtener todos los movimientos de entrada (para stock general)
+  getAllMovimientos: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/entrada`),
+  
+  // Obtener movimientos de salida
+  getMovimientosSalida: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/salida`),
+  
+  // Obtener salidas sin remito asignado
+  getSalidasSinRemito: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/sin-remito`),
+}; 
