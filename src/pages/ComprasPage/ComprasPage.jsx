@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { TabNavigation } from '../../shared/ui/TabNavigation/TabNavigation';
+import { ComprasHeader } from './components/ComprasHeader/ComprasHeader';
 import { RemitosTab } from './components/RemitosTab/RemitosTab';
 import { StockTab } from './components/StockTab/StockTab';
 import { OrdenesCompraTab } from './components/OrdenesCompraTab/OrdenesCompraTab';
 import { PresupuestoTab } from './components/PresupuestoTab/PresupuestoTab';
-import { authService } from '../../services/authService';
+import { useAuth } from '../../hooks/useAuth';
 import styles from './ComprasPage.module.css';
 
 const TABS = [
@@ -16,53 +16,14 @@ const TABS = [
 ];
 
 export const ComprasPage = () => {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('stock');
-
-  useEffect(() => {
-    const currentUser = authService.getUser();
-    setUser(currentUser);
-  }, []);
-
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    authService.logout();
-    window.location.href = '/deposito_dw_front/';
-  };
 
   const ActiveComponent = TABS.find(tab => tab.id === activeTab)?.component;
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <h1>Sistema de Compras</h1>
-          <div className={styles.userInfo}>
-            <span>Bienvenido, {user?.name}</span>
-            <span className={styles.role}>({user?.role})</span>
-            {user?.role === 'admin' && (
-              <>
-                <button 
-                  onClick={() => navigate('/deposito_dw_front/deposito')} 
-                  className={styles.navButton}
-                >
-                  Depósito
-                </button>
-                <button 
-                  onClick={() => navigate('/deposito_dw_front/admin')} 
-                  className={styles.navButton}
-                >
-                  Admin
-                </button>
-              </>
-            )}
-            <button onClick={handleLogout} className={styles.logoutButton}>
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </header>
+      <ComprasHeader user={user} />
 
       <main className={styles.main}>
         <TabNavigation 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRemitosData, createRemitoEntrada } from '../../../features/remitos/model/slice';
 import { selectProveedores, selectItems, selectRemitosLoading, selectRemitosError } from '../../../features/remitos/model/selectors';
@@ -11,42 +11,28 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
   const isLoading = useSelector(selectRemitosLoading);
   const error = useSelector(selectRemitosError);
   
-  // Estados para la primera parte del formulario
-  const [selectedProveedor, setSelectedProveedor] = useState(null);
+  // Estados para el formulario
+  const [selectedProveedor, setSelectedProveedor] = useState('');
   const [numeroRemito, setNumeroRemito] = useState('');
   const [fechaRemito, setFechaRemito] = useState('');
-  
-  // Estados para la segunda parte del formulario
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState('');
+  const [itemSearch, setItemSearch] = useState('');
   const [numeroPartida, setNumeroPartida] = useState('');
   const [kilos, setKilos] = useState('');
   const [unidades, setUnidades] = useState('');
-  
-  // Lista de partidas del remito
   const [partidasRemito, setPartidasRemito] = useState([]);
-  
-  // Estados para búsqueda
-  const [proveedorSearch, setProveedorSearch] = useState('');
-  const [itemSearch, setItemSearch] = useState('');
-  const [showProveedorDropdown, setShowProveedorDropdown] = useState(false);
   const [showItemDropdown, setShowItemDropdown] = useState(false);
-  
-  const proveedorInputRef = useRef(null);
+
   const itemInputRef = useRef(null);
 
+  // Cargar datos al montar
   useEffect(() => {
-    // Solo cargar datos si no están ya cargados
-    if (proveedores.length === 0 && items.length === 0) {
-      dispatch(fetchRemitosData());
-    }
-  }, [dispatch, proveedores.length, items.length]);
+    dispatch(fetchRemitosData());
+  }, [dispatch]);
 
-  // Cerrar dropdowns cuando se hace clic fuera
+  // Cerrar dropdown cuando se hace clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (proveedorInputRef.current && !proveedorInputRef.current.contains(event.target)) {
-        setShowProveedorDropdown(false);
-      }
       if (itemInputRef.current && !itemInputRef.current.contains(event.target)) {
         setShowItemDropdown(false);
       }
@@ -58,47 +44,55 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
     };
   }, []);
 
-  // Filtrar proveedores basado en búsqueda
-  const filteredProveedores = proveedores
-    .filter(prov => prov.categoria === 'proveedor')
-    .filter(prov => 
-      prov.nombre.toLowerCase().includes(proveedorSearch.toLowerCase())
-    );
+  // Filtrar proveedores (solo categoría 'proveedor')
+  const filteredProveedores = proveedores.filter(prov => prov.categoria === 'proveedor');
 
-  // Filtrar items del proveedor seleccionado
+  // Filtrar items por proveedor seleccionado y búsqueda
   const filteredItems = selectedProveedor 
-    ? items.filter(item => 
-        item.proveedor && item.proveedor.id === selectedProveedor.id
-      ).filter(item =>
-        item.descripcion.toLowerCase().includes(itemSearch.toLowerCase()) ||
-        item.categoria.toLowerCase().includes(itemSearch.toLowerCase())
-      )
+    ? items.filter(item => {
+        // Solo items (no proveedores) - items tienen 'descripcion', proveedores tienen 'nombre'
+        const isItem = item.descripcion && !item.nombre;
+        
+        if (!isItem) return false;
+
+        // Filtrar por proveedor
+        let matchesProveedor = false;
+        if (item.proveedor) {
+          // Si item.proveedor es un objeto con id
+          if (item.proveedor.id) {
+            matchesProveedor = item.proveedor.id === selectedProveedor;
+          }
+          // Si item.proveedor es un objeto con nombre
+          else if (item.proveedor.nombre) {
+            const selectedProveedorObj = proveedores.find(p => p.id === selectedProveedor);
+            matchesProveedor = item.proveedor.nombre === selectedProveedorObj?.nombre;
+          }
+        }
+
+        // Filtrar por búsqueda - cada palabra debe estar en descripción o categoría
+        const matchesSearch = itemSearch === '' || (() => {
+          const searchWords = itemSearch.toLowerCase().trim().split(' ').filter(word => word.length > 0);
+          if (searchWords.length === 0) return true;
+          
+          const itemText = `${item.descripcion} ${item.categoria}`.toLowerCase();
+          
+          // Todas las palabras deben estar en el texto del item
+          return searchWords.every(word => itemText.includes(word));
+        })();
+
+        return matchesProveedor && matchesSearch;
+      })
     : [];
 
-  const handleProveedorSelect = (proveedor) => {
-    setSelectedProveedor(proveedor);
-    setProveedorSearch(proveedor.nombre);
-    setShowProveedorDropdown(false);
-    // Limpiar item seleccionado cuando cambia el proveedor
-    setSelectedItem(null);
-    setItemSearch('');
-  };
-
   const handleItemSelect = (item) => {
-    setSelectedItem(item);
+    setSelectedItem(item.id);
     setItemSearch(`${item.descripcion} - ${item.categoria}`);
     setShowItemDropdown(false);
   };
 
-  const handleProveedorInputChange = (e) => {
-    setProveedorSearch(e.target.value);
-    setSelectedProveedor(null);
-    setShowProveedorDropdown(true);
-  };
-
-  const handleItemInputChange = (e) => {
+  const handleItemSearchChange = (e) => {
     setItemSearch(e.target.value);
-    setSelectedItem(null);
+    setSelectedItem('');
     setShowItemDropdown(true);
   };
 
@@ -108,17 +102,18 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
       return;
     }
 
+    const itemSeleccionado = items.find(item => item.id === selectedItem);
     const nuevaPartida = {
       kilos: parseFloat(kilos),
       numeroPartida: numeroPartida,
       unidades: parseInt(unidades),
-      item: selectedItem
+      item: itemSeleccionado
     };
 
     setPartidasRemito([...partidasRemito, nuevaPartida]);
     
-    // Limpiar campos de partida
-    setSelectedItem(null);
+    // Limpiar campos
+    setSelectedItem('');
     setItemSearch('');
     setNumeroPartida('');
     setKilos('');
@@ -143,20 +138,21 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
       return;
     }
 
+    const proveedorSeleccionado = proveedores.find(prov => prov.id === selectedProveedor);
+
     const remitoData = {
       fechaSeleccionado: fechaRemito,
       numeroRemitoSeleccionado: numeroRemito,
       partidasRemito: partidasRemito,
-      proveedorSeleccionado: selectedProveedor,
+      proveedorSeleccionado: proveedorSeleccionado,
       tipoMovimiento: 'entrada'
     };
 
     try {
       await dispatch(createRemitoEntrada(remitoData)).unwrap();
       
-      // Limpiar el formulario
-      setSelectedProveedor(null);
-      setProveedorSearch('');
+      // Limpiar formulario
+      setSelectedProveedor('');
       setNumeroRemito('');
       setFechaRemito('');
       setPartidasRemito([]);
@@ -171,51 +167,39 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
     }
   };
 
-  if (isLoading) {
-    return <div className={styles.loading}>Cargando datos...</div>;
-  }
-
-  if (error) {
-    return <div className={styles.error}>Error: {error}</div>;
-  }
-
   return (
     <div className={styles.container}>
       <h3>Crear Remito de Entrada</h3>
       
+      {isLoading && (
+        <div className={styles.loading}>Cargando datos...</div>
+      )}
+
+      {error && (
+        <div className={styles.error}>Error: {error}</div>
+      )}
+      
       <form onSubmit={handleSubmit} className={styles.form}>
-        {/* PRIMERA PARTE - DATOS DEL REMITO */}
+        {/* DATOS DEL REMITO */}
         <div className={styles.section}>
           <h4>Datos del Remito</h4>
           
           <div className={styles.formGroup}>
             <label htmlFor="proveedor">Proveedor:</label>
-            <div className={styles.searchContainer}>
-              <input
-                type="text"
-                id="proveedor"
-                value={proveedorSearch}
-                onChange={handleProveedorInputChange}
-                onFocus={() => setShowProveedorDropdown(true)}
-                placeholder="Buscar proveedor..."
-                className={styles.searchInput}
-                ref={proveedorInputRef}
-                required
-              />
-              {showProveedorDropdown && filteredProveedores.length > 0 && (
-                <div className={styles.dropdown}>
-                  {filteredProveedores.map(proveedor => (
-                    <div
-                      key={proveedor.id}
-                      className={styles.dropdownItem}
-                      onClick={() => handleProveedorSelect(proveedor)}
-                    >
-                      {proveedor.nombre}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <select
+              id="proveedor"
+              value={selectedProveedor}
+              onChange={(e) => setSelectedProveedor(e.target.value)}
+              className={styles.select}
+              required
+            >
+              <option value="">Seleccionar proveedor</option>
+              {filteredProveedores.map(proveedor => (
+                <option key={proveedor.id} value={proveedor.id}>
+                  {proveedor.nombre}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className={styles.formGroup}>
@@ -243,23 +227,23 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
           </div>
         </div>
 
-        {/* SEGUNDA PARTE - AGREGAR PARTIDAS */}
+        {/* AGREGAR PARTIDAS */}
         {selectedProveedor && (
           <div className={styles.section}>
             <h4>Agregar Partidas</h4>
             
             <div className={styles.formGroup}>
               <label htmlFor="item">Item:</label>
-              <div className={styles.searchContainer}>
+              <div className={styles.searchContainer} ref={itemInputRef}>
                 <input
                   type="text"
                   id="item"
                   value={itemSearch}
-                  onChange={handleItemInputChange}
+                  onChange={handleItemSearchChange}
                   onFocus={() => setShowItemDropdown(true)}
-                  placeholder="Buscar item..."
+                  placeholder="Buscar item por descripción o categoría..."
                   className={styles.searchInput}
-                  ref={itemInputRef}
+                  autoComplete="off"
                 />
                 {showItemDropdown && filteredItems.length > 0 && (
                   <div className={styles.dropdown}>

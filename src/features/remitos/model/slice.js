@@ -69,8 +69,8 @@ const remitosSlice = createSlice({
       })
       .addCase(fetchRemitosData.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload.items;
-        state.proveedores = action.payload.proveedores;
+        state.items = action.payload.items || [];
+        state.proveedores = action.payload.proveedores || [];
       })
       .addCase(fetchRemitosData.rejected, (state, action) => {
         state.isLoading = false;
@@ -83,7 +83,9 @@ const remitosSlice = createSlice({
       })
       .addCase(createRemitoEntrada.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.remitos.push(action.payload);
+        if (action.payload) {
+          state.remitos.push(action.payload);
+        }
       })
       .addCase(createRemitoEntrada.rejected, (state, action) => {
         state.isLoading = false;
@@ -96,7 +98,9 @@ const remitosSlice = createSlice({
       })
       .addCase(createRemitoSalida.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.remitos.push(action.payload);
+        if (action.payload) {
+          state.remitos.push(action.payload);
+        }
       })
       .addCase(createRemitoSalida.rejected, (state, action) => {
         state.isLoading = false;
