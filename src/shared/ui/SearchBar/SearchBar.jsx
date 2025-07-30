@@ -19,6 +19,11 @@ export const SearchBar = ({
     }, debounceMs);
   };
 
+  const handleClear = () => {
+    setSearchTerm("");
+    onSearch("");
+  };
+
   return (
     <div className={styles.searchBar}>
       <input
@@ -28,7 +33,15 @@ export const SearchBar = ({
         placeholder={placeholder}
         className={styles.input}
       />
-      <span className={styles.searchIcon}>??</span>
+      {searchTerm && (
+        <button 
+          onClick={handleClear}
+          className={styles.clearButton}
+          title="Limpiar búsqueda"
+        >
+          ✕
+        </button>
+      )}
     </div>
   );
 };

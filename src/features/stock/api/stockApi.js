@@ -14,6 +14,9 @@ export const stockApi = {
   // Obtener todos los movimientos de entrada (para stock general)
   getAllMovimientos: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/entrada`),
   
+  // Obtener stock consolidado por item y partida
+  getStockConsolidado: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/stock-consolidado`),
+  
   // Obtener movimientos de salida
   getMovimientosSalida: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/salida`),
   

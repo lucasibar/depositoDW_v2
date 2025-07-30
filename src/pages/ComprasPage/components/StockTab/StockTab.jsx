@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { SearchBar } from "../../../../shared/ui/SearchBar/SearchBar";
 import { MaterialList } from "../../../../widgets/MaterialList/MaterialList";
 import { StockSummary } from "../../../../widgets/StockSummary/StockSummary";
-import { fetchStock } from "../../../../features/stock/model/slice";
+import { fetchStockConsolidado } from "../../../../features/stock/model/slice";
 import { selectStock, selectStockLoading, selectStockError } from "../../../../features/stock/model/selectors";
 import styles from "./StockTab.module.css";
 
@@ -15,7 +15,7 @@ export const StockTab = () => {
   const [filteredMaterials, setFilteredMaterials] = useState([]);
 
   useEffect(() => {
-    dispatch(fetchStock());
+    dispatch(fetchStockConsolidado());
   }, [dispatch]);
 
   useEffect(() => {
@@ -28,11 +28,22 @@ export const StockTab = () => {
       return;
     }
 
-    const filtered = stock.filter(material =>
-      material?.item?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      material?.numeroPartida?.includes(searchTerm) ||
-      material?.proveedor?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Dividir el término de búsqueda en palabras individuales
+    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
+    
+    const filtered = stock.filter(material => {
+      // Crear un string con todos los campos de búsqueda
+      const searchableText = [
+        material?.item?.descripcion || '',
+        material?.item?.categoria || '',
+        material?.partida?.numeroPartida || '',
+        material?.proveedor || ''
+      ].join(' ').toLowerCase();
+      
+      // Verificar si TODAS las palabras están presentes en el texto buscable
+      return searchWords.every(word => searchableText.includes(word));
+    });
+    
     setFilteredMaterials(filtered);
   };
 
@@ -55,7 +66,7 @@ export const StockTab = () => {
     return (
       <div className={styles.error}>
         <p>{error}</p>
-        <button onClick={() => dispatch(fetchStock())} className={styles.retryButton}>
+        <button onClick={() => dispatch(fetchStockConsolidado())} className={styles.retryButton}>
           Reintentar
         </button>
       </div>
@@ -66,7 +77,7 @@ export const StockTab = () => {
     <div className={styles.stockTab}>
       <div className={styles.header}>
         <SearchBar 
-          placeholder="Buscar por material, número de partida o proveedor..."
+          placeholder="Buscar por categoría, descripción, partida o proveedor (ej: nylon 16/1 negro rontaltex)..."
           onSearch={handleSearch}
         />
         <StockSummary materials={filteredMaterials} />

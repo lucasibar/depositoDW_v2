@@ -16,10 +16,13 @@
 }
 
 .title {
-  margin: 0 0 12px 0;
-  color: #333;
-  font-size: 18px;
-  font-weight: 600;
+  margin: 0 0 12px 0 !important;
+  color: #333 !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .details {

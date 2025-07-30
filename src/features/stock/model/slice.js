@@ -38,6 +38,18 @@ export const fetchStockTotal = createAsyncThunk(
   }
 );
 
+export const fetchStockConsolidado = createAsyncThunk(
+  'stock/fetchStockConsolidado',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await stockApi.getStockConsolidado();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar stock consolidado');
+    }
+  }
+);
+
 const initialState = {
   stock: [],
   stockByMaterial: [],
@@ -95,6 +107,19 @@ const stockSlice = createSlice({
         state.stockTotal = action.payload;
       })
       .addCase(fetchStockTotal.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Fetch stock consolidado
+      .addCase(fetchStockConsolidado.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchStockConsolidado.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.stock = action.payload;
+      })
+      .addCase(fetchStockConsolidado.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });

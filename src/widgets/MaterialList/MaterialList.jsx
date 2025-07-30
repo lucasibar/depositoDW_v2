@@ -17,14 +17,21 @@ export const MaterialList = ({
 
   return (
     <div className={styles.materialList}>
-      {materials.map((material) => (
-        <MaterialCard
-          key={material.id || material.numeroPartida}
-          material={material}
-          variant={variant}
-          onClick={onMaterialClick}
-        />
-      ))}
+      {materials.map((material, index) => {
+        // Crear una key única basada en los datos disponibles
+        const uniqueKey = material.item?.id && material.partida?.id 
+          ? `${material.item.id}-${material.partida.id}`
+          : `material-${index}`;
+          
+        return (
+          <MaterialCard
+            key={uniqueKey}
+            material={material}
+            variant={variant}
+            onClick={onMaterialClick}
+          />
+        );
+      })}
     </div>
   );
 };
