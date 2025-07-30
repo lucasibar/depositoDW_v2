@@ -15,6 +15,26 @@
   width: 100%;
 }
 
+/* Header con búsqueda y filtros */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.searchSection {
+  width: 100%;
+}
+
+.filtersSection {
+  width: 100%;
+}
+
 /* Contenedor para el layout de dos columnas */
 .mainContent {
   display: flex;
@@ -47,6 +67,22 @@
 
 /* Desktop (>768px) */
 @media (min-width: 768px) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .searchSection {
+    flex: 1;
+    min-width: 300px;
+  }
+  
+  .filtersSection {
+    flex: 0 0 auto;
+    width: 292px;
+  }
+  
   .mainContent {
     flex-direction: row;
     gap: 24px;
@@ -141,6 +177,20 @@
   border-radius: 4px;
   margin: 20px 0;
   color: #c33;
+}
+
+.retryButton {
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background: #0056b3;
 }
 
 .noData {

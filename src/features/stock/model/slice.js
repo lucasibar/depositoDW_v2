@@ -50,8 +50,21 @@ export const fetchStockConsolidado = createAsyncThunk(
   }
 );
 
+export const fetchPosicionesConItems = createAsyncThunk(
+  'stock/fetchPosicionesConItems',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await stockApi.getPosicionesConItems();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar posiciones');
+    }
+  }
+);
+
 const initialState = {
   stock: [],
+  posiciones: [],
   stockByMaterial: [],
   isLoading: false,
   error: null,
@@ -120,6 +133,19 @@ const stockSlice = createSlice({
         state.stock = action.payload;
       })
       .addCase(fetchStockConsolidado.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Fetch posiciones con items
+      .addCase(fetchPosicionesConItems.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchPosicionesConItems.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.posiciones = action.payload;
+      })
+      .addCase(fetchPosicionesConItems.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });
