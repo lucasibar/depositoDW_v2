@@ -13,7 +13,10 @@ import {
 import { SearchBar } from '../../shared/ui/SearchBar/SearchBar';
 import { AdvancedFilters } from '../../shared/ui/AdvancedFilters/AdvancedFilters';
 import { PosicionList } from '../../widgets/PosicionList/PosicionList';
-import { fetchPosicionesConItems } from '../../features/stock/model/slice';
+import { AdicionRapidaForm } from '../../widgets/remitos/AdicionRapidaForm/AdicionRapidaForm';
+import { MovimientoInternoForm } from '../../widgets/remitos/MovimientoInternoForm/MovimientoInternoForm';
+import { CorreccionForm } from '../../widgets/remitos/CorreccionForm/CorreccionForm';
+import { fetchPosicionesConItems, adicionRapida, movimientoInterno, correccionItem } from '../../features/stock/model/slice';
 import { selectPosiciones, selectStockLoading, selectStockError } from '../../features/stock/model/selectors';
 import { applyAllFilters } from '../../features/stock/utils/posicionUtils';
 import { getRoleColor, getRoleLabel } from '../../features/stock/utils/userUtils';
@@ -33,6 +36,13 @@ export const DepositoPage = () => {
     ab: '',
     pasillo: ''
   });
+  
+  // Estados para los formularios
+  const [adicionRapidaOpen, setAdicionRapidaOpen] = useState(false);
+  const [movimientoInternoOpen, setMovimientoInternoOpen] = useState(false);
+  const [correccionOpen, setCorreccionOpen] = useState(false);
+  const [selectedPosicion, setSelectedPosicion] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   
   const posiciones = useSelector(selectPosiciones);
   const isLoading = useSelector(selectStockLoading);
@@ -70,6 +80,60 @@ export const DepositoPage = () => {
     console.log("Posición seleccionada:", posicion);
     // Aquí puedes agregar lógica específica para depósito
     // Por ejemplo, abrir un modal con detalles o navegar a otra página
+  };
+
+  const handleAdicionRapida = (posicion) => {
+    setSelectedPosicion(posicion);
+    setAdicionRapidaOpen(true);
+  };
+
+  const handleMovimientoInterno = (item, posicion) => {
+    console.log('Datos recibidos para movimiento interno:', { item, posicion });
+    if (item && posicion) {
+      setSelectedItem(item);
+      setSelectedPosicion(posicion);
+      setMovimientoInternoOpen(true);
+    } else {
+      console.error('Datos inválidos para movimiento interno:', { item, posicion });
+    }
+  };
+
+  const handleCorreccion = (item, posicion) => {
+    console.log('Datos recibidos para corrección:', { item, posicion });
+    if (item && posicion) {
+      setSelectedItem(item);
+      setSelectedPosicion(posicion);
+      setCorreccionOpen(true);
+    } else {
+      console.error('Datos inválidos para corrección:', { item, posicion });
+    }
+  };
+
+  const handleAdicionRapidaSubmit = async (data) => {
+    try {
+      await dispatch(adicionRapida(data));
+      dispatch(fetchPosicionesConItems()); // Recargar posiciones
+    } catch (error) {
+      console.error('Error en adición rápida:', error);
+    }
+  };
+
+  const handleMovimientoInternoSubmit = async (data) => {
+    try {
+      await dispatch(movimientoInterno(data));
+      dispatch(fetchPosicionesConItems()); // Recargar posiciones
+    } catch (error) {
+      console.error('Error en movimiento interno:', error);
+    }
+  };
+
+  const handleCorreccionSubmit = async (data) => {
+    try {
+      await dispatch(correccionItem(data));
+      dispatch(fetchPosicionesConItems()); // Recargar posiciones
+    } catch (error) {
+      console.error('Error en corrección:', error);
+    }
   };
 
 
@@ -182,6 +246,41 @@ export const DepositoPage = () => {
           <PosicionList
             posiciones={filteredPosiciones}
             onPosicionClick={handlePosicionClick}
+            onAdicionRapida={handleAdicionRapida}
+            onMovimientoInterno={handleMovimientoInterno}
+            onCorreccion={handleCorreccion}
+          />
+          
+          {/* Formularios */}
+          <AdicionRapidaForm
+            open={adicionRapidaOpen}
+            onClose={() => setAdicionRapidaOpen(false)}
+            posicion={selectedPosicion}
+            onSubmit={handleAdicionRapidaSubmit}
+          />
+          
+          <MovimientoInternoForm
+            open={movimientoInternoOpen}
+            onClose={() => {
+              setMovimientoInternoOpen(false);
+              setSelectedItem(null);
+              setSelectedPosicion(null);
+            }}
+            item={selectedItem}
+            posicionOrigen={selectedPosicion}
+            onSubmit={handleMovimientoInternoSubmit}
+          />
+          
+          <CorreccionForm
+            open={correccionOpen}
+            onClose={() => {
+              setCorreccionOpen(false);
+              setSelectedItem(null);
+              setSelectedPosicion(null);
+            }}
+            item={selectedItem}
+            posicion={selectedPosicion}
+            onSubmit={handleCorreccionSubmit}
           />
         </div>
       </Container>

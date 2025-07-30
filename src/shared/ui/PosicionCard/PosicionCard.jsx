@@ -1,10 +1,14 @@
 import React, { useState } from "react";
+import { Button, Box } from "@mui/material";
 import { generatePosicionTitle, calculatePosicionTotalKilos, calculatePosicionTotalUnidades } from "../../../features/stock/utils/posicionUtils";
 import styles from "./PosicionCard.module.css";
 
 export const PosicionCard = ({ 
   posicion, 
   onClick,
+  onAdicionRapida,
+  onMovimientoInterno,
+  onCorreccion,
   children 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -20,6 +24,21 @@ export const PosicionCard = ({
   const handleItemClick = (e) => {
     e.stopPropagation();
     onClick?.(posicion);
+  };
+
+  const handleAdicionRapida = (e) => {
+    e.stopPropagation();
+    onAdicionRapida?.(posicion);
+  };
+
+  const handleMovimientoInterno = (e, item) => {
+    e.stopPropagation();
+    onMovimientoInterno?.(item, posicion);
+  };
+
+  const handleCorreccion = (e, item) => {
+    e.stopPropagation();
+    onCorreccion?.(item, posicion);
   };
 
   const hasMoreItems = posicion.items && posicion.items.length > 3;
@@ -41,6 +60,19 @@ export const PosicionCard = ({
         <p><strong>Total Kilos:</strong> {totalKilos.toFixed(2)}</p>
         <p><strong>Total Unidades:</strong> {totalUnidades}</p>
         <p><strong>Items:</strong> {posicion.items?.length || 0}</p>
+        
+        {/* Botón de Adición Rápida */}
+        <Box sx={{ mt: 2, mb: 2 }}>
+          <Button
+            variant="contained"
+            color="success"
+            size="small"
+            onClick={handleAdicionRapida}
+            sx={{ width: '100%' }}
+          >
+            + Adición Rápida
+          </Button>
+        </Box>
         {posicion.items && posicion.items.length > 0 && (
           <div className={styles.itemsList}>
             <p><strong>Materiales:</strong></p>
@@ -59,6 +91,25 @@ export const PosicionCard = ({
                       <span><strong>Proveedor:</strong> {item.proveedor.nombre}</span>
                     )}
                   </div>
+                  {/* Botones para cada item */}
+                  <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      onClick={(e) => handleMovimientoInterno(e, item)}
+                    >
+                      Mover
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="warning"
+                      size="small"
+                      onClick={(e) => handleCorreccion(e, item)}
+                    >
+                      Corregir
+                    </Button>
+                  </Box>
                 </div>
               ))
             ) : (

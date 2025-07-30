@@ -4,7 +4,10 @@ import styles from "./PosicionList.module.css";
 
 export const PosicionList = ({ 
   posiciones, 
-  onPosicionClick 
+  onPosicionClick,
+  onAdicionRapida,
+  onMovimientoInterno,
+  onCorreccion
 }) => {
   if (posiciones.length === 0) {
     return (
@@ -25,6 +28,9 @@ export const PosicionList = ({
             key={uniqueKey}
             posicion={posicion}
             onClick={onPosicionClick}
+            onAdicionRapida={onAdicionRapida}
+            onMovimientoInterno={onMovimientoInterno}
+            onCorreccion={onCorreccion}
           />
         );
       })}

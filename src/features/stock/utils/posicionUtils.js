@@ -4,6 +4,10 @@
  * @returns {string} - Título formateado de la posición
  */
 export const generatePosicionTitle = (posicion) => {
+  if (!posicion) {
+    return 'Posición no disponible';
+  }
+  
   if (posicion.entrada) {
     return 'Posición de Entrada';
   }

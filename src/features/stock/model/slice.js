@@ -62,6 +62,42 @@ export const fetchPosicionesConItems = createAsyncThunk(
   }
 );
 
+export const adicionRapida = createAsyncThunk(
+  'stock/adicionRapida',
+  async (adicionData, { rejectWithValue }) => {
+    try {
+      const response = await stockApi.adicionRapida(adicionData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error en adición rápida');
+    }
+  }
+);
+
+export const movimientoInterno = createAsyncThunk(
+  'stock/movimientoInterno',
+  async (movimientoData, { rejectWithValue }) => {
+    try {
+      const response = await stockApi.movimientoInterno(movimientoData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error en movimiento interno');
+    }
+  }
+);
+
+export const correccionItem = createAsyncThunk(
+  'stock/correccionItem',
+  async (correccionData, { rejectWithValue }) => {
+    try {
+      const response = await stockApi.correccionItem(correccionData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error en corrección');
+    }
+  }
+);
+
 const initialState = {
   stock: [],
   posiciones: [],
@@ -146,6 +182,42 @@ const stockSlice = createSlice({
         state.posiciones = action.payload;
       })
       .addCase(fetchPosicionesConItems.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Adición rápida
+      .addCase(adicionRapida.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(adicionRapida.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(adicionRapida.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Movimiento interno
+      .addCase(movimientoInterno.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(movimientoInterno.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(movimientoInterno.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Corrección item
+      .addCase(correccionItem.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(correccionItem.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(correccionItem.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });

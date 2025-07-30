@@ -25,4 +25,13 @@ export const stockApi = {
   
   // Obtener salidas sin remito asignado
   getSalidasSinRemito: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/sin-remito`),
+  
+  // Adición rápida
+  adicionRapida: (data) => axios.post(`${API_CONFIG.BASE_URL}/movimientos/adicion-rapida`, data),
+  
+  // Movimiento interno
+  movimientoInterno: (data) => axios.post(`${API_CONFIG.BASE_URL}/movimientos/interno`, data),
+  
+  // Corrección de item
+  correccionItem: (data) => axios.put(`${API_CONFIG.BASE_URL}/movimientos/correccion/${data.posicionId}/${data.itemId}`, data),
 }; 

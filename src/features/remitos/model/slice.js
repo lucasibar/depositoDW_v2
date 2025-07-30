@@ -14,6 +14,18 @@ export const fetchRemitosData = createAsyncThunk(
   }
 );
 
+export const dataProveedoresItems = createAsyncThunk(
+  'remitos/dataProveedoresItems',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await remitosApi.getDataRemitoRecepcion();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar proveedores e items');
+    }
+  }
+);
+
 export const createRemitoEntrada = createAsyncThunk(
   'remitos/createRemitoEntrada',
   async (remitoData, { rejectWithValue }) => {
@@ -73,6 +85,20 @@ const remitosSlice = createSlice({
         state.proveedores = action.payload.proveedores || [];
       })
       .addCase(fetchRemitosData.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Data proveedores items
+      .addCase(dataProveedoresItems.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(dataProveedoresItems.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.items = action.payload.items || [];
+        state.proveedores = action.payload.proveedores || [];
+      })
+      .addCase(dataProveedoresItems.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
