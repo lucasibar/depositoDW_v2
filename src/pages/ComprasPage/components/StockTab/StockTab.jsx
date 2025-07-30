@@ -5,6 +5,8 @@ import { MaterialList } from "../../../../widgets/MaterialList/MaterialList";
 import { StockSummary } from "../../../../widgets/StockSummary/StockSummary";
 import { fetchStockConsolidado } from "../../../../features/stock/model/slice";
 import { selectStock, selectStockLoading, selectStockError } from "../../../../features/stock/model/selectors";
+import { filterMaterialsBySearch } from "../../../../features/stock/utils/searchUtils";
+import { SEARCH_PLACEHOLDERS, ERROR_MESSAGES } from "../../../../features/stock/constants/stockConstants";
 import styles from "./StockTab.module.css";
 
 export const StockTab = () => {
@@ -23,27 +25,7 @@ export const StockTab = () => {
   }, [stock]);
 
   const handleSearch = (searchTerm) => {
-    if (!searchTerm.trim()) {
-      setFilteredMaterials(stock);
-      return;
-    }
-
-    // Dividir el término de búsqueda en palabras individuales
-    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
-    
-    const filtered = stock.filter(material => {
-      // Crear un string con todos los campos de búsqueda
-      const searchableText = [
-        material?.item?.descripcion || '',
-        material?.item?.categoria || '',
-        material?.partida?.numeroPartida || '',
-        material?.proveedor || ''
-      ].join(' ').toLowerCase();
-      
-      // Verificar si TODAS las palabras están presentes en el texto buscable
-      return searchWords.every(word => searchableText.includes(word));
-    });
-    
+    const filtered = filterMaterialsBySearch(stock, searchTerm);
     setFilteredMaterials(filtered);
   };
 
@@ -57,7 +39,7 @@ export const StockTab = () => {
     return (
       <div className={styles.loading}>
         <div className={styles.spinner}></div>
-        <p>Cargando materiales...</p>
+        <p>{ERROR_MESSAGES.LOADING}</p>
       </div>
     );
   }
@@ -67,7 +49,7 @@ export const StockTab = () => {
       <div className={styles.error}>
         <p>{error}</p>
         <button onClick={() => dispatch(fetchStockConsolidado())} className={styles.retryButton}>
-          Reintentar
+          {ERROR_MESSAGES.RETRY}
         </button>
       </div>
     );
@@ -77,7 +59,7 @@ export const StockTab = () => {
     <div className={styles.stockTab}>
       <div className={styles.header}>
         <SearchBar 
-          placeholder="Buscar por categoría, descripción, partida o proveedor (ej: nylon 16/1 negro rontaltex)..."
+          placeholder={SEARCH_PLACEHOLDERS.STOCK}
           onSearch={handleSearch}
         />
         <StockSummary materials={filteredMaterials} />
