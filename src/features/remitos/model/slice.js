@@ -14,6 +14,18 @@ export const fetchRemitosData = createAsyncThunk(
   }
 );
 
+export const fetchRemitosEntrada = createAsyncThunk(
+  'remitos/fetchRemitosEntrada',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await remitosApi.getRemitosEntrada();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar remitos de entrada');
+    }
+  }
+);
+
 export const dataProveedoresItems = createAsyncThunk(
   'remitos/dataProveedoresItems',
   async (_, { rejectWithValue }) => {
@@ -129,6 +141,19 @@ const remitosSlice = createSlice({
         }
       })
       .addCase(createRemitoSalida.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Fetch remitos entrada
+      .addCase(fetchRemitosEntrada.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchRemitosEntrada.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.remitos = action.payload;
+      })
+      .addCase(fetchRemitosEntrada.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });

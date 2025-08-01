@@ -17,7 +17,6 @@ export const RemitosTab = () => {
   };
 
   const handleRemitoCreated = (remitoData) => {
-    console.log('Remito creado:', remitoData);
     setShowForm(false);
   };
 

@@ -1,10 +1,25 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
-import { selectRemitos } from '../../../../../../features/remitos/model/selectors';
-import { useSelector } from 'react-redux';
+import { Box, Typography, CircularProgress, Alert } from '@mui/material';
+import { useRemitos } from '../../../../../../features/remitos/hooks/useRemitos';
 
 export const RemitosList = () => {
-  const remitos = useSelector(selectRemitos);
+  const { remitos, isLoading, error, handleRetry } = useRemitos();
+
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" p={3}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error" onClose={handleRetry}>
+        {error}
+      </Alert>
+    );
+  }
 
   if (remitos.length === 0) {
     return (
@@ -16,9 +31,9 @@ export const RemitosList = () => {
 
   return (
     <Box>
-      {remitos.map((remito) => (
+      {remitos.map((remito, index) => (
         <Box 
-          key={remito.id} 
+          key={remito.id || `remito-${index}`} 
           sx={{ 
             p: 2, 
             mb: 2, 
@@ -28,13 +43,16 @@ export const RemitosList = () => {
           }}
         >
           <Typography variant="subtitle1" fontWeight="bold">
-            Remito #{remito.numero}
+            Remito #{remito.numeroRemito || remito.numero || 'Sin número'}
           </Typography>
           <Typography variant="body2" color="textSecondary">
-            Proveedor: {remito.proveedor}
+            Proveedor: {remito.proveedor?.nombre || 'Sin proveedor'}
           </Typography>
           <Typography variant="body2" color="textSecondary">
-            Fecha: {new Date(remito.fecha).toLocaleDateString()}
+            Fecha: {remito.fecha ? new Date(remito.fecha).toLocaleDateString() : 'Sin fecha'}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Tipo: {remito.tipoMovimiento || 'Sin tipo'}
           </Typography>
         </Box>
       ))}

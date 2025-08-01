@@ -145,7 +145,7 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
       numeroRemitoSeleccionado: numeroRemito,
       partidasRemito: partidasRemito,
       proveedorSeleccionado: proveedorSeleccionado,
-      tipoMovimiento: 'entrada'
+      tipoMovimiento: 'remitoEntrada'
     };
 
     try {

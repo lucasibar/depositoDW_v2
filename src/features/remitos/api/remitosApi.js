@@ -5,6 +5,9 @@ export const remitosApi = {
   // Obtener datos de remitos de recepción
   getDataRemitoRecepcion: () => axios.get(`${API_CONFIG.BASE_URL}/remitos/dataload-remito-recepcion`),
   
+  // Obtener remitos de entrada
+  getRemitosEntrada: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/entrada`),
+  
   // Crear remito de entrada
   createRemitoEntrada: (remitoData) => axios.post(`${API_CONFIG.BASE_URL}/movimientos/remito-entrada`, remitoData),
   
