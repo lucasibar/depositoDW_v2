@@ -20,7 +20,25 @@ export const StockTab = () => {
   }
 
   if (error) {
-    return <ErrorState error={error} onRetry={handleRetry} />;
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h3>Error al cargar el stock</h3>
+        <p style={{ color: 'red', marginBottom: '20px' }}>{error}</p>
+        <button 
+          onClick={handleRetry}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }}
+        >
+          Reintentar
+        </button>
+      </div>
+    );
   }
 
   return (
