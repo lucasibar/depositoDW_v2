@@ -4,6 +4,7 @@ import Login from '../pages/Login/Login';
 import { DepositoPage } from '../pages/DepositoPage/DepositoPage';
 import { ComprasPage } from '../pages/ComprasPage/ComprasPage';
 import { AdminPage } from '../pages/AdminPage/AdminPage';
+import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 
 export const App = () => {
@@ -39,6 +40,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['admin']}>
               <AdminPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Calidad - Accesible para calidad y admin */}
+        <Route 
+          exact 
+          path="/deposito_dw_front/calidad" 
+          element={
+            <RoleProtectedRoute allowedRoles={['calidad', 'admin']}>
+              <CalidadPage />
             </RoleProtectedRoute>
           } 
         />

@@ -24,6 +24,8 @@ const RoleProtectedRoute = ({ children, allowedRoles }) => {
         return <Navigate to="/deposito_dw_front/admin" replace />;
       case 'compras':
         return <Navigate to="/deposito_dw_front/compras" replace />;
+      case 'calidad':
+        return <Navigate to="/deposito_dw_front/calidad" replace />;
       case 'deposito':
       case 'usuario':
         return <Navigate to="/deposito_dw_front/deposito" replace />;
