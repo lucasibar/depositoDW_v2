@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { 
   Box, 
   Typography, 
@@ -7,7 +7,8 @@ import {
   Grid,
   Alert,
   Snackbar,
-  Container
+  Container,
+  Button
 } from '@mui/material';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -29,9 +30,12 @@ import { EMPTY_STATE_MESSAGES } from '../../features/partidas/constants/calidadC
 import styles from './CalidadPage.module.css';
 
 export const CalidadPage = () => {
-  const { partidasEnCuarentena, partidasAprobadas, status } = useSelector(state => state.partidas);
+  const dispatch = useDispatch();
+  const { partidasEnCuarentena, partidasAprobadas, status, error } = useSelector(state => state.partidas);
   const [tabValue, setTabValue] = useState(0);
   const [user, setUser] = useState(null);
+
+
 
   const {
     loading,
@@ -59,8 +63,8 @@ export const CalidadPage = () => {
     if (currentUser) {
       setUser(currentUser);
     }
-    fetchPartidasEnCuarentena();
-  }, []);
+    dispatch(fetchPartidasEnCuarentena());
+  }, [dispatch]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -69,6 +73,10 @@ export const CalidadPage = () => {
   const handleSearch = (term) => {
     handleSearchEnCuarentena(term);
     handleSearchAprobadas(term);
+  };
+
+  const handleRefresh = () => {
+    dispatch(fetchPartidasEnCuarentena());
   };
 
   if (!user) {
@@ -81,6 +89,22 @@ export const CalidadPage = () => {
         <div className={styles.spinner}></div>
         <p>Cargando partidas...</p>
       </div>
+    );
+  }
+
+  if (status === 'failed') {
+    return (
+      <Box sx={{ flexGrow: 1 }}>
+        <AppHeader user={user} />
+        <Container maxWidth="lg" sx={{ mt: 4 }}>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Error al cargar las partidas: {error}
+          </Alert>
+          <Button onClick={handleRefresh} variant="contained">
+            Reintentar
+          </Button>
+        </Container>
+      </Box>
     );
   }
 
@@ -116,6 +140,8 @@ export const CalidadPage = () => {
             Panel de Control - Calidad
           </Typography>
           
+
+          
           {/* Barra de búsqueda */}
           <Box sx={{ mb: 3 }}>
             <SearchBar 
@@ -134,19 +160,19 @@ export const CalidadPage = () => {
             
             <TabPanel value={tabValue} index={0}>
               <Paper elevation={2} sx={{ p: 3 }}>
-                                 {renderPartidasGrid(filteredEnCuarentena, {
-                   icon: InventoryIcon,
-                   ...EMPTY_STATE_MESSAGES.CUARENTENA
-                 })}
+                {renderPartidasGrid(filteredEnCuarentena, {
+                  icon: InventoryIcon,
+                  ...EMPTY_STATE_MESSAGES.CUARENTENA
+                })}
               </Paper>
             </TabPanel>
             
             <TabPanel value={tabValue} index={1}>
               <Paper elevation={2} sx={{ p: 3 }}>
-                                 {renderPartidasGrid(filteredAprobadas, {
-                   icon: CheckCircleIcon,
-                   ...EMPTY_STATE_MESSAGES.APROBADAS
-                 })}
+                {renderPartidasGrid(filteredAprobadas, {
+                  icon: CheckCircleIcon,
+                  ...EMPTY_STATE_MESSAGES.APROBADAS
+                })}
               </Paper>
             </TabPanel>
           </Box>

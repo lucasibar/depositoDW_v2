@@ -1,37 +1,44 @@
 import axios from 'axios';
 import { API_CONFIG } from '../../../config/api';
 
+// Crear una instancia de axios configurada
+const apiClient = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
+  headers: API_CONFIG.DEFAULT_HEADERS,
+});
+
 export const stockApi = {
   // Obtener stock total de un item
-  getStockTotal: (idItem) => axios.get(`${API_CONFIG.BASE_URL}/stock/total/${idItem}`),
+  getStockTotal: (idItem) => apiClient.get(`/stock/total/${idItem}`),
   
   // Obtener stock detallado de un item
-  getStockByItem: (idItem) => axios.get(`${API_CONFIG.BASE_URL}/stock/${idItem}`),
+  getStockByItem: (idItem) => apiClient.get(`/stock/${idItem}`),
   
   // Obtener stock por posición
-  getStockByPosition: (dataPosicion) => axios.post(`${API_CONFIG.BASE_URL}/stock/posicion`, dataPosicion),
+  getStockByPosition: (dataPosicion) => apiClient.post(`/stock/posicion`, dataPosicion),
   
   // Obtener todos los movimientos de entrada (para stock general)
-  getAllMovimientos: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/entrada`),
+  getAllMovimientos: () => apiClient.get(`/movimientos/entrada`),
   
   // Obtener stock consolidado por item y partida
-  getStockConsolidado: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/stock-consolidado`),
+  getStockConsolidado: () => apiClient.get('/movimientos/stock-consolidado'),
   
   // Obtener posiciones con sus items
-  getPosicionesConItems: () => axios.get(`${API_CONFIG.BASE_URL}/posiciones/items`),
+  getPosicionesConItems: () => apiClient.get(`/posiciones/items`),
   
   // Obtener movimientos de salida
-  getMovimientosSalida: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/salida`),
+  getMovimientosSalida: () => apiClient.get(`/movimientos/salida`),
   
   // Obtener salidas sin remito asignado
-  getSalidasSinRemito: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/sin-remito`),
+  getSalidasSinRemito: () => apiClient.get(`/movimientos/sin-remito`),
   
   // Adición rápida
-  adicionRapida: (data) => axios.post(`${API_CONFIG.BASE_URL}/movimientos/adicion-rapida`, data),
+  adicionRapida: (data) => apiClient.post(`/movimientos/adicion-rapida`, data),
   
   // Movimiento interno
-  movimientoInterno: (data) => axios.post(`${API_CONFIG.BASE_URL}/movimientos/interno`, data),
+  movimientoInterno: (data) => apiClient.post(`/movimientos/interno`, data),
   
   // Corrección de item
-  correccionItem: (data) => axios.put(`${API_CONFIG.BASE_URL}/movimientos/correccion/${data.posicionId}/${data.itemId}`, data),
+  correccionItem: (data) => apiClient.put(`/movimientos/correccion/${data.posicionId}/${data.itemId}`, data),
 }; 

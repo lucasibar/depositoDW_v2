@@ -1,22 +1,29 @@
 import axios from 'axios';
 import { API_CONFIG } from '../../../config/api';
 
+// Crear una instancia de axios configurada
+const apiClient = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
+  headers: API_CONFIG.DEFAULT_HEADERS,
+});
+
 export const comprasApi = {
   // Obtener todos los items
-  getItems: () => axios.get(`${API_CONFIG.BASE_URL}/items`),
+  getItems: () => apiClient.get('/items'),
   
   // Obtener items por proveedor
-  getItemsByProveedor: (idProveedor) => axios.get(`${API_CONFIG.BASE_URL}/items/${idProveedor}`),
+  getItemsByProveedor: (idProveedor) => apiClient.get(`/items/${idProveedor}`),
   
   // Crear nuevo item
-  createItem: (itemData) => axios.post(`${API_CONFIG.BASE_URL}/items`, itemData),
+  createItem: (itemData) => apiClient.post('/items', itemData),
   
   // Obtener todos los proveedores
-  getProveedores: () => axios.get(`${API_CONFIG.BASE_URL}/proveedores`),
+  getProveedores: () => apiClient.get('/proveedores'),
   
   // Obtener items de un proveedor específico
-  getItemsProveedor: (idProveedor) => axios.get(`${API_CONFIG.BASE_URL}/proveedores/${idProveedor}`),
+  getItemsProveedor: (idProveedor) => apiClient.get(`/proveedores/${idProveedor}`),
   
   // Crear nuevo proveedor
-  createProveedor: (proveedorData) => axios.post(`${API_CONFIG.BASE_URL}/proveedores`, proveedorData),
+  createProveedor: (proveedorData) => apiClient.post('/proveedores', proveedorData),
 }; 

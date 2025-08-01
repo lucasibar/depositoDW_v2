@@ -1,16 +1,21 @@
 import axios from 'axios';
+import { API_CONFIG } from '../../../config/api';
 
-const URL = "https://derwill-deposito-backend.onrender.com";
+// Crear una instancia de axios configurada
+const apiClient = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
+  headers: API_CONFIG.DEFAULT_HEADERS,
+});
 
 export const partidasApi = {
   getPartidasEnCuarentena: async () => {
-    const response = await axios.get(`${URL}/partidas/cuarentena`);
+    const response = await apiClient.get('/partidas/cuarentena');
     return response.data;
   },
 
   actualizarEstadoPartida: async (id, estado) => {
-    console.log('Enviando al servidor:', { id, estado });
-    const response = await axios.put(`${URL}/partidas/estado-partida`, {
+    const response = await apiClient.put('/partidas/estado-partida', {
       id: id.toString(),
       estado: estado.toLowerCase()
     });

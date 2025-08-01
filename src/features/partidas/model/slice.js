@@ -11,18 +11,15 @@ export const fetchPartidasEnCuarentena = createAsyncThunk(
 export const actualizarEstadoPartida = createAsyncThunk(
   'partidas/actualizarEstadoPartida',
   async ({ partidaId: id, nuevoEstado: estado }, { rejectWithValue }) => {
-    try {
-      console.log('Datos antes de enviar:', { id, estado });
-      const response = await partidasApi.actualizarEstadoPartida(id, estado);
-      console.log('Respuesta del servidor:', response);
-      return { 
-        partidaId: id, 
-        nuevoEstado: estado 
-      };
-    } catch (error) {
-      console.error('Error completo:', error.response || error);
-      return rejectWithValue(error.response?.data?.message || 'Error al actualizar el estado de la partida');
-    }
+         try {
+       const response = await partidasApi.actualizarEstadoPartida(id, estado);
+       return { 
+         partidaId: id, 
+         nuevoEstado: estado 
+       };
+     } catch (error) {
+       return rejectWithValue(error.response?.data?.message || 'Error al actualizar el estado de la partida');
+     }
   }
 );
 
@@ -32,6 +29,8 @@ const initialState = {
   status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null
 };
+
+
 
 const partidasSlice = createSlice({
   name: 'partidas',
@@ -75,11 +74,11 @@ const partidasSlice = createSlice({
       .addCase(fetchPartidasEnCuarentena.pending, (state) => {
         state.status = 'loading';
       })
-             .addCase(fetchPartidasEnCuarentena.fulfilled, (state, action) => {
-         state.status = 'succeeded';
-         
-         // Separar las partidas según su estado real
-         const partidasFormateadas = action.payload.map(partida => {
+                   .addCase(fetchPartidasEnCuarentena.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        
+        // Separar las partidas según su estado real
+        const partidasFormateadas = action.payload.map(partida => {
            // Formatear la fecha
            const fechaOriginal = new Date(partida.fecha);
            const dia = fechaOriginal.getDate().toString().padStart(2, '0');
@@ -110,14 +109,15 @@ const partidasSlice = createSlice({
          state.partidasAprobadas = partidasFormateadas.filter(p => 
            p.estado === 'APROBADO' || p.estado === 'cuarentena-aprobada'
          );
+
+
        })
       .addCase(fetchPartidasEnCuarentena.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message;
       })
-             .addCase(actualizarEstadoPartida.fulfilled, (state, action) => {
-         console.log('actualizarEstadoPartida.fulfilled:', action.payload);
-         const { partidaId, nuevoEstado } = action.payload;
+                     .addCase(actualizarEstadoPartida.fulfilled, (state, action) => {
+          const { partidaId, nuevoEstado } = action.payload;
          
          // Buscar la partida en ambas listas
          let partidaEnCuarentena = state.partidasEnCuarentena.find(p => p.id === partidaId);

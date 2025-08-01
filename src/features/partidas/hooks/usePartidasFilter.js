@@ -4,7 +4,9 @@ export const usePartidasFilter = (partidas) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredPartidas = useMemo(() => {
-    if (!searchTerm) return partidas;
+    if (!searchTerm) {
+      return partidas;
+    }
     
     const term = searchTerm.toLowerCase();
     return partidas.filter(partida => {
