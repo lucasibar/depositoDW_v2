@@ -5,6 +5,46 @@
   gap: 1rem;
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.searchSection {
+  flex: 1;
+}
+
+.statsPanel {
+  margin-top: 1rem;
+}
+
+.monthNavigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.monthInfo {
+  text-align: center;
+  min-width: 150px;
+}
+
+.monthDots {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .remitosList {
   display: flex;
   flex-direction: column;
@@ -73,31 +113,62 @@
 
 /* Proveedor */
 .itemsTable th:nth-child(1) {
-  width: 20%;
+  width: 15%;
 }
 
 /* Descripción */
 .itemsTable th:nth-child(2) {
-  width: 30%;
+  width: 25%;
 }
 
 /* Kilos */
 .itemsTable th:nth-child(3) {
-  width: 15%;
+  width: 10%;
+}
+
+/* Unidades */
+.itemsTable th:nth-child(4) {
+  width: 10%;
 }
 
 /* Categoría */
-.itemsTable th:nth-child(4) {
-  width: 20%;
-}
-
-/* Partida */
 .itemsTable th:nth-child(5) {
   width: 15%;
 }
 
+/* Partida */
+.itemsTable th:nth-child(6) {
+  width: 15%;
+}
+
+/* Acciones */
+.itemsTable th:nth-child(7) {
+  width: 10%;
+}
+
 .itemsTable tr:last-child td {
   border-bottom: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .monthNavigation {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .remitoHeader {
+    grid-template-columns: 100px 1fr 30px;
+  }
+  
+  .itemsTable {
+    font-size: 0.875rem;
+  }
 }
 
 /* Estilos para la paginación */

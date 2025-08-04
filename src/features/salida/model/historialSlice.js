@@ -55,6 +55,14 @@ export const fetchHistorialSalida = createAsyncThunk(
   }
 );
 
+export const deleteItemFromRemito = createAsyncThunk(
+  'historial/deleteItemFromRemito',
+  async ({ remitoId, itemId }) => {
+    const response = await axios.delete(`${API_CONFIG.BASE_URL}/movimientos/salida/${remitoId}/items/${itemId}`);
+    return { remitoId, itemId };
+  }
+);
+
 const historialSlice = createSlice({
   name: 'historial',
   initialState,
@@ -70,6 +78,30 @@ const historialSlice = createSlice({
         state.historialSalida = action.payload;
       })
       .addCase(fetchHistorialSalida.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(deleteItemFromRemito.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteItemFromRemito.fulfilled, (state, action) => {
+        state.loading = false;
+        // Actualizar el estado local removiendo el item
+        const { remitoId, itemId } = action.payload;
+        const remitoIndex = state.historialSalida.findIndex(remito => remito.id === remitoId);
+        
+        if (remitoIndex !== -1) {
+          state.historialSalida[remitoIndex].items = state.historialSalida[remitoIndex].items.filter(
+            item => item.id !== itemId
+          );
+          
+          // Si el remito no tiene más items, eliminarlo completamente
+          if (state.historialSalida[remitoIndex].items.length === 0) {
+            state.historialSalida.splice(remitoIndex, 1);
+          }
+        }
+      })
+      .addCase(deleteItemFromRemito.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

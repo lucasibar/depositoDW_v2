@@ -23,7 +23,7 @@ import { EMPTY_STATE_MESSAGES } from '../../features/salida/constants/salidaCons
 import { generatePosicionTitle } from '../../features/stock/utils/posicionUtils';
 import { fetchPosicionesConItems } from '../../features/stock/model/slice';
 import { selectPosiciones, selectStockLoading, selectStockError } from '../../features/stock/model/selectors';
-import { fetchHistorialSalida } from '../../features/salida/model/historialSlice';
+import { fetchHistorialSalida, deleteItemFromRemito } from '../../features/salida/model/historialSlice';
 import styles from './SalidaPage.module.css';
 
 // Función de filtrado específica para Salida
@@ -209,6 +209,25 @@ export const SalidaPage = () => {
     }
   };
 
+  const handleDeleteItem = async (remitoKey, itemId) => {
+    try {
+      // Encontrar el remito por su key
+      const remito = historialSalidas.find(r => `${r.fecha}-${r.proveedor}` === remitoKey);
+      
+      if (remito) {
+        await dispatch(deleteItemFromRemito({ 
+          remitoId: remito.id, 
+          itemId: itemId 
+        })).unwrap();
+        
+        // Mostrar mensaje de éxito
+        console.log('Item eliminado exitosamente');
+      }
+    } catch (error) {
+      console.error('Error al eliminar item:', error);
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -243,22 +262,6 @@ export const SalidaPage = () => {
             Panel de Control - Salida
           </Typography>
           
-          {/* Header con búsqueda y filtros */}
-          <div className={styles.header}>
-            <div className={styles.searchSection}>
-              <SearchBar 
-                placeholder="Buscar por posición, material, categoría o proveedor..."
-                onSearch={handleSearch}
-              />
-            </div>
-            <div className={styles.filtersSection}>
-              <AdvancedFilters 
-                filters={advancedFilters}
-                onFilterChange={handleAdvancedFiltersChange}
-              />
-            </div>
-          </div>
-          
           <Box sx={{ width: '100%', mt: 3 }}>
             <SalidaTabs 
               tabValue={tabValue}
@@ -276,6 +279,22 @@ export const SalidaPage = () => {
                   <Typography variant="h6" gutterBottom>
                     Stock Disponible por Posición
                   </Typography>
+                  
+                  {/* Header con búsqueda y filtros para Remito Salida */}
+                  <div className={styles.header}>
+                    <div className={styles.searchSection}>
+                      <SearchBar 
+                        placeholder="Buscar por posición, material, categoría o proveedor..."
+                        onSearch={handleSearch}
+                      />
+                    </div>
+                    <div className={styles.filtersSection}>
+                      <AdvancedFilters 
+                        filters={advancedFilters}
+                        onFilterChange={handleAdvancedFiltersChange}
+                      />
+                    </div>
+                  </div>
                   
                   {filteredPosiciones.length === 0 ? (
                     <EmptyState 
@@ -323,6 +342,7 @@ export const SalidaPage = () => {
                     remitos={historialSalidas}
                     loading={loadingHistorial}
                     error={errorHistorial}
+                    onDeleteItem={handleDeleteItem}
                   />
                 </div>
               )}
