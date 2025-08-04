@@ -1,0 +1,137 @@
+.container {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.remitosList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.remito {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.remitoHeader {
+  display: grid;
+  grid-template-columns: 120px 1fr 30px;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.remitoHeader:hover {
+  background-color: #f8f9fa;
+}
+
+.fecha {
+  font-weight: 500;
+}
+
+.proveedor {
+  color: #666;
+}
+
+.arrow {
+  justify-self: end;
+  color: #666;
+}
+
+.items {
+  padding: 16px;
+  border-top: 1px solid #eee;
+}
+
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.itemsTable th, 
+.itemsTable td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemsTable th {
+  background-color: #f8f9fa;
+  font-weight: 500;
+  color: #666;
+}
+
+/* Proveedor */
+.itemsTable th:nth-child(1) {
+  width: 20%;
+}
+
+/* Descripción */
+.itemsTable th:nth-child(2) {
+  width: 30%;
+}
+
+/* Kilos */
+.itemsTable th:nth-child(3) {
+  width: 15%;
+}
+
+/* Categoría */
+.itemsTable th:nth-child(4) {
+  width: 20%;
+}
+
+/* Partida */
+.itemsTable th:nth-child(5) {
+  width: 15%;
+}
+
+.itemsTable tr:last-child td {
+  border-bottom: none;
+}
+
+/* Estilos para la paginación */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.pageButton {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #d0d0d0;
+}
+
+.pageButton.active {
+  background: #8884d8;
+  color: white;
+  border-color: #8884d8;
+}
+
+.pageButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+} 

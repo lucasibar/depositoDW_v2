@@ -17,12 +17,13 @@ import { authService } from '../../services/authService';
 import { SearchBar } from '../../shared/ui/SearchBar/SearchBar';
 import { AdvancedFilters } from '../../shared/ui/AdvancedFilters/AdvancedFilters';
 import AppHeader from '../../shared/ui/AppHeader';
-import { SalidaTabs, SalidaCard, EmptyState, SalidaForm, StockCard } from '../../features/salida/ui';
-import { useSalidaActions } from '../../features/salida/hooks';
+import { SalidaTabs, SalidaCard, EmptyState, SalidaForm, StockCard, RemitosSalidaList } from '../../features/salida/ui';
+import { useSalidaActions, useHistorialFilter } from '../../features/salida/hooks';
 import { EMPTY_STATE_MESSAGES } from '../../features/salida/constants/salidaConstants';
 import { generatePosicionTitle } from '../../features/stock/utils/posicionUtils';
 import { fetchPosicionesConItems } from '../../features/stock/model/slice';
 import { selectPosiciones, selectStockLoading, selectStockError } from '../../features/stock/model/selectors';
+import { fetchHistorialSalida } from '../../features/salida/model/historialSlice';
 import styles from './SalidaPage.module.css';
 
 // Función de filtrado específica para Salida
@@ -88,7 +89,7 @@ export const SalidaPage = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedPosicion, setSelectedPosicion] = useState(null);
   const [filteredPosiciones, setFilteredPosiciones] = useState([]);
-  const [historialSalidas, setHistorialSalidas] = useState([]);
+  const [searchTerms, setSearchTerms] = useState([]);
   
   // Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,14 +101,17 @@ export const SalidaPage = () => {
   });
 
   // Redux selectors
-  const posiciones = useSelector(selectPosiciones);
-  const isLoading = useSelector(selectStockLoading);
-  const error = useSelector(selectStockError);
+  const { posiciones, isLoading, error } = useSelector(state => ({
+    posiciones: selectPosiciones(state),
+    isLoading: selectStockLoading(state),
+    error: selectStockError(state)
+  }));
 
-  const {
-    snackbar,
-    handleCloseSnackbar
-  } = useSalidaActions();
+  // Hook para historial de salida
+  const { filteredData: historialSalidas, loading: loadingHistorial, error: errorHistorial } = useHistorialFilter(searchTerms);
+
+  // Hook para acciones de salida
+  const { loading: loadingActions, snackbar, handleCrearSalida, handleAprobarSalida, handleRechazarSalida, handleCompletarSalida, handleCloseSnackbar } = useSalidaActions();
 
   // Cargar usuario al montar el componente
   useEffect(() => {
@@ -124,60 +128,14 @@ export const SalidaPage = () => {
 
   // Cargar historial de salidas
   useEffect(() => {
-    fetchHistorialSalidas();
-  }, []);
+    dispatch(fetchHistorialSalida());
+  }, [dispatch]);
 
   // Aplicar filtros cuando cambien los datos o filtros
   useEffect(() => {
     const filtered = filterPosicionesForSalida(posiciones, searchTerm, advancedFilters);
     setFilteredPosiciones(filtered);
   }, [posiciones, searchTerm, advancedFilters]);
-
-  const fetchHistorialSalidas = async () => {
-    try {
-      // TODO: Implementar llamada a API real
-      const response = await fetch('/api/movimientos/salidas');
-      const data = await response.json();
-      setHistorialSalidas(data);
-    } catch (error) {
-      console.error('Error al cargar historial:', error);
-      // Por ahora mantener datos de ejemplo para el historial
-      setHistorialSalidas([
-        {
-          numeroRemito: '1',
-          fecha: '2024-01-15',
-          proveedor: 'Aceros del Norte S.A.',
-          items: [
-            {
-              id: 1,
-              descripcion: 'Acero inoxidable 304',
-              kilos: 500.25,
-              unidades: 0,
-              categoria: 'Metales',
-              proveedor: 'Aceros del Norte S.A.',
-              partida: 'P-001'
-            }
-          ]
-        },
-        {
-          numeroRemito: '2',
-          fecha: '2024-01-14',
-          proveedor: 'Tornillos Rápidos',
-          items: [
-            {
-              id: 2,
-              descripcion: 'Tornillos M8x20',
-              kilos: 0,
-              unidades: 1000,
-              categoria: 'Fijación',
-              proveedor: 'Tornillos Rápidos',
-              partida: 'P-002'
-            }
-          ]
-        }
-      ]);
-    }
-  };
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -228,7 +186,7 @@ export const SalidaPage = () => {
         partida: formData.partida
       };
 
-      const response = await fetch('/api/movimientos/generarRemitoSalida', {
+      const response = await fetch('http://localhost:3001/movimientos/generarRemitoSalida', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -239,7 +197,7 @@ export const SalidaPage = () => {
       if (response.ok) {
         // Recargar datos
         dispatch(fetchPosicionesConItems());
-        await fetchHistorialSalidas();
+        dispatch(fetchHistorialSalida());
         setFormOpen(false);
         setSelectedItem(null);
         setSelectedPosicion(null);
@@ -306,7 +264,7 @@ export const SalidaPage = () => {
               tabValue={tabValue}
               onTabChange={handleTabChange}
               salidasPendientesCount={0} // TODO: Implementar contador real
-              salidasAprobadasCount={historialSalidas.length}
+              salidasAprobadasCount={0} // TODO: Implementar contador real
               remitosCount={historialSalidas.length}
             />
             
@@ -361,31 +319,11 @@ export const SalidaPage = () => {
               ) : (
                 // Pestaña de Historial
                 <div>
-                  <Typography variant="h6" gutterBottom>
-                    Historial de Salidas
-                  </Typography>
-                  
-                  {historialSalidas.length === 0 ? (
-                    <EmptyState 
-                      icon={HistoryIcon}
-                      {...EMPTY_STATE_MESSAGES.HISTORIAL}
-                      searchTerm=""
-                    />
-                  ) : (
-                    <Grid container spacing={3}>
-                      {historialSalidas.map((remito) => (
-                        <Grid item xs={12} sm={6} md={4} key={remito.numeroRemito}>
-                          <SalidaCard 
-                            salida={remito}
-                            onAprobar={() => {}}
-                            onRechazar={() => {}}
-                            onCompletar={() => {}}
-                            loading={isLoading}
-                          />
-                        </Grid>
-                      ))}
-                    </Grid>
-                  )}
+                  <RemitosSalidaList 
+                    remitos={historialSalidas}
+                    loading={loadingHistorial}
+                    error={errorHistorial}
+                  />
                 </div>
               )}
             </Paper>
@@ -396,7 +334,7 @@ export const SalidaPage = () => {
             open={formOpen}
             onClose={() => setFormOpen(false)}
             onSubmit={handleSubmitRemito}
-            loading={isLoading}
+            loading={loadingActions}
             selectedItem={selectedItem}
           />
 
