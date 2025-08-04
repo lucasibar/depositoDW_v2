@@ -40,5 +40,8 @@ export const stockApi = {
   movimientoInterno: (data) => apiClient.post(`/movimientos/interno`, data),
   
   // Corrección de item
-  correccionItem: (data) => apiClient.put(`/movimientos/correccion/${data.posicionId}/${data.itemId}`, data),
+  correccionItem: (data) => apiClient.put(`/movimientos/correccion/${data.posicionId}/${data.itemId}`, {
+    kilos: data.kilos,
+    unidades: data.unidades
+  }),
 }; 

@@ -33,6 +33,12 @@ export const ComprasHeader = ({ user }) => {
                 Calidad
               </button>
               <button 
+                onClick={() => navigate('/deposito_dw_front/salida')} 
+                className={styles.navButton}
+              >
+                Salida
+              </button>
+              <button 
                 onClick={() => navigate('/deposito_dw_front/admin')} 
                 className={styles.navButton}
               >

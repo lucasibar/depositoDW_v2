@@ -43,6 +43,7 @@ export const CalidadPage = () => {
     handleAprobarPartida,
     handleRechazarPartida,
     handleVolverCuarentena,
+    handleAprobarStock,
     handleCloseSnackbar
   } = useCalidadActions();
 
@@ -122,6 +123,7 @@ export const CalidadPage = () => {
               onAprobar={handleAprobarPartida}
               onRechazar={handleRechazarPartida}
               onVolverCuarentena={handleVolverCuarentena}
+              onAprobarStock={handleAprobarStock}
               loading={loading}
             />
           </Grid>

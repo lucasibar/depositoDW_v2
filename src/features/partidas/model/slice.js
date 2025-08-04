@@ -118,7 +118,7 @@ const partidasSlice = createSlice({
       })
                      .addCase(actualizarEstadoPartida.fulfilled, (state, action) => {
           const { partidaId, nuevoEstado } = action.payload;
-         
+          
          // Buscar la partida en ambas listas
          let partidaEnCuarentena = state.partidasEnCuarentena.find(p => p.id === partidaId);
          let partidaEnAprobadas = state.partidasAprobadas.find(p => p.id === partidaId);
@@ -140,6 +140,9 @@ const partidasSlice = createSlice({
              // Mover de aprobadas a cuarentena
              const partidaDevuelta = { ...partidaEnAprobadas, estado: 'CUARENTENA' };
              state.partidasEnCuarentena.push(partidaDevuelta);
+             state.partidasAprobadas = state.partidasAprobadas.filter(p => p.id !== partidaId);
+           } else if (nuevoEstado.toLowerCase() === 'stock') {
+             // Remover de aprobadas cuando pasa a stock
              state.partidasAprobadas = state.partidasAprobadas.filter(p => p.id !== partidaId);
            }
          }

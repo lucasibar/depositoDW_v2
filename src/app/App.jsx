@@ -5,6 +5,7 @@ import { DepositoPage } from '../pages/DepositoPage/DepositoPage';
 import { ComprasPage } from '../pages/ComprasPage/ComprasPage';
 import { AdminPage } from '../pages/AdminPage/AdminPage';
 import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
+import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 
 export const App = () => {
@@ -51,6 +52,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['calidad', 'admin']}>
               <CalidadPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Salida - Accesible para salida y admin */}
+        <Route 
+          exact 
+          path="/deposito_dw_front/salida" 
+          element={
+            <RoleProtectedRoute allowedRoles={['salida', 'admin']}>
+              <SalidaPage />
             </RoleProtectedRoute>
           } 
         />

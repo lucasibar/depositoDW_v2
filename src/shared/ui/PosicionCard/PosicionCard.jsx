@@ -103,11 +103,11 @@ export const PosicionCard = ({
                     </Button>
                     <Button
                       variant="outlined"
-                      color="warning"
+                      color="error"
                       size="small"
                       onClick={(e) => handleCorreccion(e, item)}
                     >
-                      Corregir
+                      Eliminar
                     </Button>
                   </Box>
                 </div>

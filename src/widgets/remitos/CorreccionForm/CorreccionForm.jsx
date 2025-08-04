@@ -67,8 +67,8 @@ export const CorreccionForm = ({
 
   const resetForm = () => {
     setFormData({
-      kilos: item?.kilos?.toString() || '',
-      unidades: item?.unidades?.toString() || ''
+      kilos: '', // Campo vacío para ingresar cantidad a eliminar
+      unidades: '' // Campo vacío para ingresar cantidad a eliminar
     });
     setErrors({});
   };
@@ -108,12 +108,36 @@ export const CorreccionForm = ({
 
   const handleSubmit = () => {
     if (validateForm()) {
+      // Validar que no se elimine más de lo disponible
+      const kilosAEliminar = parseFloat(formData.kilos);
+      const unidadesAEliminar = parseInt(formData.unidades);
+      
+      if (kilosAEliminar > (item?.kilos || 0)) {
+        setErrors({ kilos: `No puede eliminar más de ${item?.kilos || 0} kilos disponibles` });
+        return;
+      }
+      
+      if (unidadesAEliminar > (item?.unidades || 0)) {
+        setErrors({ unidades: `No puede eliminar más de ${item?.unidades || 0} unidades disponibles` });
+        return;
+      }
+      
       const submitData = {
-        posicionId: posicion?.posicionId || posicion?.rack || posicion?.pasillo,
-        itemId: item?.itemId || item?.categoria,
-        partidaId: item?.partidaId || item?.partida,
-        kilos: parseFloat(formData.kilos),
-        unidades: parseInt(formData.unidades)
+        proveedor: item?.proveedor,
+        tipoMovimiento: 'ajusteRESTA',
+        item: {
+          itemId: item?.itemId || item?.id,
+          categoria: item?.categoria,
+          descripcion: item?.descripcion,
+          proveedor: item?.proveedor,
+          partida: item?.partida,
+          kilos: item?.kilos,
+          unidades: item?.unidades
+        },
+        kilos: kilosAEliminar,
+        unidades: unidadesAEliminar,
+        partida: item?.partida,
+        posicion: posicion?.posicionId || posicion?.id || ''
       };
       
       onSubmit(submitData);
@@ -135,7 +159,7 @@ export const CorreccionForm = ({
     >
       <DialogTitle>
         <Typography variant="h6">
-          Corrección de Stock
+          Eliminación Rápida - {item?.descripcion}
         </Typography>
       </DialogTitle>
       
@@ -144,7 +168,7 @@ export const CorreccionForm = ({
           {/* Información del item y posición */}
           <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              Corrigiendo stock en:
+              Eliminando stock de:
             </Typography>
             <Typography variant="body1" gutterBottom>
               <strong>Posición:</strong> {posicion ? generatePosicionTitle(posicion) : 'Posición no disponible'}
@@ -157,12 +181,12 @@ export const CorreccionForm = ({
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
               <Chip 
-                label={`Actual: ${item?.unidades || 0} unidades`} 
+                label={`Disponible: ${item?.unidades || 0} unidades`} 
                 color="warning" 
                 size="small" 
               />
               <Chip 
-                label={`Actual: ${(item?.kilos || 0).toFixed(2)} kg`} 
+                label={`Disponible: ${(item?.kilos || 0).toFixed(2)} kg`} 
                 color="warning" 
                 size="small" 
               />
@@ -171,14 +195,16 @@ export const CorreccionForm = ({
 
           <TextField
             fullWidth
-            label="Nuevos Kilos *"
+            label="Kilos a eliminar *"
             type="number"
             value={formData.kilos}
             onChange={(e) => handleInputChange('kilos', e.target.value)}
             error={!!errors.kilos}
-            helperText={errors.kilos || "Ingrese los nuevos kilos"}
+            helperText={errors.kilos || `Ingrese los kilos a eliminar (máximo ${item?.kilos || 0})`}
+            placeholder={`Ej: ${item?.kilos || 0}`}
             inputProps={{ 
               min: 0,
+              max: item?.kilos || 0,
               step: 0.01
             }}
             sx={{ mb: 2 }}
@@ -186,39 +212,39 @@ export const CorreccionForm = ({
 
           <TextField
             fullWidth
-            label="Nuevas Unidades *"
+            label="Unidades a eliminar *"
             type="number"
             value={formData.unidades}
             onChange={(e) => handleInputChange('unidades', e.target.value)}
             error={!!errors.unidades}
-            helperText={errors.unidades || "Ingrese las nuevas unidades"}
+            helperText={errors.unidades || `Ingrese las unidades a eliminar (máximo ${item?.unidades || 0})`}
+            placeholder={`Ej: ${item?.unidades || 0}`}
             inputProps={{ 
               min: 0,
+              max: item?.unidades || 0,
               step: 1
             }}
             sx={{ mb: 2 }}
           />
 
-          {/* Mostrar diferencia */}
-          {formData.kilos && formData.unidades && (
-            <Box sx={{ mt: 2, p: 2, bgcolor: '#e3f2fd', borderRadius: 1 }}>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Resumen de cambios:
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Chip 
-                  label={`Kilos: ${item?.kilos || 0} → ${parseFloat(formData.kilos).toFixed(2)}`} 
-                  color={parseFloat(formData.kilos) !== (item?.kilos || 0) ? "primary" : "default"}
-                  size="small" 
-                />
-                <Chip 
-                  label={`Unidades: ${item?.unidades || 0} → ${parseInt(formData.unidades)}`} 
-                  color={parseInt(formData.unidades) !== (item?.unidades || 0) ? "primary" : "default"}
-                  size="small" 
-                />
-              </Box>
-            </Box>
-          )}
+          {/* Botón para eliminar todo */}
+          <Box sx={{ mb: 2 }}>
+            <Button
+              variant="outlined"
+              color="warning"
+              fullWidth
+              onClick={() => {
+                setFormData({
+                  kilos: (item?.kilos || 0).toString(),
+                  unidades: (item?.unidades || 0).toString()
+                });
+              }}
+            >
+              Eliminar todo el stock disponible
+            </Button>
+          </Box>
+
+
         </Box>
       </DialogContent>
       
@@ -229,10 +255,10 @@ export const CorreccionForm = ({
         <Button 
           onClick={handleSubmit} 
           variant="contained" 
-          color="primary"
+          color="error"
           disabled={isSubmitting}
         >
-          Aplicar Corrección
+          {isSubmitting ? 'Eliminando...' : 'Eliminar'}
         </Button>
       </DialogActions>
     </Dialog>

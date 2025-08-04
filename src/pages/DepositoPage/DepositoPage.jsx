@@ -16,7 +16,7 @@ import { PosicionList } from '../../widgets/PosicionList/PosicionList';
 import { AdicionRapidaForm } from '../../widgets/remitos/AdicionRapidaForm/AdicionRapidaForm';
 import { MovimientoInternoForm } from '../../widgets/remitos/MovimientoInternoForm/MovimientoInternoForm';
 import { CorreccionForm } from '../../widgets/remitos/CorreccionForm/CorreccionForm';
-import { fetchPosicionesConItems, adicionRapida, movimientoInterno, correccionItem } from '../../features/stock/model/slice';
+import { fetchPosicionesConItems, adicionRapida, movimientoInterno } from '../../features/stock/model/slice';
 import { selectPosiciones, selectStockLoading, selectStockError } from '../../features/stock/model/selectors';
 import { applyAllFilters } from '../../features/stock/utils/posicionUtils';
 import { getRoleColor, getRoleLabel } from '../../features/stock/utils/userUtils';
@@ -129,10 +129,10 @@ export const DepositoPage = () => {
 
   const handleCorreccionSubmit = async (data) => {
     try {
-      await dispatch(correccionItem(data));
+      await dispatch(adicionRapida(data));
       dispatch(fetchPosicionesConItems()); // Recargar posiciones
     } catch (error) {
-      console.error('Error en corrección:', error);
+      console.error('Error en eliminación:', error);
     }
   };
 
@@ -203,6 +203,18 @@ export const DepositoPage = () => {
                   }}
                 >
                   Calidad
+                </Button>
+                <Button 
+                  color="inherit" 
+                  onClick={() => navigate('/deposito_dw_front/salida')}
+                  sx={{ 
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.1)'
+                    }
+                  }}
+                >
+                  Salida
                 </Button>
                 <Button 
                   color="inherit" 

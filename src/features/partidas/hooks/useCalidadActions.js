@@ -46,6 +46,13 @@ export const useCalidadActions = () => {
   const handleVolverCuarentena = (partidaId) => 
     handleAction('devolver a cuarentena', partidaId, PARTIDA_ESTADOS.CUARENTENA, SNACKBAR_MESSAGES.PARTIDA_DEVUELTA);
 
+  const handleAprobarStock = (partidaId) => {
+    const confirmar = window.confirm('¿Se va a pasar esta mercadería a stock?');
+    if (confirmar) {
+      handleAction('aprobar para stock', partidaId, PARTIDA_ESTADOS.STOCK, SNACKBAR_MESSAGES.PARTIDA_APROBADA_STOCK);
+    }
+  };
+
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
@@ -56,6 +63,7 @@ export const useCalidadActions = () => {
     handleAprobarPartida,
     handleRechazarPartida,
     handleVolverCuarentena,
+    handleAprobarStock,
     handleCloseSnackbar
   };
 }; 

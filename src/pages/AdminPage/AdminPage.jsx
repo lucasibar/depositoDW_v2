@@ -202,6 +202,12 @@ export const AdminPage = () => {
             >
               Calidad
             </button>
+            <button 
+              onClick={() => navigate('/deposito_dw_front/salida')} 
+              className={styles.navButton}
+            >
+              Salida
+            </button>
             <button onClick={handleLogout} className={styles.logoutButton}>
               Cerrar Sesión
             </button>

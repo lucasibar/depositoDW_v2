@@ -13,6 +13,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CheckIcon from '@mui/icons-material/Check';
 import { PARTIDA_ESTADOS } from '../../constants/calidadConstants';
 import styles from './PartidaCard.module.css';
 
@@ -21,6 +22,7 @@ const PartidaCard = ({
   onAprobar, 
   onRechazar, 
   onVolverCuarentena, 
+  onAprobarStock,
   loading 
 }) => {
   const isInCuarentena = partida.estado === PARTIDA_ESTADOS.CUARENTENA_UPPER || partida.estado === PARTIDA_ESTADOS.CUARENTENA;
@@ -71,6 +73,21 @@ const PartidaCard = ({
 
     return (
       <CardActions sx={{ justifyContent: 'space-around', py: 2 }}>
+        <Tooltip title="Aprobar para stock">
+          <IconButton 
+            color="success" 
+            onClick={() => onAprobarStock(partida.id)}
+            disabled={loading}
+            sx={{ 
+              backgroundColor: '#4caf50',
+              color: 'white',
+              '&:hover': { backgroundColor: '#388e3c' },
+              '&:disabled': { backgroundColor: '#ccc' }
+            }}
+          >
+            <CheckIcon />
+          </IconButton>
+        </Tooltip>
         <Tooltip title="Rechazar partida">
           <IconButton 
             color="error" 

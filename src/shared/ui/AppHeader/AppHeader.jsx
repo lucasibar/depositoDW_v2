@@ -50,6 +50,30 @@ const AppHeader = ({ user }) => {
         </Button>
         <Button 
           color="inherit" 
+          onClick={() => navigate('/deposito_dw_front/calidad')}
+          sx={{ 
+            border: '1px solid rgba(255,255,255,0.3)',
+            '&:hover': {
+              backgroundColor: 'rgba(255,255,255,0.1)'
+            }
+          }}
+        >
+          Calidad
+        </Button>
+        <Button 
+          color="inherit" 
+          onClick={() => navigate('/deposito_dw_front/salida')}
+          sx={{ 
+            border: '1px solid rgba(255,255,255,0.3)',
+            '&:hover': {
+              backgroundColor: 'rgba(255,255,255,0.1)'
+            }
+          }}
+        >
+          Salida
+        </Button>
+        <Button 
+          color="inherit" 
           onClick={() => navigate('/deposito_dw_front/admin')}
           sx={{ 
             border: '1px solid rgba(255,255,255,0.3)',
