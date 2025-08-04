@@ -1,23 +1,88 @@
 .container {
-  padding: 20px 0;
-}
-
-.loading {
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  gap: 20px;
+  gap: 8px;
+  min-height: calc(100vh - 64px);
+  background-color: #f5f5f5;
+  margin-top: 64px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Header con búsqueda y filtros */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.searchSection {
+  width: 100%;
+}
+
+.filtersSection {
+  width: 100%;
+}
+
+/* Estilos para la lista de posiciones (replicando PosicionList) */
+.posicionList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+/* Cuando las cartas están expandidas, ajustar el grid */
+.posicionList:has(.expanded) {
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+
+/* Estados de loading y error */
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+}
+
+.error {
+  text-align: center;
+  padding: 20px;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  margin: 20px 0;
+  color: #c33;
+}
+
+.retryButton {
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background: #0056b3;
 }
 
 .spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #2e7d32;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
   border-radius: 50%;
+  width: 40px;
+  height: 40px;
   animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
 }
 
 @keyframes spin {
@@ -25,18 +90,42 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Desktop (>768px) */
+@media (min-width: 768px) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .searchSection {
+    flex: 1;
+    min-width: 300px;
+  }
+  
+  .filtersSection {
+    flex: 0 0 auto;
+    width: 292px;
+  }
+}
+
+@media (max-width: 768px) {
+  .posicionList {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+  
+  .posicionList:has(.expanded) {
+    grid-template-columns: 1fr;
+  }
+}
+
 .tabContent {
   margin-top: 20px;
 }
 
 .searchContainer {
-  margin-bottom: 20px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
 }
 

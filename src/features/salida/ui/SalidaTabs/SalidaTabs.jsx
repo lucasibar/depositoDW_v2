@@ -2,12 +2,14 @@ import React from 'react';
 import { Tabs, Tab, Badge } from '@mui/material';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import HistoryIcon from '@mui/icons-material/History';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 
 const SalidaTabs = ({
   tabValue,
   onTabChange,
   salidasPendientesCount = 0,
-  salidasAprobadasCount = 0
+  salidasAprobadasCount = 0,
+  remitosCount = 0
 }) => {
   const handleChange = (event, newValue) => {
     onTabChange(event, newValue);
@@ -31,6 +33,18 @@ const SalidaTabs = ({
     >
       <Tab
         label={
+          <Badge badgeContent={remitosCount} color="success">
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ReceiptIcon fontSize="small" />
+              Remito Salida
+            </span>
+          </Badge>
+        }
+        id="salida-tab-0"
+        aria-controls="salida-tabpanel-0"
+      />
+      <Tab
+        label={
           <Badge badgeContent={salidasPendientesCount} color="warning">
             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ExitToAppIcon fontSize="small" />
@@ -38,8 +52,8 @@ const SalidaTabs = ({
             </span>
           </Badge>
         }
-        id="salida-tab-0"
-        aria-controls="salida-tabpanel-0"
+        id="salida-tab-1"
+        aria-controls="salida-tabpanel-1"
       />
       <Tab
         label={
@@ -50,8 +64,8 @@ const SalidaTabs = ({
             </span>
           </Badge>
         }
-        id="salida-tab-1"
-        aria-controls="salida-tabpanel-1"
+        id="salida-tab-2"
+        aria-controls="salida-tabpanel-2"
       />
     </Tabs>
   );
