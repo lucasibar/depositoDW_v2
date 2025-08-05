@@ -8,6 +8,12 @@ export const remitosApi = {
   // Obtener remitos de entrada
   getRemitosEntrada: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/entrada`),
   
+  // Obtener remitos de entrada agrupados
+  getRemitosEntradaAgrupados: () => axios.get(`${API_CONFIG.BASE_URL}/movimientos/remitos-entrada`),
+  
+  // Eliminar movimiento de remito
+  deleteMovimientoRemito: (id) => axios.delete(`${API_CONFIG.BASE_URL}/movimientos/movimiento/${id}`),
+  
   // Crear remito de entrada
   createRemitoEntrada: (remitoData) => axios.post(`${API_CONFIG.BASE_URL}/movimientos/remito-entrada`, remitoData),
   

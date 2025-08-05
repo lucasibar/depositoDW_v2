@@ -26,6 +26,30 @@ export const fetchRemitosEntrada = createAsyncThunk(
   }
 );
 
+export const fetchRemitosEntradaAgrupados = createAsyncThunk(
+  'remitos/fetchRemitosEntradaAgrupados',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await remitosApi.getRemitosEntradaAgrupados();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar remitos de entrada agrupados');
+    }
+  }
+);
+
+export const deleteMovimientoRemito = createAsyncThunk(
+  'remitos/deleteMovimientoRemito',
+  async (movimientoId, { rejectWithValue }) => {
+    try {
+      const response = await remitosApi.deleteMovimientoRemito(movimientoId);
+      return { movimientoId, message: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al eliminar movimiento');
+    }
+  }
+);
+
 export const dataProveedoresItems = createAsyncThunk(
   'remitos/dataProveedoresItems',
   async (_, { rejectWithValue }) => {
@@ -154,6 +178,33 @@ const remitosSlice = createSlice({
         state.remitos = action.payload;
       })
       .addCase(fetchRemitosEntrada.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Fetch remitos entrada agrupados
+      .addCase(fetchRemitosEntradaAgrupados.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchRemitosEntradaAgrupados.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.remitos = action.payload;
+      })
+      .addCase(fetchRemitosEntradaAgrupados.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Delete movimiento remito
+      .addCase(deleteMovimientoRemito.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteMovimientoRemito.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // Recargar los remitos después de eliminar
+        // El componente se encargará de recargar los datos
+      })
+      .addCase(deleteMovimientoRemito.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });
