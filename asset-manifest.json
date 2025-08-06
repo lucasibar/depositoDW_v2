@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/depositoDW_v2/static/css/main.5e27b819.css",
+    "main.js": "/depositoDW_v2/static/js/main.065fc0b2.js",
+    "index.html": "/depositoDW_v2/index.html",
+    "main.5e27b819.css.map": "/depositoDW_v2/static/css/main.5e27b819.css.map",
+    "main.065fc0b2.js.map": "/depositoDW_v2/static/js/main.065fc0b2.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.5e27b819.css",
+    "static/js/main.065fc0b2.js"
+  ]
+}
