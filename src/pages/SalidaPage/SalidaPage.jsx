@@ -174,25 +174,54 @@ export const SalidaPage = () => {
 
   const handleSubmitRemito = async (formData) => {
     try {
+      console.log('Datos del formulario:', formData);
+      console.log('Item seleccionado:', selectedItem);
+      console.log('Posición seleccionada:', selectedPosicion);
+      
+      // Validar que tenemos todos los datos necesarios
+      if (!selectedItem || !selectedPosicion) {
+        console.error('Faltan datos del item o posición seleccionada');
+        return;
+      }
+      
+      if (!selectedItem.itemId) {
+        console.error('El item no tiene itemId');
+        return;
+      }
+      
+      if (!selectedPosicion.posicionId) {
+        console.error('La posición no tiene posicionId');
+        return;
+      }
+      
       // TODO: Implementar llamada a API real
       const remitoData = {
-        selectedItem: selectedItem,
+        selectedItem: {
+          itemId: selectedItem.itemId,
+          categoria: selectedItem.categoria,
+          descripcion: selectedItem.descripcion,
+          proveedor: selectedItem.proveedor,
+          partida: selectedItem.partida,
+          kilos: selectedItem.kilos,
+          unidades: selectedItem.unidades
+        },
         kilos: parseFloat(formData.kilos) || 0,
         unidades: parseInt(formData.unidades) || 0,
         id: selectedPosicion.posicionId,
-        proveedor: selectedItem.proveedor?.id,
-        fecha: formData.fecha,
-        cliente: formData.cliente,
-        partida: formData.partida
+        proveedor: formData.cliente,
+        fecha: formData.fecha
       };
 
-      const response = await fetch('http://localhost:3001/movimientos/generarRemitoSalida', {
+      const response = await fetch('http://localhost:3001/movimientos/salida-desde-posicion', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(remitoData)
       });
+
+      console.log('Datos enviados al backend:', remitoData);
+      console.log('Respuesta del servidor:', response.status, response.statusText);
 
       if (response.ok) {
         // Recargar datos
