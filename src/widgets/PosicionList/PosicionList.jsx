@@ -7,7 +7,8 @@ export const PosicionList = ({
   onPosicionClick,
   onAdicionRapida,
   onMovimientoInterno,
-  onCorreccion
+  onCorreccion,
+  searchTerm = ""
 }) => {
   if (posiciones.length === 0) {
     return (
@@ -31,6 +32,7 @@ export const PosicionList = ({
             onAdicionRapida={onAdicionRapida}
             onMovimientoInterno={onMovimientoInterno}
             onCorreccion={onCorreccion}
+            searchTerm={searchTerm}
           />
         );
       })}

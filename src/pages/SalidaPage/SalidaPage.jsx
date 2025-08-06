@@ -36,21 +36,34 @@ const filterPosicionesForSalida = (posiciones, searchTerm, advancedFilters) => {
   if (searchTerm.trim()) {
     const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
     
-    filtered = filtered.filter(posicion => {
-      // Crear un string con todos los campos de búsqueda
-      const searchableText = [
-        generatePosicionTitle(posicion),
-        ...posicion.items?.map(item => [
-          item.categoria || '',
-          item.descripcion || '',
-          item.partida || '',
-          item.proveedor?.nombre || ''
-        ].join(' ')) || []
-      ].join(' ').toLowerCase();
-      
-      // Verificar si TODAS las palabras están presentes en el texto buscable
-      return searchWords.every(word => searchableText.includes(word));
-    });
+    filtered = filtered
+      .map(posicion => {
+        if (!posicion || !posicion.items) return null;
+        
+        // Filtrar items dentro de la posición
+        const filteredItems = posicion.items.filter(item => {
+          if (!item) return false;
+          
+          const searchableText = [
+            item.categoria || '',
+            item.descripcion || '',
+            item.partida || '',
+            item.proveedor?.nombre || ''
+          ].join(' ').toLowerCase();
+          
+          return searchWords.every(word => searchableText.includes(word));
+        });
+        
+        // Solo incluir la posición si tiene items que coincidan
+        if (filteredItems.length > 0) {
+          return {
+            ...posicion,
+            items: filteredItems
+          };
+        }
+        return null;
+      })
+      .filter(posicion => posicion !== null); // Remover posiciones sin items que coincidan
   }
   
   // Aplicar filtros avanzados
@@ -334,6 +347,7 @@ export const SalidaPage = () => {
                             onAdicionRapida={handleAdicionRapida}
                             onMovimientoInterno={handleMovimientoInterno}
                             onCorreccion={handleCorreccion}
+                            searchTerm={searchTerm}
                           />
                         );
                       })}

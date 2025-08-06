@@ -70,29 +70,50 @@ export const RemitosSalidaList = ({ remitos, loading, error, onDeleteItem }) => 
     });
   }, [remitos, currentMonth]);
 
-  // Filtrar por término de búsqueda
+  // Función para filtrar items dentro de un remito
+  const filterItemsInRemito = (items, searchWords) => {
+    if (!searchWords.length || !items) return items || [];
+    
+    return items.filter(item => {
+      if (!item) return false;
+      
+      const searchableText = [
+        item.descripcion || '',
+        item.categoria || '',
+        item.proveedor || '',
+        item.partida || ''
+      ].join(' ').toLowerCase();
+      
+      return searchWords.every(word => searchableText.includes(word));
+    });
+  };
+
+  // Filtrar remitos y sus items por término de búsqueda
   const filteredRemitos = useMemo(() => {
     if (!searchTerm.trim()) return remitosDelMes;
     
     const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
     
-    return remitosDelMes.filter(remito => {
-      const searchableText = [
-        remito.proveedor,
-        remito.numeroRemito,
-        ...remito.items.map(item => [
-          item.descripcion,
-          item.categoria,
-          item.proveedor,
-          item.partida
-        ].join(' '))
-      ].join(' ').toLowerCase();
-      
-      return searchWords.every(word => searchableText.includes(word));
-    });
+    return remitosDelMes
+      .map(remito => {
+        if (!remito || !remito.items) return null;
+        
+        // Filtrar items dentro del remito
+        const filteredItems = filterItemsInRemito(remito.items, searchWords);
+        
+        // Solo incluir el remito si tiene items que coincidan
+        if (filteredItems.length > 0) {
+          return {
+            ...remito,
+            items: filteredItems
+          };
+        }
+        return null;
+      })
+      .filter(remito => remito !== null); // Remover remitos sin items que coincidan
   }, [remitosDelMes, searchTerm]);
 
-  // Calcular estadísticas
+  // Calcular estadísticas basadas en items filtrados
   const stats = useMemo(() => {
     const totalKilos = filteredRemitos.reduce((sum, remito) => 
       sum + remito.items.reduce((itemSum, item) => itemSum + (parseFloat(item.kilos) || 0), 0), 0
@@ -327,30 +348,32 @@ export const RemitosSalidaList = ({ remitos, loading, error, onDeleteItem }) => 
                         </tr>
                       </thead>
                       <tbody>
-                        {remito.items.map(item => (
-                          <tr key={item.id} className={styles.item}>
-                            <td>{item.proveedor}</td>
-                            <td>{item.descripcion}</td>
-                            <td>{item.kilos}</td>
-                            <td>{item.unidades}</td>
-                            <td>{item.categoria}</td>
-                            <td>{item.partida}</td>
-                            <td>
-                              <Tooltip title="Eliminar item">
-                                <IconButton
-                                  size="small"
-                                  color="error"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteItem(key, item.id);
-                                  }}
-                                >
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </td>
-                          </tr>
-                        ))}
+                        {remito.items.map(item => {
+                          return (
+                            <tr key={item.id} className={styles.item}>
+                              <td>{item.proveedor}</td>
+                              <td>{item.descripcion}</td>
+                              <td>{item.kilos}</td>
+                              <td>{item.unidades}</td>
+                              <td>{item.categoria}</td>
+                              <td>{item.partida}</td>
+                              <td>
+                                <Tooltip title="Eliminar item">
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteItem(key, item.id);
+                                    }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

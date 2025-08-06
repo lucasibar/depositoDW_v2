@@ -273,6 +273,7 @@ export const DepositoPage = () => {
             onAdicionRapida={handleAdicionRapida}
             onMovimientoInterno={handleMovimientoInterno}
             onCorreccion={handleCorreccion}
+            searchTerm={searchTerm}
           />
           
           {/* Formularios */}

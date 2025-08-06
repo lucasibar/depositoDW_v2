@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button, Box } from "@mui/material";
 import { generatePosicionTitle, calculatePosicionTotalKilos, calculatePosicionTotalUnidades } from "../../../features/stock/utils/posicionUtils";
 import styles from "./PosicionCard.module.css";
@@ -9,12 +9,41 @@ export const PosicionCard = ({
   onAdicionRapida,
   onMovimientoInterno,
   onCorreccion,
+  searchTerm = "",
   children 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const titulo = generatePosicionTitle(posicion);
-  const totalKilos = calculatePosicionTotalKilos(posicion);
-  const totalUnidades = calculatePosicionTotalUnidades(posicion);
+  
+  // Filtrar items según el término de búsqueda
+  const filteredItems = useMemo(() => {
+    if (!searchTerm.trim() || !posicion.items) {
+      return posicion.items || [];
+    }
+
+    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
+    
+    return posicion.items.filter(item => {
+      const searchableText = [
+        item.categoria || '',
+        item.descripcion || '',
+        item.partida || '',
+        item.proveedor?.nombre || ''
+      ].join(' ').toLowerCase();
+      
+      // Verificar si TODAS las palabras están presentes en el texto del item
+      return searchWords.every(word => searchableText.includes(word));
+    });
+  }, [posicion.items, searchTerm]);
+
+  // Calcular totales solo con los items filtrados
+  const totalKilos = useMemo(() => {
+    return filteredItems.reduce((sum, item) => sum + (item.kilos || 0), 0);
+  }, [filteredItems]);
+
+  const totalUnidades = useMemo(() => {
+    return filteredItems.reduce((sum, item) => sum + (item.unidades || 0), 0);
+  }, [filteredItems]);
 
   const handleCardClick = (e) => {
     e.stopPropagation();
@@ -41,7 +70,12 @@ export const PosicionCard = ({
     onCorreccion?.(item, posicion);
   };
 
-  const hasMoreItems = posicion.items && posicion.items.length > 3;
+  const hasMoreItems = filteredItems.length > 3;
+
+  // Si no hay items filtrados y hay término de búsqueda, no mostrar la tarjeta
+  if (searchTerm.trim() && filteredItems.length === 0) {
+    return null;
+  }
 
   return (
     <div 
@@ -59,7 +93,7 @@ export const PosicionCard = ({
       <div className={styles.details}>
         <p><strong>Total Kilos:</strong> {totalKilos.toFixed(2)}</p>
         <p><strong>Total Unidades:</strong> {totalUnidades}</p>
-        <p><strong>Items:</strong> {posicion.items?.length || 0}</p>
+        <p><strong>Items:</strong> {filteredItems.length}</p>
         
         {/* Botón de Adición Rápida */}
         <Box sx={{ mt: 2, mb: 2 }}>
@@ -73,12 +107,12 @@ export const PosicionCard = ({
             + Adición Rápida
           </Button>
         </Box>
-        {posicion.items && posicion.items.length > 0 && (
+        {filteredItems.length > 0 && (
           <div className={styles.itemsList}>
             <p><strong>Materiales:</strong></p>
             {isExpanded ? (
-              // Mostrar todos los items cuando está expandido
-              posicion.items.map((item, index) => (
+              // Mostrar todos los items filtrados cuando está expandido
+              filteredItems.map((item, index) => (
                 <div key={index} className={styles.item} onClick={handleItemClick}>
                   <p className={styles.itemTitle}>
                     • {item.categoria} - {item.descripcion}
@@ -113,16 +147,16 @@ export const PosicionCard = ({
                 </div>
               ))
             ) : (
-              // Mostrar solo los primeros 3 items cuando no está expandido
+              // Mostrar solo los primeros 3 items filtrados cuando no está expandido
               <>
-                {posicion.items.slice(0, 3).map((item, index) => (
+                {filteredItems.slice(0, 3).map((item, index) => (
                   <p key={index} className={styles.item}>
                     • {item.categoria} - {item.descripcion} (P: {item.partida})
                   </p>
                 ))}
                 {hasMoreItems && (
                   <p className={styles.moreItems}>
-                    ... y {posicion.items.length - 3} más (click para expandir)
+                    ... y {filteredItems.length - 3} más (click para expandir)
                   </p>
                 )}
               </>

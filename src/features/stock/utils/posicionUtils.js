@@ -37,19 +37,23 @@ export const filterPosicionesBySearch = (posiciones, searchTerm) => {
   const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
   
   return posiciones.filter(posicion => {
-    // Crear un string con todos los campos de búsqueda
-    const searchableText = [
-      generatePosicionTitle(posicion),
-      ...posicion.items?.map(item => [
+    // Verificar si la posición tiene items que coincidan con la búsqueda
+    if (!posicion.items || posicion.items.length === 0) {
+      return false;
+    }
+
+    // Verificar si al menos un item coincide con la búsqueda
+    return posicion.items.some(item => {
+      const searchableText = [
         item.categoria || '',
         item.descripcion || '',
         item.partida || '',
         item.proveedor?.nombre || ''
-      ].join(' ')) || []
-    ].join(' ').toLowerCase();
-    
-    // Verificar si TODAS las palabras están presentes en el texto buscable
-    return searchWords.every(word => searchableText.includes(word));
+      ].join(' ').toLowerCase();
+      
+      // Verificar si TODAS las palabras están presentes en el texto del item
+      return searchWords.every(word => searchableText.includes(word));
+    });
   });
 };
 
