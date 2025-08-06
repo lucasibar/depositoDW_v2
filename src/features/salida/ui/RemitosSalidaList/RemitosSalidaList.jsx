@@ -19,14 +19,34 @@ export const RemitosSalidaList = ({ remitos, loading, error, onDeleteItem }) => 
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Generar meses (últimos 6 meses + navegación hacia atrás)
+  // Generar meses (mes actual + meses anteriores + meses posteriores)
   const months = useMemo(() => {
     const monthsList = [];
     const currentDate = new Date();
     
-    // Generar 12 meses hacia atrás (6 visibles + 6 para navegación)
-    for (let i = 0; i < 12; i++) {
+    // Generar 6 meses hacia atrás (anteriores)
+    for (let i = 6; i > 0; i--) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      monthsList.push({
+        year: date.getFullYear(),
+        month: date.getMonth(),
+        label: date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }),
+        key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      });
+    }
+    
+    // Agregar mes actual
+    const currentMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    monthsList.push({
+      year: currentMonthDate.getFullYear(),
+      month: currentMonthDate.getMonth(),
+      label: currentMonthDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }),
+      key: `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`
+    });
+    
+    // Generar 6 meses hacia adelante (posteriores)
+    for (let i = 1; i <= 6; i++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
       monthsList.push({
         year: date.getFullYear(),
         month: date.getMonth(),
@@ -109,10 +129,10 @@ export const RemitosSalidaList = ({ remitos, loading, error, onDeleteItem }) => 
   };
 
   const handleMonthChange = (direction) => {
-    if (direction === 'next' && currentMonthIndex > 0) {
-      setCurrentMonthIndex(currentMonthIndex - 1);
-    } else if (direction === 'prev' && currentMonthIndex < months.length - 6) {
+    if (direction === 'next' && currentMonthIndex < months.length - 1) {
       setCurrentMonthIndex(currentMonthIndex + 1);
+    } else if (direction === 'prev' && currentMonthIndex > 0) {
+      setCurrentMonthIndex(currentMonthIndex - 1);
     }
   };
 
@@ -122,7 +142,9 @@ export const RemitosSalidaList = ({ remitos, loading, error, onDeleteItem }) => 
     }
   };
 
-  const visibleMonths = months.slice(currentMonthIndex, currentMonthIndex + 6);
+  // Mostrar 6 meses visibles centrados en el mes actual
+  const startIndex = Math.max(0, Math.min(currentMonthIndex - 2, months.length - 6));
+  const visibleMonths = months.slice(startIndex, startIndex + 6);
 
   if (loading) {
     return (
@@ -216,7 +238,7 @@ export const RemitosSalidaList = ({ remitos, loading, error, onDeleteItem }) => 
       <div className={styles.monthNavigation}>
         <Button 
           onClick={() => handleMonthChange('prev')}
-          disabled={currentMonthIndex >= months.length - 6}
+          disabled={currentMonthIndex === 0}
           variant="outlined"
           size="small"
         >
@@ -230,26 +252,29 @@ export const RemitosSalidaList = ({ remitos, loading, error, onDeleteItem }) => 
         </div>
         
         <div className={styles.monthDots}>
-          {visibleMonths.map((month, index) => (
-            <IconButton
-              key={month.key}
-              onClick={() => setCurrentMonthIndex(currentMonthIndex + index)}
-              size="small"
-              sx={{
-                width: 12,
-                height: 12,
-                backgroundColor: currentMonthIndex + index === currentMonthIndex ? 'primary.main' : 'grey.300',
-                '&:hover': {
-                  backgroundColor: currentMonthIndex + index === currentMonthIndex ? 'primary.dark' : 'grey.400',
-                }
-              }}
-            />
-          ))}
+          {visibleMonths.map((month, index) => {
+            const actualIndex = startIndex + index;
+            return (
+              <IconButton
+                key={month.key}
+                onClick={() => setCurrentMonthIndex(actualIndex)}
+                size="small"
+                sx={{
+                  width: 12,
+                  height: 12,
+                  backgroundColor: actualIndex === currentMonthIndex ? 'primary.main' : 'grey.300',
+                  '&:hover': {
+                    backgroundColor: actualIndex === currentMonthIndex ? 'primary.dark' : 'grey.400',
+                  }
+                }}
+              />
+            );
+          })}
         </div>
         
         <Button 
           onClick={() => handleMonthChange('next')}
-          disabled={currentMonthIndex === 0}
+          disabled={currentMonthIndex >= months.length - 1}
           variant="outlined"
           size="small"
         >
