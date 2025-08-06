@@ -15,7 +15,7 @@ export const App = () => {
         {/* Ruta de Depósito - Accesible para deposito, usuario, admin */}
         <Route 
           exact 
-          path="/deposito_dw_front/deposito" 
+          path="/depositoDW_v2/deposito" 
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'usuario', 'admin']}>
               <DepositoPage />
@@ -26,7 +26,7 @@ export const App = () => {
         {/* Ruta de Compras - Accesible solo para compras y admin */}
         <Route 
           exact 
-          path="/deposito_dw_front/compras" 
+          path="/depositoDW_v2/compras" 
           element={
             <RoleProtectedRoute allowedRoles={['compras', 'admin']}>
               <ComprasPage />
@@ -37,7 +37,7 @@ export const App = () => {
         {/* Ruta de Admin - Accesible solo para admin */}
         <Route 
           exact 
-          path="/deposito_dw_front/admin" 
+          path="/depositoDW_v2/admin" 
           element={
             <RoleProtectedRoute allowedRoles={['admin']}>
               <AdminPage />
@@ -48,7 +48,7 @@ export const App = () => {
         {/* Ruta de Calidad - Accesible para calidad y admin */}
         <Route 
           exact 
-          path="/deposito_dw_front/calidad" 
+          path="/depositoDW_v2/calidad" 
           element={
             <RoleProtectedRoute allowedRoles={['calidad', 'admin']}>
               <CalidadPage />
@@ -59,7 +59,7 @@ export const App = () => {
         {/* Ruta de Salida - Accesible para salida y admin */}
         <Route 
           exact 
-          path="/deposito_dw_front/salida" 
+          path="/depositoDW_v2/salida" 
           element={
             <RoleProtectedRoute allowedRoles={['salida', 'admin']}>
               <SalidaPage />
@@ -68,10 +68,10 @@ export const App = () => {
         />
         
         {/* Ruta de Login */}
-        <Route path="/deposito_dw_front/" element={<Login />} />
+        <Route path="/depositoDW_v2/" element={<Login />} />
         
         {/* Redirección por defecto */}
-        <Route path="*" element={<Navigate to="/deposito_dw_front/" replace />} />
+        <Route path="*" element={<Navigate to="/depositoDW_v2/" replace />} />
       </Routes>
     </div>
   );

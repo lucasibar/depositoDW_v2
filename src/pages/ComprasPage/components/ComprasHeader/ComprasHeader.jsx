@@ -8,7 +8,7 @@ export const ComprasHeader = ({ user }) => {
 
   const handleLogout = () => {
     authService.logout();
-    window.location.href = '/deposito_dw_front/';
+    window.location.href = '/depositoDW_v2/';
   };
 
   return (
@@ -21,25 +21,25 @@ export const ComprasHeader = ({ user }) => {
           {user?.role === 'admin' && (
             <>
               <button 
-                onClick={() => navigate('/deposito_dw_front/deposito')} 
+                onClick={() => navigate('/depositoDW_v2/deposito')} 
                 className={styles.navButton}
               >
                 Depósito
               </button>
               <button 
-                onClick={() => navigate('/deposito_dw_front/calidad')} 
+                onClick={() => navigate('/depositoDW_v2/calidad')} 
                 className={styles.navButton}
               >
                 Calidad
               </button>
               <button 
-                onClick={() => navigate('/deposito_dw_front/salida')} 
+                onClick={() => navigate('/depositoDW_v2/salida')} 
                 className={styles.navButton}
               >
                 Salida
               </button>
               <button 
-                onClick={() => navigate('/deposito_dw_front/admin')} 
+                onClick={() => navigate('/depositoDW_v2/admin')} 
                 className={styles.navButton}
               >
                 Admin

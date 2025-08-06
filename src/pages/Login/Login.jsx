@@ -39,15 +39,15 @@ const Login = () => {
       // Redirigir según el rol del usuario
       switch (response.role) {
         case 'admin':
-          navigate('/deposito_dw_front/admin');
+          navigate('/depositoDW_v2/admin');
           break;
         case 'compras':
-          navigate('/deposito_dw_front/compras');
+          navigate('/depositoDW_v2/compras');
           break;
         case 'deposito':
         case 'salida':
         default:
-          navigate('/deposito_dw_front/deposito');
+          navigate('/depositoDW_v2/deposito');
           break;
       }
     } catch (error) {

@@ -13,7 +13,7 @@ export const useAuth = () => {
 
   const logout = () => {
     authService.logout();
-    window.location.href = '/deposito_dw_front/';
+    window.location.href = '/depositoDW_v2/';
   };
 
   return {

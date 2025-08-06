@@ -8,12 +8,12 @@ const RoleProtectedRoute = ({ children, allowedRoles }) => {
 
   // Si no está autenticado, redirigir al login
   if (!isAuthenticated) {
-    return <Navigate to="/deposito_dw_front/" replace />;
+    return <Navigate to="/depositoDW_v2/" replace />;
   }
 
   // Si no tiene rol o el rol no está permitido, redirigir a la página correspondiente
   if (!user || !user.role) {
-    return <Navigate to="/deposito_dw_front/" replace />;
+    return <Navigate to="/depositoDW_v2/" replace />;
   }
 
   // Verificar si el rol del usuario está permitido
@@ -21,18 +21,18 @@ const RoleProtectedRoute = ({ children, allowedRoles }) => {
     // Redirigir según el rol del usuario
     switch (user.role) {
       case 'admin':
-        return <Navigate to="/deposito_dw_front/admin" replace />;
+        return <Navigate to="/depositoDW_v2/admin" replace />;
       case 'compras':
-        return <Navigate to="/deposito_dw_front/compras" replace />;
+        return <Navigate to="/depositoDW_v2/compras" replace />;
       case 'calidad':
-        return <Navigate to="/deposito_dw_front/calidad" replace />;
+        return <Navigate to="/depositoDW_v2/calidad" replace />;
       case 'salida':
-        return <Navigate to="/deposito_dw_front/salida" replace />;
+        return <Navigate to="/depositoDW_v2/salida" replace />;
       case 'deposito':
       case 'usuario':
-        return <Navigate to="/deposito_dw_front/deposito" replace />;
+        return <Navigate to="/depositoDW_v2/deposito" replace />;
       default:
-        return <Navigate to="/deposito_dw_front/deposito" replace />;
+        return <Navigate to="/depositoDW_v2/deposito" replace />;
     }
   }
 

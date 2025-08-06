@@ -19,7 +19,7 @@ export const AdminPage = () => {
 
   const handleLogout = () => {
     authService.logout();
-    window.location.href = '/deposito_dw_front/';
+    window.location.href = '/depositoDW_v2/';
   };
 
   const handleCreateDefaultUsers = async () => {
@@ -185,25 +185,25 @@ export const AdminPage = () => {
             <span>Administrador: {user?.name}</span>
             <span className={styles.role}>({user?.role})</span>
             <button 
-              onClick={() => navigate('/deposito_dw_front/deposito')} 
+              onClick={() => navigate('/depositoDW_v2/deposito')} 
               className={styles.navButton}
             >
               Depósito
             </button>
             <button 
-              onClick={() => navigate('/deposito_dw_front/compras')} 
+              onClick={() => navigate('/depositoDW_v2/compras')} 
               className={styles.navButton}
             >
               Compras
             </button>
             <button 
-              onClick={() => navigate('/deposito_dw_front/calidad')} 
+              onClick={() => navigate('/depositoDW_v2/calidad')} 
               className={styles.navButton}
             >
               Calidad
             </button>
             <button 
-              onClick={() => navigate('/deposito_dw_front/salida')} 
+              onClick={() => navigate('/depositoDW_v2/salida')} 
               className={styles.navButton}
             >
               Salida

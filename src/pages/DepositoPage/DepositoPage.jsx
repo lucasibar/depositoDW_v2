@@ -182,7 +182,7 @@ export const DepositoPage = () => {
               <>
                 <Button 
                   color="inherit" 
-                  onClick={() => navigate('/deposito_dw_front/compras')}
+                  onClick={() => navigate('/depositoDW_v2/compras')}
                   sx={{ 
                     border: '1px solid rgba(255,255,255,0.3)',
                     '&:hover': {
@@ -194,7 +194,7 @@ export const DepositoPage = () => {
                 </Button>
                 <Button 
                   color="inherit" 
-                  onClick={() => navigate('/deposito_dw_front/calidad')}
+                  onClick={() => navigate('/depositoDW_v2/calidad')}
                   sx={{ 
                     border: '1px solid rgba(255,255,255,0.3)',
                     '&:hover': {
@@ -206,7 +206,7 @@ export const DepositoPage = () => {
                 </Button>
                 <Button 
                   color="inherit" 
-                  onClick={() => navigate('/deposito_dw_front/salida')}
+                  onClick={() => navigate('/depositoDW_v2/salida')}
                   sx={{ 
                     border: '1px solid rgba(255,255,255,0.3)',
                     '&:hover': {
@@ -218,7 +218,7 @@ export const DepositoPage = () => {
                 </Button>
                 <Button 
                   color="inherit" 
-                  onClick={() => navigate('/deposito_dw_front/admin')}
+                  onClick={() => navigate('/depositoDW_v2/admin')}
                   sx={{ 
                     border: '1px solid rgba(255,255,255,0.3)',
                     '&:hover': {
