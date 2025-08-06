@@ -14,17 +14,19 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import HistoryIcon from '@mui/icons-material/History';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import { authService } from '../../services/authService';
+import { useAuth } from '../../hooks/useAuth';
 import { SearchBar } from '../../shared/ui/SearchBar/SearchBar';
 import { AdvancedFilters } from '../../shared/ui/AdvancedFilters/AdvancedFilters';
 import AppHeader from '../../shared/ui/AppHeader';
-import { SalidaTabs, SalidaCard, EmptyState, SalidaForm, StockCard, RemitosSalidaList } from '../../features/salida/ui';
-import { useSalidaActions, useHistorialFilter } from '../../features/salida/hooks';
+import { SalidaTabs, SalidaCard, EmptyState, SalidaForm, StockCard, RemitosSalidaList, RemitoSalidaModal } from '../../features/salida/ui';
+import { useSalidaActions } from '../../features/salida/hooks';
 import { EMPTY_STATE_MESSAGES } from '../../features/salida/constants/salidaConstants';
 import { generatePosicionTitle } from '../../features/stock/utils/posicionUtils';
 import { fetchPosicionesConItems } from '../../features/stock/model/slice';
 import { selectPosiciones, selectStockLoading, selectStockError } from '../../features/stock/model/selectors';
 import { fetchHistorialSalida, deleteItemFromRemito } from '../../features/salida/model/historialSlice';
 import styles from './SalidaPage.module.css';
+import { API_CONFIG } from '../../config/api';
 
 // Función de filtrado específica para Salida
 const filterPosicionesForSalida = (posiciones, searchTerm, advancedFilters) => {
@@ -83,15 +85,10 @@ const filterPosicionesForSalida = (posiciones, searchTerm, advancedFilters) => {
 
 export const SalidaPage = () => {
   const dispatch = useDispatch();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
+  const { posiciones, isLoading, error } = useSelector((state) => state.stock);
+  const { historialSalida = [], loading: loadingHistorial, error: errorHistorial } = useSelector((state) => state.historial) || {};
   const [tabValue, setTabValue] = useState(0);
-  const [formOpen, setFormOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [selectedPosicion, setSelectedPosicion] = useState(null);
-  const [filteredPosiciones, setFilteredPosiciones] = useState([]);
-  const [searchTerms, setSearchTerms] = useState([]);
-  
-  // Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState({
     rack: '',
@@ -99,27 +96,14 @@ export const SalidaPage = () => {
     ab: '',
     pasillo: ''
   });
-
-  // Redux selectors
-  const { posiciones, isLoading, error } = useSelector(state => ({
-    posiciones: selectPosiciones(state),
-    isLoading: selectStockLoading(state),
-    error: selectStockError(state)
-  }));
-
-  // Hook para historial de salida
-  const { filteredData: historialSalidas, loading: loadingHistorial, error: errorHistorial } = useHistorialFilter(searchTerms);
+  const [formOpen, setFormOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedPosicion, setSelectedPosicion] = useState(null);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [filteredPosiciones, setFilteredPosiciones] = useState([]);
 
   // Hook para acciones de salida
   const { loading: loadingActions, snackbar, handleCrearSalida, handleAprobarSalida, handleRechazarSalida, handleCompletarSalida, handleCloseSnackbar } = useSalidaActions();
-
-  // Cargar usuario al montar el componente
-  useEffect(() => {
-    const currentUser = authService.getUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
-  }, []);
 
   // Cargar posiciones con items usando Redux
   useEffect(() => {
@@ -172,47 +156,21 @@ export const SalidaPage = () => {
     console.log("Corrección no disponible en Salida");
   };
 
-  const handleSubmitRemito = async (formData) => {
+  const handleSubmitRemito = async (remitoData) => {
     try {
-      console.log('Datos del formulario:', formData);
-      console.log('Item seleccionado:', selectedItem);
-      console.log('Posición seleccionada:', selectedPosicion);
+      console.log('Datos del remito:', remitoData);
       
       // Validar que tenemos todos los datos necesarios
-      if (!selectedItem || !selectedPosicion) {
+      if (!remitoData.selectedItem || !remitoData.id) {
         console.error('Faltan datos del item o posición seleccionada');
+        setMessage({ type: 'error', text: 'Faltan datos del item o posición seleccionada' });
         return;
       }
       
-      if (!selectedItem.itemId) {
-        console.error('El item no tiene itemId');
-        return;
-      }
-      
-      if (!selectedPosicion.posicionId) {
-        console.error('La posición no tiene posicionId');
-        return;
-      }
-      
-      // TODO: Implementar llamada a API real
-      const remitoData = {
-        selectedItem: {
-          itemId: selectedItem.itemId,
-          categoria: selectedItem.categoria,
-          descripcion: selectedItem.descripcion,
-          proveedor: selectedItem.proveedor,
-          partida: selectedItem.partida,
-          kilos: selectedItem.kilos,
-          unidades: selectedItem.unidades
-        },
-        kilos: parseFloat(formData.kilos) || 0,
-        unidades: parseInt(formData.unidades) || 0,
-        id: selectedPosicion.posicionId,
-        proveedor: formData.cliente,
-        fecha: formData.fecha
-      };
+      console.log('URL del endpoint:', `${API_CONFIG.BASE_URL}/movimientos/salida-desde-posicion`);
+      console.log('Datos enviados al backend:', remitoData);
 
-      const response = await fetch('http://localhost:3001/movimientos/salida-desde-posicion', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/movimientos/salida-desde-posicion`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -220,28 +178,42 @@ export const SalidaPage = () => {
         body: JSON.stringify(remitoData)
       });
 
-      console.log('Datos enviados al backend:', remitoData);
       console.log('Respuesta del servidor:', response.status, response.statusText);
 
       if (response.ok) {
+        const responseData = await response.text();
+        console.log('Respuesta completa del servidor:', responseData);
+        
         // Recargar datos
         dispatch(fetchPosicionesConItems());
         dispatch(fetchHistorialSalida());
         setFormOpen(false);
         setSelectedItem(null);
         setSelectedPosicion(null);
+        
+        setMessage({ type: 'success', text: 'Remito de salida creado exitosamente' });
+        console.log('Remito de salida creado exitosamente');
+        
+        // Limpiar mensaje después de 3 segundos
+        setTimeout(() => {
+          setMessage({ type: '', text: '' });
+        }, 3000);
       } else {
-        throw new Error('Error al generar remito');
+        const errorData = await response.text();
+        console.error('Error del servidor:', errorData);
+        setMessage({ type: 'error', text: `Error al generar remito: ${response.status} ${response.statusText}` });
+        throw new Error(`Error al generar remito: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('Error al generar remito:', error);
+      setMessage({ type: 'error', text: `Error al generar remito: ${error.message}` });
     }
   };
 
   const handleDeleteItem = async (remitoKey, itemId) => {
     try {
       // Encontrar el remito por su key
-      const remito = historialSalidas.find(r => `${r.fecha}-${r.proveedor}` === remitoKey);
+      const remito = historialSalida?.find(r => `${r.fecha}-${r.proveedor}` === remitoKey);
       
       if (remito) {
         await dispatch(deleteItemFromRemito({ 
@@ -291,13 +263,30 @@ export const SalidaPage = () => {
             Panel de Control - Salida
           </Typography>
           
+          {/* Mensajes de éxito o error */}
+          {message.text && (
+            <Box 
+              sx={{ 
+                mb: 2, 
+                p: 2, 
+                borderRadius: 1,
+                backgroundColor: message.type === 'success' ? 'success.light' : 'error.light',
+                color: message.type === 'success' ? 'success.dark' : 'error.dark'
+              }}
+            >
+              <Typography variant="body1">
+                {message.text}
+              </Typography>
+            </Box>
+          )}
+          
           <Box sx={{ width: '100%', mt: 3 }}>
             <SalidaTabs 
               tabValue={tabValue}
               onTabChange={handleTabChange}
               salidasPendientesCount={0} // TODO: Implementar contador real
               salidasAprobadasCount={0} // TODO: Implementar contador real
-              remitosCount={historialSalidas.length}
+              remitosCount={historialSalida.length}
             />
             
             {/* Contenido de las pestañas */}
@@ -368,7 +357,7 @@ export const SalidaPage = () => {
                 // Pestaña de Historial
                 <div>
                   <RemitosSalidaList 
-                    remitos={historialSalidas}
+                    remitos={historialSalida}
                     loading={loadingHistorial}
                     error={errorHistorial}
                     onDeleteItem={handleDeleteItem}
@@ -379,12 +368,12 @@ export const SalidaPage = () => {
           </Box>
 
           {/* Formulario de Remito */}
-          <SalidaForm
+          <RemitoSalidaModal
             open={formOpen}
             onClose={() => setFormOpen(false)}
             onSubmit={handleSubmitRemito}
-            loading={loadingActions}
-            selectedItem={selectedItem}
+            item={selectedItem}
+            posicionId={selectedPosicion?.posicionId}
           />
 
           {/* Snackbar para notificaciones */}

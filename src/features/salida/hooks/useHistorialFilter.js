@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 
 export const useHistorialFilter = (searchTerms) => {
-  const { historialSalida, loading, error } = useSelector(state => state.historial);
+  const { historialSalida = [], loading, error } = useSelector(state => state.historial);
 
   // Filtrar datos basado en los términos de búsqueda
   const filteredData = historialSalida.filter(remito => {
@@ -14,7 +14,7 @@ export const useHistorialFilter = (searchTerms) => {
       remito.fecha,
       remito.proveedor,
       remito.numeroRemito,
-      ...remito.items.map(item => [
+      ...(remito.items || []).map(item => [
         item.descripcion,
         item.categoria,
         item.proveedor,
