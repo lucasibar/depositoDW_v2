@@ -2,7 +2,7 @@ import React from "react";
 import { generateMaterialTitle } from "../../../features/stock/utils/searchUtils";
 import styles from "./MaterialCard.module.css";
 
-export const MaterialCard = React.memo(({ 
+export const MaterialCard = ({ 
   material, 
   variant = "default", // "stock", "deposito", "compras"
   onClick,
@@ -51,4 +51,4 @@ export const MaterialCard = React.memo(({
       {getCardContent()}
     </div>
   );
-});
+};

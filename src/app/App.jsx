@@ -72,7 +72,7 @@ export const App = () => {
         
         {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/depositoDW_v2/" replace />} />
-        </Routes>
+      </Routes>
     </div>
   );
 }; 
