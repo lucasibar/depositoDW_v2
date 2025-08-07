@@ -8,8 +8,6 @@ export const MaterialCard = React.memo(({
   onClick,
   children 
 }) => {
-  // Log para debugging (puedes removerlo después)
-  console.log('🔄 MaterialCard renderizado:', material?.kilos, material?.unidades);
   const getCardContent = () => {
     switch (variant) {
       case "stock":
