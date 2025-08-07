@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/depositoDW_v2/static/css/main.cfbe4de0.css",
-    "main.js": "/depositoDW_v2/static/js/main.72796793.js",
+    "main.js": "/depositoDW_v2/static/js/main.49157410.js",
     "static/css/73.4375987b.chunk.css": "/depositoDW_v2/static/css/73.4375987b.chunk.css",
     "static/js/73.263584b1.chunk.js": "/depositoDW_v2/static/js/73.263584b1.chunk.js",
     "static/css/26.bc00f3ae.chunk.css": "/depositoDW_v2/static/css/26.bc00f3ae.chunk.css",
@@ -21,7 +21,7 @@
     "static/js/807.182391e9.chunk.js": "/depositoDW_v2/static/js/807.182391e9.chunk.js",
     "index.html": "/depositoDW_v2/index.html",
     "main.cfbe4de0.css.map": "/depositoDW_v2/static/css/main.cfbe4de0.css.map",
-    "main.72796793.js.map": "/depositoDW_v2/static/js/main.72796793.js.map",
+    "main.49157410.js.map": "/depositoDW_v2/static/js/main.49157410.js.map",
     "73.4375987b.chunk.css.map": "/depositoDW_v2/static/css/73.4375987b.chunk.css.map",
     "73.263584b1.chunk.js.map": "/depositoDW_v2/static/js/73.263584b1.chunk.js.map",
     "26.bc00f3ae.chunk.css.map": "/depositoDW_v2/static/css/26.bc00f3ae.chunk.css.map",
@@ -42,6 +42,6 @@
   },
   "entrypoints": [
     "static/css/main.cfbe4de0.css",
-    "static/js/main.72796793.js"
+    "static/js/main.49157410.js"
   ]
 }
