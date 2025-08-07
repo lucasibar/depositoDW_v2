@@ -183,8 +183,6 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
   return (
     <>
       <div className={styles.container}>
-        <h3>Crear Remito de Entrada</h3>
-        
         {isLoading && (
           <div className={styles.loading}>Cargando datos...</div>
         )}

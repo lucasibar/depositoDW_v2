@@ -8,7 +8,9 @@ import {
   Alert,
   Snackbar,
   Container,
-  Button
+  Button,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import HistoryIcon from '@mui/icons-material/History';
@@ -17,7 +19,8 @@ import { authService } from '../../services/authService';
 import { useAuth } from '../../hooks/useAuth';
 import { SearchBar } from '../../shared/ui/SearchBar/SearchBar';
 import { AdvancedFilters } from '../../shared/ui/AdvancedFilters/AdvancedFilters';
-import AppHeader from '../../shared/ui/AppHeader';
+import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { SalidaTabs, SalidaCard, EmptyState, SalidaForm, StockCard, RemitosSalidaList, RemitoSalidaModal } from '../../features/salida/ui';
 import { useSalidaActions } from '../../features/salida/hooks';
 import { EMPTY_STATE_MESSAGES } from '../../features/salida/constants/salidaConstants';
@@ -25,7 +28,6 @@ import { generatePosicionTitle } from '../../features/stock/utils/posicionUtils'
 import { fetchPosicionesConItems } from '../../features/stock/model/slice';
 import { selectPosiciones, selectStockLoading, selectStockError } from '../../features/stock/model/selectors';
 import { fetchHistorialSalida, deleteItemFromRemito } from '../../features/salida/model/historialSlice';
-import styles from './SalidaPage.module.css';
 import { API_CONFIG } from '../../config/api';
 
 // Función de filtrado específica para Salida
@@ -98,10 +100,12 @@ const filterPosicionesForSalida = (posiciones, searchTerm, advancedFilters) => {
 
 export const SalidaPage = () => {
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  
   const { user } = useAuth();
-  const { posiciones, isLoading, error } = useSelector((state) => state.stock);
-  const { historialSalida = [], loading: loadingHistorial, error: errorHistorial } = useSelector((state) => state.historial) || {};
-  const [tabValue, setTabValue] = useState(0);
+  const [filteredPosiciones, setFilteredPosiciones] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState({
     rack: '',
@@ -109,33 +113,37 @@ export const SalidaPage = () => {
     ab: '',
     pasillo: ''
   });
-  const [formOpen, setFormOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  
+  // Estados para los formularios
+  const [salidaFormOpen, setSalidaFormOpen] = useState(false);
   const [selectedPosicion, setSelectedPosicion] = useState(null);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  const [filteredPosiciones, setFilteredPosiciones] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [remitoModalOpen, setRemitoModalOpen] = useState(false);
+  
+  const posiciones = useSelector(selectPosiciones);
+  const isLoading = useSelector(selectStockLoading);
+  const error = useSelector(selectStockError);
+  const historialSalida = useSelector(state => state.salida.historial);
 
-  // Hook para acciones de salida
-  const { loading: loadingActions, snackbar, handleCrearSalida, handleAprobarSalida, handleRechazarSalida, handleCompletarSalida, handleCloseSnackbar } = useSalidaActions();
+  const {
+    loading: salidaLoading,
+    snackbar,
+    handleSubmitSalida,
+    handleCloseSnackbar
+  } = useSalidaActions();
 
-  // Cargar posiciones con items usando Redux
   useEffect(() => {
     dispatch(fetchPosicionesConItems());
-  }, [dispatch]);
-
-  // Cargar historial de salidas
-  useEffect(() => {
     dispatch(fetchHistorialSalida());
   }, [dispatch]);
 
-  // Aplicar filtros cuando cambien los datos o filtros
   useEffect(() => {
     const filtered = filterPosicionesForSalida(posiciones, searchTerm, advancedFilters);
     setFilteredPosiciones(filtered);
   }, [posiciones, searchTerm, advancedFilters]);
 
   const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
+    // Implementar lógica de cambio de tab si es necesario
   };
 
   const handleSearch = (term) => {
@@ -146,100 +154,52 @@ export const SalidaPage = () => {
     setAdvancedFilters(newFilters);
   };
 
-  // Handlers para PosicionCard (replicando la lógica de Depósito)
   const handlePosicionClick = (posicion) => {
     console.log("Posición seleccionada:", posicion);
   };
 
   const handleAdicionRapida = (posicion) => {
-    // En Salida, este botón no se usa, pero mantenemos la estructura
-    console.log("Adición rápida no disponible en Salida");
+    setSelectedPosicion(posicion);
+    setSalidaFormOpen(true);
   };
 
   const handleMovimientoInterno = (item, posicion) => {
-    // En Salida, este es el botón para agregar al remito
-    console.log('Agregando al remito:', { item, posicion });
-    setSelectedItem(item);
-    setSelectedPosicion(posicion);
-    setFormOpen(true);
+    console.log('Datos recibidos para movimiento interno:', { item, posicion });
+    if (item && posicion) {
+      setSelectedItem(item);
+      setSelectedPosicion(posicion);
+      setSalidaFormOpen(true);
+    } else {
+      console.error('Datos inválidos para movimiento interno:', { item, posicion });
+    }
   };
 
   const handleCorreccion = (item, posicion) => {
-    // En Salida, este botón no se usa, pero mantenemos la estructura
-    console.log("Corrección no disponible en Salida");
+    setSelectedItem(item);
+    setSelectedPosicion(posicion);
+    setSalidaFormOpen(true);
   };
 
   const handleSubmitRemito = async (remitoData) => {
     try {
-      console.log('Datos del remito:', remitoData);
-      
-      // Validar que tenemos todos los datos necesarios
-      if (!remitoData.selectedItem || !remitoData.id) {
-        console.error('Faltan datos del item o posición seleccionada');
-        setMessage({ type: 'error', text: 'Faltan datos del item o posición seleccionada' });
-        return;
-      }
-      
-      console.log('URL del endpoint:', `${API_CONFIG.BASE_URL}/movimientos/salida-desde-posicion`);
-      console.log('Datos enviados al backend:', remitoData);
-
-      const response = await fetch(`${API_CONFIG.BASE_URL}/movimientos/salida-desde-posicion`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(remitoData)
-      });
-
-      console.log('Respuesta del servidor:', response.status, response.statusText);
-
-      if (response.ok) {
-        const responseData = await response.text();
-        console.log('Respuesta completa del servidor:', responseData);
-        
-        // Recargar datos
-        dispatch(fetchPosicionesConItems());
-        dispatch(fetchHistorialSalida());
-        setFormOpen(false);
-        setSelectedItem(null);
-        setSelectedPosicion(null);
-        
-        setMessage({ type: 'success', text: 'Remito de salida creado exitosamente' });
-        console.log('Remito de salida creado exitosamente');
-        
-        // Limpiar mensaje después de 3 segundos
-        setTimeout(() => {
-          setMessage({ type: '', text: '' });
-        }, 3000);
-      } else {
-        const errorData = await response.text();
-        console.error('Error del servidor:', errorData);
-        setMessage({ type: 'error', text: `Error al generar remito: ${response.status} ${response.statusText}` });
-        throw new Error(`Error al generar remito: ${response.status} ${response.statusText}`);
-      }
+      await handleSubmitSalida(remitoData);
+      setRemitoModalOpen(false);
     } catch (error) {
-      console.error('Error al generar remito:', error);
-      setMessage({ type: 'error', text: `Error al generar remito: ${error.message}` });
+      console.error('Error al crear remito de salida:', error);
     }
   };
 
   const handleDeleteItem = async (remitoKey, itemId) => {
     try {
-      // Encontrar el remito por su key
-      const remito = historialSalida?.find(r => `${r.fecha}-${r.proveedor}` === remitoKey);
-      
-      if (remito) {
-        await dispatch(deleteItemFromRemito({ 
-          remitoId: remito.id, 
-          itemId: itemId 
-        })).unwrap();
-        
-        // Mostrar mensaje de éxito
-        console.log('Item eliminado exitosamente');
-      }
+      await dispatch(deleteItemFromRemito({ remitoKey, itemId })).unwrap();
     } catch (error) {
-      console.error('Error al eliminar item:', error);
+      console.error('Error al eliminar item del remito:', error);
     }
+  };
+
+  const handleLogoutClick = () => {
+    authService.logout();
+    window.location.href = '/depositoDW_v2/login';
   };
 
   if (!user) {
@@ -248,165 +208,183 @@ export const SalidaPage = () => {
 
   if (isLoading) {
     return (
-      <div className={styles.loading}>
-        <div className={styles.spinner}></div>
-        <p>Cargando posiciones...</p>
-      </div>
+      <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Salida">
+        <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            minHeight: '60vh'
+          }}>
+            <Typography variant="h6" sx={{ color: 'var(--color-text-secondary)', mb: 2 }}>
+              Cargando posiciones...
+            </Typography>
+          </Box>
+        </Container>
+      </AppLayout>
     );
   }
 
   if (error) {
     return (
-      <div className={styles.error}>
-        <p>{error}</p>
-        <button onClick={() => dispatch(fetchPosicionesConItems())} className={styles.retryButton}>
-          Reintentar
-        </button>
-      </div>
+      <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Salida">
+        <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
+          <ModernCard
+            title="Error"
+            subtitle="No se pudieron cargar las posiciones"
+            sx={{ maxWidth: 600, mx: 'auto' }}
+          >
+            <Typography color="error" sx={{ mb: 3 }}>
+              {error}
+            </Typography>
+            <Button 
+              variant="contained" 
+              onClick={() => dispatch(fetchPosicionesConItems())}
+              sx={{ backgroundColor: 'var(--color-primary)' }}
+            >
+              Reintentar
+            </Button>
+          </ModernCard>
+        </Container>
+      </AppLayout>
     );
   }
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppHeader user={user} />
-
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <div className={styles.container}>
-          <Typography variant="h4" gutterBottom>
-            Panel de Control - Salida
-          </Typography>
-          
-          {/* Mensajes de éxito o error */}
-          {message.text && (
-            <Box 
+    <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Salida">
+      <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
+        {/* Header solo en desktop */}
+        {!isMobile && (
+          <Box sx={{ mb: 4 }}>
+            <Typography 
+              variant="h3" 
               sx={{ 
-                mb: 2, 
-                p: 2, 
-                borderRadius: 1,
-                backgroundColor: message.type === 'success' ? 'success.light' : 'error.light',
-                color: message.type === 'success' ? 'success.dark' : 'error.dark'
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                mb: 0.5
               }}
             >
-              <Typography variant="body1">
-                {message.text}
-              </Typography>
+              Salida
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'var(--color-text-secondary)',
+                mb: 3
+              }}
+            >
+              Gestión de salidas de materiales y remitos
+            </Typography>
+          </Box>
+        )}
+
+        {/* Filtros */}
+        <ModernCard
+          title={isMobile ? "Filtros" : "Búsqueda y Filtros"}
+          subtitle={isMobile ? "" : "Encuentra rápidamente los materiales para salida"}
+          sx={{ mb: isMobile ? 2 : 4 }}
+          padding={isMobile ? "compact" : "normal"}
+        >
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'row',
+            gap: isMobile ? 0.5 : isTablet ? 1 : 2,
+            alignItems: 'center',
+            overflow: 'hidden'
+          }}>
+            <Box sx={{ 
+              flex: isMobile || isTablet ? '0 0 66.666%' : '1',
+              minWidth: 0
+            }}>
+              <SearchBar 
+                placeholder="Buscar materiales por categoría, descripción, partida o proveedor..."
+                onSearch={handleSearch}
+              />
             </Box>
-          )}
-          
-          <Box sx={{ width: '100%', mt: 3 }}>
-            <SalidaTabs 
-              tabValue={tabValue}
-              onTabChange={handleTabChange}
-              salidasPendientesCount={0} // TODO: Implementar contador real
-              salidasAprobadasCount={0} // TODO: Implementar contador real
-              remitosCount={historialSalida.length}
-            />
             
-            {/* Contenido de las pestañas */}
-            <Paper elevation={2} sx={{ p: 3, mt: 2 }}>
-              {tabValue === 0 ? (
-                // Pestaña de Remito Salida (PRINCIPAL) - Panel de Control
-                <div>
-                  <Typography variant="h6" gutterBottom>
-                    Stock Disponible por Posición
-                  </Typography>
-                  
-                  {/* Header con búsqueda y filtros para Remito Salida */}
-                  <div className={styles.header}>
-                    <div className={styles.searchSection}>
-                      <SearchBar 
-                        placeholder="Buscar por posición, material, categoría o proveedor..."
-                        onSearch={handleSearch}
-                      />
-                    </div>
-                    <div className={styles.filtersSection}>
-                      <AdvancedFilters 
-                        filters={advancedFilters}
-                        onFilterChange={handleAdvancedFiltersChange}
-                      />
-                    </div>
-                  </div>
-                  
-                  {filteredPosiciones.length === 0 ? (
-                    <EmptyState 
-                      icon={ReceiptIcon}
-                      title="No hay stock disponible"
-                      description="No se encontraron posiciones con stock disponible"
+            <Box sx={{ 
+              flex: isMobile || isTablet ? '0 0 33.333%' : '0 0 auto',
+              minWidth: isMobile ? '120px' : isTablet ? '140px' : '220px'
+            }}>
+              <AdvancedFilters 
+                filters={advancedFilters}
+                onFilterChange={handleAdvancedFiltersChange}
+              />
+            </Box>
+          </Box>
+        </ModernCard>
+
+        {/* Contenido principal */}
+        <ModernCard
+          title={isMobile ? undefined : "Gestión de Salidas"}
+          subtitle={isMobile ? undefined : `Mostrando ${filteredPosiciones.length} posiciones con materiales`}
+          padding={isMobile ? "compact" : "normal"}
+        >
+          <SalidaTabs 
+            tabValue={0}
+            onTabChange={handleTabChange}
+            posicionesCount={filteredPosiciones.length}
+            historialCount={historialSalida.length}
+          />
+          
+          {/* Tab de Stock */}
+          <Box sx={{ mt: 2 }}>
+            {filteredPosiciones.length === 0 ? (
+              <EmptyState 
+                icon={ExitToAppIcon}
+                {...EMPTY_STATE_MESSAGES.STOCK}
+                searchTerm={searchTerm}
+              />
+            ) : (
+              <Grid container spacing={2}>
+                {filteredPosiciones.map((posicion) => (
+                  <Grid item xs={12} sm={6} md={4} key={posicion.id}>
+                    <StockCard
+                      posicion={posicion}
+                      onPosicionClick={handlePosicionClick}
+                      onAdicionRapida={handleAdicionRapida}
+                      onMovimientoInterno={handleMovimientoInterno}
+                      onCorreccion={handleCorreccion}
                       searchTerm={searchTerm}
                     />
-                  ) : (
-                    <div className={styles.posicionList}>
-                      {filteredPosiciones.map((posicion, index) => {
-                        const uniqueKey = posicion.posicionId || `posicion-${index}`;
-                        
-                        return (
-                          <StockCard
-                            key={uniqueKey}
-                            posicion={posicion}
-                            onClick={handlePosicionClick}
-                            onAdicionRapida={handleAdicionRapida}
-                            onMovimientoInterno={handleMovimientoInterno}
-                            onCorreccion={handleCorreccion}
-                            searchTerm={searchTerm}
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              ) : tabValue === 1 ? (
-                // Pestaña de Salidas Pendientes (por ahora vacía)
-                <div>
-                  <Typography variant="h6" gutterBottom>
-                    Salidas Pendientes
-                  </Typography>
-                  
-                  <EmptyState 
-                    icon={ExitToAppIcon}
-                    {...EMPTY_STATE_MESSAGES.PENDIENTES}
-                    searchTerm=""
-                  />
-                </div>
-              ) : (
-                // Pestaña de Historial
-                <div>
-                  <RemitosSalidaList 
-                    remitos={historialSalida}
-                    loading={loadingHistorial}
-                    error={errorHistorial}
-                    onDeleteItem={handleDeleteItem}
-                  />
-                </div>
-              )}
-            </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
           </Box>
+        </ModernCard>
 
-          {/* Formulario de Remito */}
-          <RemitoSalidaModal
-            open={formOpen}
-            onClose={() => setFormOpen(false)}
-            onSubmit={handleSubmitRemito}
-            item={selectedItem}
-            posicionId={selectedPosicion?.posicionId}
-          />
+        {/* Formularios */}
+        <SalidaForm
+          open={salidaFormOpen}
+          onClose={() => setSalidaFormOpen(false)}
+          posicion={selectedPosicion}
+          item={selectedItem}
+          onSubmit={handleSubmitSalida}
+        />
 
-          {/* Snackbar para notificaciones */}
-          <Snackbar
-            open={snackbar.open}
-            autoHideDuration={6000}
-            onClose={handleCloseSnackbar}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        <RemitoSalidaModal
+          open={remitoModalOpen}
+          onClose={() => setRemitoModalOpen(false)}
+          onSubmit={handleSubmitRemito}
+        />
+
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert 
+            onClose={handleCloseSnackbar} 
+            severity={snackbar.severity}
+            sx={{ width: '100%' }}
           >
-            <Alert 
-              onClose={handleCloseSnackbar} 
-              severity={snackbar.severity}
-              sx={{ width: '100%' }}
-            >
-              {snackbar.message}
-            </Alert>
-          </Snackbar>
-        </div>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Container>
-    </Box>
+    </AppLayout>
   );
 }; 

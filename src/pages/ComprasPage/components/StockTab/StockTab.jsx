@@ -1,10 +1,21 @@
 import React from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  useTheme,
+  useMediaQuery
+} from '@mui/material';
+import { Refresh as RefreshIcon } from '@mui/icons-material';
 import { useStockData } from "../../../../features/stock/hooks";
 import { useComprasActions } from "../../../../features/compras/hooks";
 import { LoadingState, ErrorState, StockContent } from "../../../../features/stock/ui";
-import styles from "./StockTab.module.css";
+import ModernCard from "../../../../shared/ui/ModernCard/ModernCard";
 
 export const StockTab = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const {
     filteredMaterials,
     isLoading,
@@ -21,33 +32,33 @@ export const StockTab = () => {
 
   if (error) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h3>Error al cargar el stock</h3>
-        <p style={{ color: 'red', marginBottom: '20px' }}>{error}</p>
-        <button 
+      <ModernCard
+        title="Error al cargar el stock"
+        subtitle="No se pudieron cargar los datos del inventario"
+        sx={{ maxWidth: 600, mx: 'auto' }}
+      >
+        <Typography color="error" sx={{ mb: 3 }}>
+          {error}
+        </Typography>
+        <Button
+          variant="contained"
           onClick={handleRetry}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
+          startIcon={<RefreshIcon />}
+          sx={{ backgroundColor: 'var(--color-primary)' }}
         >
           Reintentar
-        </button>
-      </div>
+        </Button>
+      </ModernCard>
     );
   }
 
   return (
-    <div className={styles.stockTab}>
+    <Box sx={{ width: '100%' }}>
       <StockContent
         filteredMaterials={filteredMaterials}
         onSearch={handleSearch}
         onMaterialClick={handleMaterialClick}
       />
-    </div>
+    </Box>
   );
 };

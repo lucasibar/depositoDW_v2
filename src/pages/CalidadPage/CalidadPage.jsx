@@ -119,7 +119,7 @@ export const CalidadPage = () => {
   if (status === 'loading') {
     console.log('Rendering loading state');
     return (
-      <AppLayout user={user} onLogout={handleLogoutClick}>
+      <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Calidad">
         <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
           <Box sx={{ 
             display: 'flex', 
@@ -140,7 +140,7 @@ export const CalidadPage = () => {
   if (status === 'failed') {
     console.log('Rendering error state:', error);
     return (
-      <AppLayout user={user} onLogout={handleLogoutClick}>
+      <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Calidad">
         <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
           <ModernCard
             title="Error"
@@ -196,7 +196,7 @@ export const CalidadPage = () => {
   console.log('Rendering main content');
 
   return (
-    <AppLayout user={user} onLogout={handleLogoutClick}>
+    <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Calidad">
       <Container 
         maxWidth="lg" 
         sx={{ 
@@ -208,28 +208,30 @@ export const CalidadPage = () => {
           overflowY: 'auto'
         }}
       >
-        {/* Header compacto */}
-        <Box sx={{ mb: isMobile ? 2 : 4 }}>
-          <Typography 
-            variant={isMobile ? "h5" : isTablet ? "h4" : "h3"} 
-            sx={{ 
-              fontWeight: 700,
-              color: 'var(--color-text-primary)',
-              mb: 0.5
-            }}
-          >
-            Calidad
-          </Typography>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: 'var(--color-text-secondary)',
-              mb: isMobile ? 1 : 3
-            }}
-          >
-            Gestión de partidas en cuarentena y aprobadas
-          </Typography>
-        </Box>
+        {/* Header solo en desktop */}
+        {!isMobile && (
+          <Box sx={{ mb: 4 }}>
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                mb: 0.5
+              }}
+            >
+              Calidad
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'var(--color-text-secondary)',
+                mb: 3
+              }}
+            >
+              Gestión de partidas en cuarentena y aprobadas
+            </Typography>
+          </Box>
+        )}
 
         {/* Barra de búsqueda */}
         <ModernCard

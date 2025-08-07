@@ -12,6 +12,9 @@ export { default as ModernButton } from './ModernButton/ModernButton';
 // Table Components
 export { default as ModernTable } from './ModernTable/ModernTable';
 
+// State Components
+export { default as EmptyState } from './EmptyState/EmptyState';
+
 // Existing Components (mantener compatibilidad)
 export { SearchBar } from './SearchBar/SearchBar';
 export { AdvancedFilters } from './AdvancedFilters/AdvancedFilters';

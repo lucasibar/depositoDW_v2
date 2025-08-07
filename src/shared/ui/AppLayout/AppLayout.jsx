@@ -37,12 +37,26 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getRoleColor, getRoleLabel } from '../../../features/stock/utils/userUtils';
 
-const AppLayout = ({ children, user, onLogout }) => {
+const AppLayout = ({ children, user, onLogout, pageTitle }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Función para obtener el título de la página basado en la ruta
+  const getPageTitle = () => {
+    if (pageTitle) return pageTitle;
+    
+    const path = location.pathname;
+    if (path.includes('/deposito')) return 'Depósito';
+    if (path.includes('/compras')) return 'Compras';
+    if (path.includes('/calidad')) return 'Calidad';
+    if (path.includes('/salida')) return 'Salida';
+    if (path.includes('/admin')) return 'Dashboard';
+    if (path.includes('/reportes')) return 'Reportes';
+    return 'Der Will';
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -361,7 +375,7 @@ const AppLayout = ({ children, user, onLogout }) => {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-              Der Will
+              {getPageTitle()}
             </Typography>
           </Toolbar>
         </AppBar>

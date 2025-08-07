@@ -1,20 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 import { useSelector } from "react-redux";
 import { Box, Alert, useTheme, useMediaQuery } from "@mui/material";
 import { selectRemitosLoading, selectRemitosError } from "../../../../features/remitos/model/selectors";
-import { CreateRemitoEntradaForm } from "../../../../widgets/remitos/CreateRemitoEntradaForm/CreateRemitoEntradaForm";
+import { RemitosList } from "../RemitosTab/components/RemitosList/RemitosList";
 
-export const RemitosTab = () => {
+export const RemitosListTab = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
   const isLoading = useSelector(selectRemitosLoading);
   const error = useSelector(selectRemitosError);
-
-  const handleRemitoCreated = (remitoData) => {
-    // Aquí puedes agregar lógica adicional después de crear el remito
-    console.log('Remito creado:', remitoData);
-  };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -24,7 +19,7 @@ export const RemitosTab = () => {
         </Alert>
       )}
 
-      <CreateRemitoEntradaForm onRemitoCreated={handleRemitoCreated} />
+      <RemitosList />
     </Box>
   );
-};
+}; 

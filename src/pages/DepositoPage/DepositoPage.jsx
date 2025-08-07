@@ -151,7 +151,7 @@ export const DepositoPage = () => {
 
   if (isLoading) {
     return (
-      <AppLayout user={user} onLogout={handleLogoutClick}>
+      <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Depósito">
         <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
           <Box sx={{ 
             display: 'flex', 
@@ -171,7 +171,7 @@ export const DepositoPage = () => {
 
   if (error) {
     return (
-      <AppLayout user={user} onLogout={handleLogoutClick}>
+      <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Depósito">
         <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
           <ModernCard
             title="Error"
@@ -195,30 +195,32 @@ export const DepositoPage = () => {
   }
 
   return (
-    <AppLayout user={user} onLogout={handleLogoutClick}>
+    <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Depósito">
       <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
-        {/* Header compacto */}
-        <Box sx={{ mb: isMobile ? 2 : 4 }}>
-          <Typography 
-            variant={isMobile ? "h5" : isTablet ? "h4" : "h3"} 
-            sx={{ 
-              fontWeight: 700,
-              color: 'var(--color-text-primary)',
-              mb: 0.5
-            }}
-          >
-            Depósito
-          </Typography>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: 'var(--color-text-secondary)',
-              mb: isMobile ? 1 : 3
-            }}
-          >
-            {filteredPosiciones.length} de {posiciones.length} posiciones
-          </Typography>
-        </Box>
+        {/* Header solo en desktop */}
+        {!isMobile && (
+          <Box sx={{ mb: 4 }}>
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                mb: 0.5
+              }}
+            >
+              Depósito
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'var(--color-text-secondary)',
+                mb: 3
+              }}
+            >
+              {filteredPosiciones.length} de {posiciones.length} posiciones
+            </Typography>
+          </Box>
+        )}
 
         {/* Filtros compactos */}
         <ModernCard
