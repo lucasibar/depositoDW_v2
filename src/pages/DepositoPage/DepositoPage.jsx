@@ -6,27 +6,38 @@ import {
   Typography, 
   Button, 
   Chip, 
-  AppBar, 
-  Toolbar,
-  Container
+  Container,
+  Grid,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
+import { 
+  Add as AddIcon,
+  Search as SearchIcon,
+  FilterList as FilterIcon
+} from '@mui/icons-material';
 import { SearchBar } from '../../shared/ui/SearchBar/SearchBar';
 import { AdvancedFilters } from '../../shared/ui/AdvancedFilters/AdvancedFilters';
 import { PosicionList } from '../../widgets/PosicionList/PosicionList';
 import { AdicionRapidaForm } from '../../widgets/remitos/AdicionRapidaForm/AdicionRapidaForm';
 import { MovimientoInternoForm } from '../../widgets/remitos/MovimientoInternoForm/MovimientoInternoForm';
 import { CorreccionForm } from '../../widgets/remitos/CorreccionForm/CorreccionForm';
+import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { fetchPosicionesConItems, adicionRapida, movimientoInterno } from '../../features/stock/model/slice';
 import { selectPosiciones, selectStockLoading, selectStockError } from '../../features/stock/model/selectors';
 import { applyAllFilters } from '../../features/stock/utils/posicionUtils';
 import { getRoleColor, getRoleLabel } from '../../features/stock/utils/userUtils';
 import { checkAuthentication, handleLogout } from '../../features/stock/utils/navigationUtils';
 import { SEARCH_PLACEHOLDERS, ERROR_MESSAGES } from '../../features/stock/constants/stockConstants';
-import styles from './DepositoPage.module.css';
 
 export const DepositoPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  
   const [user, setUser] = useState(null);
   const [filteredPosiciones, setFilteredPosiciones] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,8 +89,6 @@ export const DepositoPage = () => {
 
   const handlePosicionClick = (posicion) => {
     console.log("Posición seleccionada:", posicion);
-    // Aquí puedes agregar lógica específica para depósito
-    // Por ejemplo, abrir un modal con detalles o navegar a otra página
   };
 
   const handleAdicionRapida = (posicion) => {
@@ -99,20 +108,16 @@ export const DepositoPage = () => {
   };
 
   const handleCorreccion = (item, posicion) => {
-    console.log('Datos recibidos para corrección:', { item, posicion });
-    if (item && posicion) {
-      setSelectedItem(item);
-      setSelectedPosicion(posicion);
-      setCorreccionOpen(true);
-    } else {
-      console.error('Datos inválidos para corrección:', { item, posicion });
-    }
+    setSelectedItem(item);
+    setSelectedPosicion(posicion);
+    setCorreccionOpen(true);
   };
 
   const handleAdicionRapidaSubmit = async (data) => {
     try {
-      await dispatch(adicionRapida(data));
-      dispatch(fetchPosicionesConItems()); // Recargar posiciones
+      await dispatch(adicionRapida(data)).unwrap();
+      setAdicionRapidaOpen(false);
+      setSelectedPosicion(null);
     } catch (error) {
       console.error('Error en adición rápida:', error);
     }
@@ -120,8 +125,10 @@ export const DepositoPage = () => {
 
   const handleMovimientoInternoSubmit = async (data) => {
     try {
-      await dispatch(movimientoInterno(data));
-      dispatch(fetchPosicionesConItems()); // Recargar posiciones
+      await dispatch(movimientoInterno(data)).unwrap();
+      setMovimientoInternoOpen(false);
+      setSelectedItem(null);
+      setSelectedPosicion(null);
     } catch (error) {
       console.error('Error en movimiento interno:', error);
     }
@@ -129,14 +136,14 @@ export const DepositoPage = () => {
 
   const handleCorreccionSubmit = async (data) => {
     try {
-      await dispatch(adicionRapida(data));
-      dispatch(fetchPosicionesConItems()); // Recargar posiciones
+      // Implementar lógica de corrección
+      setCorreccionOpen(false);
+      setSelectedItem(null);
+      setSelectedPosicion(null);
     } catch (error) {
-      console.error('Error en eliminación:', error);
+      console.error('Error en corrección:', error);
     }
   };
-
-
 
   if (!user) {
     return null;
@@ -144,129 +151,129 @@ export const DepositoPage = () => {
 
   if (isLoading) {
     return (
-      <div className={styles.loading}>
-        <div className={styles.spinner}></div>
-        <p>{ERROR_MESSAGES.LOADING_POSICIONES}</p>
-      </div>
+      <AppLayout user={user} onLogout={handleLogoutClick}>
+        <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            minHeight: '60vh'
+          }}>
+            <Typography variant="h6" sx={{ color: 'var(--color-text-secondary)', mb: 2 }}>
+              Cargando posiciones...
+            </Typography>
+          </Box>
+        </Container>
+      </AppLayout>
     );
   }
 
   if (error) {
     return (
-      <div className={styles.error}>
-        <p>{error}</p>
-        <button onClick={() => dispatch(fetchPosicionesConItems())} className={styles.retryButton}>
-          {ERROR_MESSAGES.RETRY}
-        </button>
-      </div>
+      <AppLayout user={user} onLogout={handleLogoutClick}>
+        <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
+          <ModernCard
+            title="Error"
+            subtitle="No se pudieron cargar las posiciones"
+            sx={{ maxWidth: 600, mx: 'auto' }}
+          >
+            <Typography color="error" sx={{ mb: 3 }}>
+              {error}
+            </Typography>
+            <Button 
+              variant="contained" 
+              onClick={() => dispatch(fetchPosicionesConItems())}
+              sx={{ backgroundColor: 'var(--color-primary)' }}
+            >
+              Reintentar
+            </Button>
+          </ModernCard>
+        </Container>
+      </AppLayout>
     );
   }
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" sx={{ backgroundColor: '#2e7d32' }}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Der Will - Sistema de Gestión
+    <AppLayout user={user} onLogout={handleLogoutClick}>
+      <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
+        {/* Header compacto */}
+        <Box sx={{ mb: isMobile ? 2 : 4 }}>
+          <Typography 
+            variant={isMobile ? "h5" : isTablet ? "h4" : "h3"} 
+            sx={{ 
+              fontWeight: 700,
+              color: 'var(--color-text-primary)',
+              mb: 0.5
+            }}
+          >
+            Depósito
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="body2">
-              Bienvenido, {user.name}
-            </Typography>
-            <Chip 
-              label={getRoleLabel(user.role)} 
-              color={getRoleColor(user.role)}
-              size="small"
-            />
-            {user.role === 'admin' && (
-              <>
-                <Button 
-                  color="inherit" 
-                  onClick={() => navigate('/depositoDW_v2/compras')}
-                  sx={{ 
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.1)'
-                    }
-                  }}
-                >
-                  Compras
-                </Button>
-                <Button 
-                  color="inherit" 
-                  onClick={() => navigate('/depositoDW_v2/calidad')}
-                  sx={{ 
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.1)'
-                    }
-                  }}
-                >
-                  Calidad
-                </Button>
-                <Button 
-                  color="inherit" 
-                  onClick={() => navigate('/depositoDW_v2/salida')}
-                  sx={{ 
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.1)'
-                    }
-                  }}
-                >
-                  Salida
-                </Button>
-                <Button 
-                  color="inherit" 
-                  onClick={() => navigate('/depositoDW_v2/admin')}
-                  sx={{ 
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.1)'
-                    }
-                  }}
-                >
-                  Admin
-                </Button>
-              </>
-            )}
-            <Button 
-              color="inherit" 
-              onClick={handleLogoutClick}
-              sx={{ 
-                border: '1px solid rgba(255,255,255,0.3)',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.1)'
-                }
-              }}
-            >
-              Cerrar Sesión
-            </Button>
-          </Box>
-        </Toolbar>
-      </AppBar>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: 'var(--color-text-secondary)',
+              mb: isMobile ? 1 : 3
+            }}
+          >
+            {filteredPosiciones.length} de {posiciones.length} posiciones
+          </Typography>
+        </Box>
 
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <div className={styles.container}>
-          <Typography variant="h4" gutterBottom>
-            Panel de Control - Depósito
-          </Typography>
-          
-          <div className={styles.header}>
-            <div className={styles.searchSection}>
+        {/* Filtros compactos */}
+        <ModernCard
+          title={isMobile ? "Filtros" : "Búsqueda y Filtros"}
+          subtitle={isMobile ? "" : "Encuentra rápidamente las posiciones que necesitas"}
+          sx={{ mb: isMobile ? 2 : 4 }}
+          padding={isMobile ? "compact" : "normal"}
+        >
+          {/* Layout en una línea para todos los dispositivos */}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'row',
+            gap: isMobile ? 0.5 : isTablet ? 1 : 2,
+            alignItems: 'center',
+            overflow: 'hidden'
+          }}>
+            {/* Barra de búsqueda - 2/3 del espacio en móvil/tablet */}
+            <Box sx={{ 
+              flex: isMobile || isTablet ? '0 0 66.666%' : '1',
+              minWidth: 0
+            }}>
               <SearchBar 
                 placeholder={SEARCH_PLACEHOLDERS.DEPOSITO}
                 onSearch={handleSearch}
               />
-            </div>
-            <div className={styles.filtersSection}>
+            </Box>
+            
+            {/* Filtros avanzados - 1/3 del espacio en móvil/tablet */}
+            <Box sx={{ 
+              flex: isMobile || isTablet ? '0 0 33.333%' : '0 0 auto',
+              minWidth: isMobile ? '120px' : isTablet ? '140px' : '220px'
+            }}>
               <AdvancedFilters 
                 filters={advancedFilters}
                 onFilterChange={handleAdvancedFiltersChange}
               />
-            </div>
-          </div>
-          
+            </Box>
+          </Box>
+        </ModernCard>
+        
+        {/* Lista de Posiciones - Sin título en móvil para ahorrar espacio */}
+        <ModernCard
+          title={isMobile ? undefined : `Posiciones (${filteredPosiciones.length})`}
+          subtitle={isMobile ? undefined : `Mostrando ${filteredPosiciones.length} de ${posiciones.length} posiciones`}
+          headerAction={
+            !isMobile ? (
+              <Chip 
+                label={`${posiciones.length} total`}
+                color="primary"
+                size="small"
+              />
+            ) : undefined
+          }
+          padding={isMobile ? "compact" : "normal"}
+        >
           <PosicionList
             posiciones={filteredPosiciones}
             onPosicionClick={handlePosicionClick}
@@ -275,40 +282,40 @@ export const DepositoPage = () => {
             onCorreccion={handleCorreccion}
             searchTerm={searchTerm}
           />
-          
-          {/* Formularios */}
-          <AdicionRapidaForm
-            open={adicionRapidaOpen}
-            onClose={() => setAdicionRapidaOpen(false)}
-            posicion={selectedPosicion}
-            onSubmit={handleAdicionRapidaSubmit}
-          />
-          
-          <MovimientoInternoForm
-            open={movimientoInternoOpen}
-            onClose={() => {
-              setMovimientoInternoOpen(false);
-              setSelectedItem(null);
-              setSelectedPosicion(null);
-            }}
-            item={selectedItem}
-            posicionOrigen={selectedPosicion}
-            onSubmit={handleMovimientoInternoSubmit}
-          />
-          
-          <CorreccionForm
-            open={correccionOpen}
-            onClose={() => {
-              setCorreccionOpen(false);
-              setSelectedItem(null);
-              setSelectedPosicion(null);
-            }}
-            item={selectedItem}
-            posicion={selectedPosicion}
-            onSubmit={handleCorreccionSubmit}
-          />
-        </div>
+        </ModernCard>
+        
+        {/* Formularios */}
+        <AdicionRapidaForm
+          open={adicionRapidaOpen}
+          onClose={() => setAdicionRapidaOpen(false)}
+          posicion={selectedPosicion}
+          onSubmit={handleAdicionRapidaSubmit}
+        />
+        
+        <MovimientoInternoForm
+          open={movimientoInternoOpen}
+          onClose={() => {
+            setMovimientoInternoOpen(false);
+            setSelectedItem(null);
+            setSelectedPosicion(null);
+          }}
+          item={selectedItem}
+          posicionOrigen={selectedPosicion}
+          onSubmit={handleMovimientoInternoSubmit}
+        />
+        
+        <CorreccionForm
+          open={correccionOpen}
+          onClose={() => {
+            setCorreccionOpen(false);
+            setSelectedItem(null);
+            setSelectedPosicion(null);
+          }}
+          item={selectedItem}
+          posicion={selectedPosicion}
+          onSubmit={handleCorreccionSubmit}
+        />
       </Container>
-    </Box>
+    </AppLayout>
   );
 }; 

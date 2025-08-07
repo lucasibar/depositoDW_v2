@@ -1,6 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './AdminPage.module.css';
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  Grid, 
+  Card, 
+  CardContent,
+  Tabs,
+  Tab,
+  Chip,
+  CircularProgress,
+  Alert,
+  useTheme,
+  useMediaQuery
+} from '@mui/material';
+import { 
+  People as PeopleIcon,
+  Inventory as InventoryIcon,
+  TrendingUp as TrendingUpIcon,
+  Business as BusinessIcon,
+  Add as AddIcon,
+  Refresh as RefreshIcon
+} from '@mui/icons-material';
+import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { authService } from '../../services/authService';
 import { userService } from '../../services/userService';
 
@@ -9,6 +33,9 @@ export const AdminPage = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [creatingUsers, setCreatingUsers] = useState(false);
   const [userCreationResult, setUserCreationResult] = useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     const currentUser = authService.getUser();
@@ -40,214 +67,268 @@ export const AdminPage = () => {
   };
 
   const renderDashboardTab = () => (
-    <div className={styles.tabContent}>
-      <h3>Dashboard de Administración</h3>
-      
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <h4>Usuarios Totales</h4>
-          <div className={styles.statNumber}>24</div>
-          <p>Usuarios registrados en el sistema</p>
-        </div>
+    <Box>
+      {/* Estadísticas */}
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 3 : 4 }}>
+        <Grid item xs={6} sm={6} md={3}>
+          <ModernCard
+            title="Usuarios"
+            subtitle="Total registrados"
+            sx={{ height: '100%' }}
+            padding={isMobile ? "compact" : "normal"}
+          >
+            <Box sx={{ textAlign: 'center', py: isMobile ? 1 : 2 }}>
+              <PeopleIcon sx={{ fontSize: isMobile ? 32 : 48, color: 'var(--color-primary)', mb: isMobile ? 1 : 2 }} />
+              <Typography variant={isMobile ? "h4" : "h3"} sx={{ fontWeight: 700, color: 'var(--color-primary)' }}>
+                24
+              </Typography>
+            </Box>
+          </ModernCard>
+        </Grid>
         
-        <div className={styles.statCard}>
-          <h4>Artículos en Stock</h4>
-          <div className={styles.statNumber}>1,247</div>
-          <p>Artículos disponibles</p>
-        </div>
+        <Grid item xs={6} sm={6} md={3}>
+          <ModernCard
+            title="Artículos"
+            subtitle="En stock"
+            sx={{ height: '100%' }}
+            padding={isMobile ? "compact" : "normal"}
+          >
+            <Box sx={{ textAlign: 'center', py: isMobile ? 1 : 2 }}>
+              <InventoryIcon sx={{ fontSize: isMobile ? 32 : 48, color: 'var(--color-secondary)', mb: isMobile ? 1 : 2 }} />
+              <Typography variant={isMobile ? "h4" : "h3"} sx={{ fontWeight: 700, color: 'var(--color-secondary)' }}>
+                1,247
+              </Typography>
+            </Box>
+          </ModernCard>
+        </Grid>
         
-        <div className={styles.statCard}>
-          <h4>Movimientos Hoy</h4>
-          <div className={styles.statNumber}>89</div>
-          <p>Movimientos realizados hoy</p>
-        </div>
+        <Grid item xs={6} sm={6} md={3}>
+          <ModernCard
+            title="Movimientos"
+            subtitle="Hoy"
+            sx={{ height: '100%' }}
+            padding={isMobile ? "compact" : "normal"}
+          >
+            <Box sx={{ textAlign: 'center', py: isMobile ? 1 : 2 }}>
+              <TrendingUpIcon sx={{ fontSize: isMobile ? 32 : 48, color: 'var(--color-success)', mb: isMobile ? 1 : 2 }} />
+              <Typography variant={isMobile ? "h4" : "h3"} sx={{ fontWeight: 700, color: 'var(--color-success)' }}>
+                89
+              </Typography>
+            </Box>
+          </ModernCard>
+        </Grid>
         
-        <div className={styles.statCard}>
-          <h4>Proveedores Activos</h4>
-          <div className={styles.statNumber}>12</div>
-          <p>Proveedores con actividad reciente</p>
-        </div>
-      </div>
+        <Grid item xs={6} sm={6} md={3}>
+          <ModernCard
+            title="Proveedores"
+            subtitle="Activos"
+            sx={{ height: '100%' }}
+            padding={isMobile ? "compact" : "normal"}
+          >
+            <Box sx={{ textAlign: 'center', py: isMobile ? 1 : 2 }}>
+              <BusinessIcon sx={{ fontSize: isMobile ? 32 : 48, color: 'var(--color-warning)', mb: isMobile ? 1 : 2 }} />
+              <Typography variant={isMobile ? "h4" : "h3"} sx={{ fontWeight: 700, color: 'var(--color-warning)' }}>
+                12
+              </Typography>
+            </Box>
+          </ModernCard>
+        </Grid>
+      </Grid>
 
-      <div className={styles.card}>
-        <h4>Actividad Reciente</h4>
-        <div className={styles.activityList}>
-          <div className={styles.activityItem}>
-            <span className={styles.activityTime}>10:30</span>
-            <span className={styles.activityText}>Nuevo usuario registrado: Juan Pérez</span>
-          </div>
-          <div className={styles.activityItem}>
-            <span className={styles.activityTime}>09:15</span>
-            <span className={styles.activityText}>Movimiento de stock: Entrada de 50 unidades</span>
-          </div>
-          <div className={styles.activityItem}>
-            <span className={styles.activityTime}>08:45</span>
-            <span className={styles.activityText}>Nuevo proveedor agregado: TextilCorp S.A.</span>
-          </div>
-        </div>
-      </div>
-    </div>
+      {/* Actividad Reciente */}
+      <ModernCard
+        title={isMobile ? "Actividad" : "Actividad Reciente"}
+        subtitle={isMobile ? "" : "Últimas actividades del sistema"}
+        padding={isMobile ? "compact" : "normal"}
+      >
+        <Box sx={{ mt: isMobile ? 1 : 2 }}>
+          {[
+            { time: '10:30', text: 'Nuevo usuario registrado: Juan Pérez', type: 'user' },
+            { time: '09:15', text: 'Movimiento de stock: Entrada de 50 unidades', type: 'stock' },
+            { time: '08:45', text: 'Nuevo proveedor agregado: TextilCorp S.A.', type: 'provider' },
+            { time: '08:30', text: 'Corrección de inventario: Posición A1-B2', type: 'correction' },
+            { time: '08:15', text: 'Movimiento interno: Transferencia entre posiciones', type: 'transfer' }
+          ].map((activity, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                py: isMobile ? 1 : 2,
+                borderBottom: index < 4 ? '1px solid var(--color-divider)' : 'none',
+                '&:last-child': {
+                  borderBottom: 'none'
+                }
+              }}
+            >
+              <Chip
+                label={activity.time}
+                size="small"
+                sx={{ 
+                  mr: isMobile ? 1 : 2,
+                  backgroundColor: 'var(--color-divider)',
+                  color: 'var(--color-text-secondary)',
+                  fontSize: isMobile ? '0.7rem' : '0.75rem'
+                }}
+              />
+              <Typography 
+                variant={isMobile ? "caption" : "body2"} 
+                sx={{ 
+                  color: 'var(--color-text-primary)',
+                  lineHeight: isMobile ? 1.2 : 1.4
+                }}
+              >
+                {activity.text}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </ModernCard>
+    </Box>
   );
 
   const renderUsersTab = () => (
-    <div className={styles.tabContent}>
-      <h3>Gestión de Usuarios</h3>
-      <div className={styles.card}>
-        <h4>Crear Usuarios por Defecto</h4>
-        <p>Crea los usuarios básicos del sistema con roles específicos.</p>
-        <button 
-          className={styles.primaryButton} 
+    <ModernCard
+      title={isMobile ? "Usuarios" : "Gestión de Usuarios"}
+      subtitle={isMobile ? "" : "Administra los usuarios del sistema"}
+      padding={isMobile ? "compact" : "normal"}
+    >
+      <Box sx={{ mb: isMobile ? 2 : 3 }}>
+        <Typography variant={isMobile ? "body2" : "h6"} sx={{ mb: isMobile ? 1 : 2 }}>
+          Crear Usuarios por Defecto
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', mb: isMobile ? 2 : 3 }}>
+          Crea los usuarios básicos del sistema con roles específicos.
+        </Typography>
+        
+        <Button 
+          variant="contained"
+          startIcon={creatingUsers ? <CircularProgress size={20} /> : <AddIcon />}
           onClick={handleCreateDefaultUsers}
           disabled={creatingUsers}
+          size={isMobile ? "small" : "medium"}
+          sx={{
+            backgroundColor: 'var(--color-primary)',
+            '&:hover': {
+              backgroundColor: 'var(--color-primary-dark)'
+            }
+          }}
         >
-          {creatingUsers ? 'Creando...' : 'Crear Usuarios por Defecto'}
-        </button>
-        
-        {userCreationResult && (
-          <div className={styles.resultCard}>
-            <h5>Resultado de la Creación:</h5>
-            <p><strong>Mensaje:</strong> {userCreationResult.message}</p>
-            
-            {userCreationResult.summary && (
-              <div className={styles.summary}>
-                <p><strong>Resumen:</strong></p>
-                <ul>
-                  <li>Creados: {userCreationResult.summary.created}</li>
-                  <li>Ya existían: {userCreationResult.summary.exists}</li>
-                  <li>Errores: {userCreationResult.summary.errors}</li>
-                </ul>
-              </div>
-            )}
-            
-            {userCreationResult.results && (
-              <div className={styles.results}>
-                <p><strong>Detalles:</strong></p>
-                {userCreationResult.results.map((result, index) => (
-                  <div key={index} className={`${styles.resultItem} ${styles[result.status]}`}>
-                    <span className={styles.userName}>{result.name}</span>
-                    <span className={styles.status}>{result.status}</span>
-                    <span className={styles.message}>{result.message}</span>
-                    {result.role && <span className={styles.role}>Rol: {result.role}</span>}
-                    {result.password && <span className={styles.password}>Contraseña: {result.password}</span>}
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {userCreationResult.error && (
-              <div className={styles.error}>
-                <p><strong>Error:</strong> {userCreationResult.error}</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-      
-      <div className={styles.card}>
-        <h4>Lista de Usuarios</h4>
-        <p>Administración de usuarios del sistema y sus permisos.</p>
-        <button className={styles.primaryButton}>Agregar Usuario</button>
-        <button className={styles.secondaryButton}>Editar Permisos</button>
-      </div>
-    </div>
+          {creatingUsers ? 'Creando...' : 'Crear Usuarios'}
+        </Button>
+      </Box>
+
+      {userCreationResult && (
+        <Alert 
+          severity={userCreationResult.error ? 'error' : 'success'}
+          sx={{ mb: 3 }}
+        >
+          {userCreationResult.message}
+          {userCreationResult.error && (
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              Error: {userCreationResult.error}
+            </Typography>
+          )}
+        </Alert>
+      )}
+    </ModernCard>
   );
 
   const renderSystemTab = () => (
-    <div className={styles.tabContent}>
-      <h3>Configuración del Sistema</h3>
-      <div className={styles.card}>
-        <h4>Configuraciones Generales</h4>
-        <p>Configuración de parámetros del sistema y mantenimiento.</p>
-        <button className={styles.primaryButton}>Configurar Sistema</button>
-        <button className={styles.warningButton}>Respaldar Base de Datos</button>
-      </div>
-    </div>
+    <ModernCard
+      title={isMobile ? "Sistema" : "Configuración del Sistema"}
+      subtitle={isMobile ? "" : "Ajusta la configuración general del sistema"}
+      padding={isMobile ? "compact" : "normal"}
+    >
+      <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+        Configuración del sistema en desarrollo...
+      </Typography>
+    </ModernCard>
   );
 
   const renderReportsTab = () => (
-    <div className={styles.tabContent}>
-      <h3>Reportes y Análisis</h3>
-      <div className={styles.card}>
-        <h4>Generación de Reportes</h4>
-        <p>Reportes de actividad, inventario y análisis de datos.</p>
-        <button className={styles.primaryButton}>Generar Reporte</button>
-        <button className={styles.secondaryButton}>Ver Historial</button>
-      </div>
-    </div>
+    <ModernCard
+      title={isMobile ? "Reportes" : "Reportes y Estadísticas"}
+      subtitle={isMobile ? "" : "Genera reportes detallados del sistema"}
+      padding={isMobile ? "compact" : "normal"}
+    >
+      <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+        Módulo de reportes en desarrollo...
+      </Typography>
+    </ModernCard>
   );
 
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  if (!user) {
+    return null;
+  }
+
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <h1>Panel de Administración</h1>
-          <div className={styles.userInfo}>
-            <span>Administrador: {user?.name}</span>
-            <span className={styles.role}>({user?.role})</span>
-            <button 
-              onClick={() => navigate('/depositoDW_v2/deposito')} 
-              className={styles.navButton}
-            >
-              Depósito
-            </button>
-            <button 
-              onClick={() => navigate('/depositoDW_v2/compras')} 
-              className={styles.navButton}
-            >
-              Compras
-            </button>
-            <button 
-              onClick={() => navigate('/depositoDW_v2/calidad')} 
-              className={styles.navButton}
-            >
-              Calidad
-            </button>
-            <button 
-              onClick={() => navigate('/depositoDW_v2/salida')} 
-              className={styles.navButton}
-            >
-              Salida
-            </button>
-            <button onClick={handleLogout} className={styles.logoutButton}>
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </header>
+    <AppLayout user={user} onLogout={handleLogout}>
+      <Box sx={{ p: isMobile ? 2 : 4 }}>
+        {/* Header compacto */}
+        <Box sx={{ mb: isMobile ? 2 : 4 }}>
+          <Typography 
+            variant={isMobile ? "h5" : isTablet ? "h4" : "h3"} 
+            sx={{ 
+              fontWeight: 700,
+              color: 'var(--color-text-primary)',
+              mb: 0.5
+            }}
+          >
+            Administración
+          </Typography>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: 'var(--color-text-secondary)',
+              mb: isMobile ? 1 : 3
+            }}
+          >
+            Gestiona usuarios, configuración y reportes
+          </Typography>
+        </Box>
 
-      <nav className={styles.navigation}>
-        <button 
-          className={`${styles.navButton} ${activeTab === 'dashboard' ? styles.active : ''}`}
-          onClick={() => setActiveTab('dashboard')}
-        >
-          Dashboard
-        </button>
-        <button 
-          className={`${styles.navButton} ${activeTab === 'users' ? styles.active : ''}`}
-          onClick={() => setActiveTab('users')}
-        >
-          Usuarios
-        </button>
-        <button 
-          className={`${styles.navButton} ${activeTab === 'system' ? styles.active : ''}`}
-          onClick={() => setActiveTab('system')}
-        >
-          Sistema
-        </button>
-        <button 
-          className={`${styles.navButton} ${activeTab === 'reports' ? styles.active : ''}`}
-          onClick={() => setActiveTab('reports')}
-        >
-          Reportes
-        </button>
-      </nav>
+        {/* Tabs compactos */}
+        <Box sx={{ borderBottom: 1, borderColor: 'var(--color-border)', mb: isMobile ? 2 : 3 }}>
+          <Tabs 
+            value={activeTab} 
+            onChange={handleTabChange}
+            variant={isMobile ? "scrollable" : "standard"}
+            scrollButtons={isMobile ? "auto" : false}
+            sx={{
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                minWidth: isMobile ? 80 : 160,
+                fontSize: isMobile ? '0.75rem' : '0.875rem'
+              },
+              '& .Mui-selected': {
+                color: 'var(--color-primary)'
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: 'var(--color-primary)'
+              }
+            }}
+          >
+            <Tab label="Dashboard" value="dashboard" />
+            <Tab label="Usuarios" value="users" />
+            <Tab label="Sistema" value="system" />
+            <Tab label="Reportes" value="reports" />
+          </Tabs>
+        </Box>
 
-      <main className={styles.main}>
-        {activeTab === 'dashboard' && renderDashboardTab()}
-        {activeTab === 'users' && renderUsersTab()}
-        {activeTab === 'system' && renderSystemTab()}
-        {activeTab === 'reports' && renderReportsTab()}
-      </main>
-    </div>
+        {/* Tab Content */}
+        <Box>
+          {activeTab === 'dashboard' && renderDashboardTab()}
+          {activeTab === 'users' && renderUsersTab()}
+          {activeTab === 'system' && renderSystemTab()}
+          {activeTab === 'reports' && renderReportsTab()}
+        </Box>
+      </Box>
+    </AppLayout>
   );
 }; 

@@ -1,7 +1,22 @@
 import React, { useState, useMemo } from "react";
-import { Button, Box } from "@mui/material";
+import { 
+  Button, 
+  Box, 
+  Typography, 
+  Chip, 
+  IconButton,
+  Collapse,
+  useTheme,
+  useMediaQuery
+} from "@mui/material";
+import { 
+  Add as AddIcon,
+  SwapHoriz as SwapIcon,
+  Edit as EditIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon
+} from "@mui/icons-material";
 import { generatePosicionTitle, calculatePosicionTotalKilos, calculatePosicionTotalUnidades } from "../../../features/stock/utils/posicionUtils";
-import styles from "./PosicionCard.module.css";
 
 export const PosicionCard = ({ 
   posicion, 
@@ -13,6 +28,10 @@ export const PosicionCard = ({
   children 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  
   const titulo = generatePosicionTitle(posicion);
   
   // Filtrar items según el término de búsqueda
@@ -47,12 +66,12 @@ export const PosicionCard = ({
 
   const handleCardClick = (e) => {
     e.stopPropagation();
-    setIsExpanded(!isExpanded);
+    onClick?.(posicion);
   };
 
-  const handleItemClick = (e) => {
+  const handleExpandClick = (e) => {
     e.stopPropagation();
-    onClick?.(posicion);
+    setIsExpanded(!isExpanded);
   };
 
   const handleAdicionRapida = (e) => {
@@ -70,7 +89,7 @@ export const PosicionCard = ({
     onCorreccion?.(item, posicion);
   };
 
-  const hasMoreItems = filteredItems.length > 3;
+  const hasMoreItems = filteredItems.length > (isMobile ? 2 : 3);
 
   // Si no hay items filtrados y hay término de búsqueda, no mostrar la tarjeta
   if (searchTerm.trim() && filteredItems.length === 0) {
@@ -78,92 +97,220 @@ export const PosicionCard = ({
   }
 
   return (
-    <div 
-      className={`${styles.card} ${isExpanded ? styles.expanded : ''}`}
+    <Box
+      sx={{
+        backgroundColor: 'var(--color-surface)',
+        borderRadius: 'var(--border-radius-md)',
+        border: '1px solid var(--color-border)',
+        p: isMobile ? 1.5 : 2,
+        mb: 2,
+        cursor: 'pointer',
+        transition: 'var(--transition-normal)',
+        '&:hover': {
+          boxShadow: 'var(--shadow-md)',
+          transform: 'translateY(-1px)'
+        }
+      }}
       onClick={handleCardClick}
     >
-      <div className={styles.cardHeader}>
-        <h3 className={styles.title}>{titulo}</h3>
-        {hasMoreItems && (
-          <span className={styles.expandIndicator}>
-            {isExpanded ? '▼' : '▶'}
-          </span>
-        )}
-      </div>
-      <div className={styles.details}>
-        <p><strong>Total Kilos:</strong> {totalKilos.toFixed(2)}</p>
-        <p><strong>Total Unidades:</strong> {totalUnidades}</p>
-        <p><strong>Items:</strong> {filteredItems.length}</p>
+      {/* Header con título y botón de adición rápida */}
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        mb: 1.5
+      }}>
+        <Typography 
+          variant={isMobile ? "body2" : "h6"} 
+          sx={{ 
+            fontWeight: 600,
+            color: 'var(--color-text-primary)',
+            flex: 1
+          }}
+        >
+          {titulo}
+        </Typography>
         
-        {/* Botón de Adición Rápida */}
-        <Box sx={{ mt: 2, mb: 2 }}>
-          <Button
-            variant="contained"
-            color="success"
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
+          {/* Botón de Adición Rápida */}
+          <IconButton
             size="small"
             onClick={handleAdicionRapida}
-            sx={{ width: '100%' }}
+            sx={{ 
+              color: 'var(--color-primary)',
+              backgroundColor: 'rgba(46, 125, 50, 0.1)',
+              '&:hover': {
+                backgroundColor: 'var(--color-primary)',
+                color: 'white'
+              },
+              p: 0.5
+            }}
           >
-            + Adición Rápida
-          </Button>
+            <AddIcon fontSize="small" />
+          </IconButton>
+          
+          {/* Botón de expandir */}
+          {hasMoreItems && (
+            <IconButton
+              size="small"
+              onClick={handleExpandClick}
+              sx={{ 
+                color: 'var(--color-text-secondary)',
+                p: 0.5
+              }}
+            >
+              {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </IconButton>
+          )}
         </Box>
-        {filteredItems.length > 0 && (
-          <div className={styles.itemsList}>
-            <p><strong>Materiales:</strong></p>
-            {isExpanded ? (
-              // Mostrar todos los items filtrados cuando está expandido
-              filteredItems.map((item, index) => (
-                <div key={index} className={styles.item} onClick={handleItemClick}>
-                  <p className={styles.itemTitle}>
-                    • {item.categoria} - {item.descripcion}
-                  </p>
-                  <div className={styles.itemDetails}>
-                    <span><strong>Partida:</strong> {item.partida}</span>
-                    <span><strong>Kilos:</strong> {item.kilos?.toFixed(2)}</span>
-                    <span><strong>Unidades:</strong> {item.unidades}</span>
-                    {item.proveedor?.nombre && (
-                      <span><strong>Proveedor:</strong> {item.proveedor.nombre}</span>
-                    )}
-                  </div>
-                  {/* Botones para cada item */}
-                  <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      size="small"
-                      onClick={(e) => handleMovimientoInterno(e, item)}
-                    >
-                      Mover
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      size="small"
-                      onClick={(e) => handleCorreccion(e, item)}
-                    >
-                      Eliminar
-                    </Button>
+      </Box>
+
+      {/* Items visibles */}
+      <Box sx={{ mb: 1.5 }}>
+        {filteredItems.slice(0, isMobile ? 2 : 3).map((item, index) => (
+          <Box
+            key={index}
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              py: 1,
+              borderBottom: index < (isMobile ? 1 : 2) ? '1px solid var(--color-divider)' : 'none'
+            }}
+          >
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              {/* Título del item con proveedor, categoría y descripción en una línea */}
+              <Typography 
+                variant={isMobile ? "caption" : "body2"}
+                sx={{ 
+                  fontWeight: 600,
+                  color: 'var(--color-text-primary)',
+                  mb: 0.5,
+                  lineHeight: 1.3
+                }}
+              >
+                {item.proveedor?.nombre && (
+                  <Box component="span" sx={{ color: 'var(--color-secondary)', fontWeight: 500 }}>
+                    {item.proveedor.nombre} - 
                   </Box>
-                </div>
-              ))
-            ) : (
-              // Mostrar solo los primeros 3 items filtrados cuando no está expandido
-              <>
-                {filteredItems.slice(0, 3).map((item, index) => (
-                  <p key={index} className={styles.item}>
-                    • {item.categoria} - {item.descripcion} (P: {item.partida})
-                  </p>
-                ))}
-                {hasMoreItems && (
-                  <p className={styles.moreItems}>
-                    ... y {filteredItems.length - 3} más (click para expandir)
-                  </p>
                 )}
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+                {item.categoria && `${item.categoria} - `}{item.descripcion || 'Sin descripción'}
+              </Typography>
+              
+              {/* Pesos y unidades */}
+              <Typography 
+                variant="caption"
+                sx={{ 
+                  color: 'var(--color-text-secondary)',
+                  display: 'block'
+                }}
+              >
+                {item.kilos?.toFixed(1)} kg • {item.unidades} uds
+                {item.partida && ` • P: ${item.partida}`}
+              </Typography>
+            </Box>
+            
+            {/* Acciones por item */}
+            <Box sx={{ display: 'flex', gap: 0.5, ml: 1, mt: 0.5 }}>
+              <IconButton
+                size="small"
+                onClick={(e) => handleMovimientoInterno(e, item)}
+                sx={{ 
+                  color: 'var(--color-secondary)',
+                  p: 0.5
+                }}
+              >
+                <SwapIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={(e) => handleCorreccion(e, item)}
+                sx={{ 
+                  color: 'var(--color-warning)',
+                  p: 0.5
+                }}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+
+      {/* Items expandidos */}
+      <Collapse in={isExpanded}>
+        <Box sx={{ mt: 1 }}>
+          {filteredItems.slice(isMobile ? 2 : 3).map((item, index) => (
+            <Box
+              key={`expanded-${index}`}
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                py: 1,
+                borderBottom: index < (filteredItems.length - (isMobile ? 2 : 3) - 1) ? '1px solid var(--color-divider)' : 'none'
+              }}
+            >
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                {/* Título del item con proveedor, categoría y descripción en una línea */}
+                <Typography 
+                  variant="caption"
+                  sx={{ 
+                    fontWeight: 600,
+                    color: 'var(--color-text-primary)',
+                    mb: 0.5,
+                    lineHeight: 1.3
+                  }}
+                >
+                  {item.proveedor?.nombre && (
+                    <Box component="span" sx={{ color: 'var(--color-secondary)', fontWeight: 500 }}>
+                      {item.proveedor.nombre} - 
+                    </Box>
+                  )}
+                  {item.categoria && `${item.categoria} - `}{item.descripcion || 'Sin descripción'}
+                </Typography>
+                
+                {/* Pesos y unidades */}
+                <Typography 
+                  variant="caption"
+                  sx={{ 
+                    color: 'var(--color-text-secondary)',
+                    display: 'block'
+                  }}
+                >
+                  {item.kilos?.toFixed(1)} kg • {item.unidades} uds
+                  {item.partida && ` • P: ${item.partida}`}
+                </Typography>
+              </Box>
+              
+              <Box sx={{ display: 'flex', gap: 0.5, ml: 1, mt: 0.5 }}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => handleMovimientoInterno(e, item)}
+                  sx={{ 
+                    color: 'var(--color-secondary)',
+                    p: 0.5
+                  }}
+                >
+                  <SwapIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={(e) => handleCorreccion(e, item)}
+                  sx={{ 
+                    color: 'var(--color-warning)',
+                    p: 0.5
+                  }}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Collapse>
+
+      {children}
+    </Box>
   );
 }; 

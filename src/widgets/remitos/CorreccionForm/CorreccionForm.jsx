@@ -9,10 +9,20 @@ import {
   Box,
   Typography,
   Alert,
-  Chip
+  Chip,
+  useTheme,
+  useMediaQuery,
+  IconButton,
+  Slider
 } from '@mui/material';
+import { 
+  Edit as EditIcon,
+  Warning as WarningIcon,
+  Close as CloseIcon,
+  Inventory as InventoryIcon
+} from '@mui/icons-material';
 import { generatePosicionTitle } from '../../../features/stock/utils/posicionUtils';
-import styles from './CorreccionForm.module.css';
+import ModernCard from '../../../shared/ui/ModernCard/ModernCard';
 
 export const CorreccionForm = ({ 
   open, 
@@ -21,6 +31,9 @@ export const CorreccionForm = ({
   posicion,
   onSubmit 
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
   const [formData, setFormData] = useState({
     kilos: '',
     unidades: ''
@@ -35,7 +48,6 @@ export const CorreccionForm = ({
     }
   }, [open, item]);
   
-  // Cerrar automáticamente si no hay datos válidos después de un tiempo
   useEffect(() => {
     if (open && (!item || !posicion)) {
       const timer = setTimeout(() => {
@@ -45,12 +57,8 @@ export const CorreccionForm = ({
     }
   }, [open, item, posicion, onClose]);
 
-  // Validar que tenemos los datos necesarios
-  if (!open) {
-    return null;
-  }
+  if (!open) return null;
   
-  // Si no hay item o posicion, mostrar mensaje
   if (!item || !posicion) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -67,8 +75,8 @@ export const CorreccionForm = ({
 
   const resetForm = () => {
     setFormData({
-      kilos: '', // Campo vacío para ingresar cantidad a eliminar
-      unidades: '' // Campo vacío para ingresar cantidad a eliminar
+      kilos: '',
+      unidades: ''
     });
     setErrors({});
   };
@@ -79,13 +87,23 @@ export const CorreccionForm = ({
       [field]: value
     }));
     
-    // Limpiar error del campo
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
         [field]: ''
       }));
     }
+  };
+
+  const handleSliderChange = (field, value) => {
+    const maxValue = field === 'kilos' ? item?.kilos || 0 : item?.unidades || 0;
+    const percentage = value / 100;
+    const newValue = Math.round(maxValue * percentage * 100) / 100;
+    
+    setFormData(prev => ({
+      ...prev,
+      [field]: newValue.toString()
+    }));
   };
 
   const validateForm = () => {
@@ -108,7 +126,6 @@ export const CorreccionForm = ({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      // Validar que no se elimine más de lo disponible
       const kilosAEliminar = parseFloat(formData.kilos);
       const unidadesAEliminar = parseInt(formData.unidades);
       
@@ -150,115 +167,232 @@ export const CorreccionForm = ({
     onClose();
   };
 
+  const handleEliminarTodo = () => {
+    setFormData({
+      kilos: (item?.kilos || 0).toString(),
+      unidades: (item?.unidades || 0).toString()
+    });
+  };
+
+  const kilosPercentage = formData.kilos ? (parseFloat(formData.kilos) / (item?.kilos || 1)) * 100 : 0;
+  const unidadesPercentage = formData.unidades ? (parseInt(formData.unidades) / (item?.unidades || 1)) * 100 : 0;
+
   return (
     <Dialog 
       open={open} 
       onClose={handleClose}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 'var(--border-radius-lg)',
+          boxShadow: 'var(--shadow-lg)'
+        }
+      }}
     >
-      <DialogTitle>
-        <Typography variant="h6">
-          Eliminación Rápida - {item?.descripcion}
-        </Typography>
+      {/* Header con icono y título */}
+      <DialogTitle sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        pb: 1
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <EditIcon sx={{ color: 'var(--color-warning)', fontSize: 28 }} />
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Ajustar Stock
+          </Typography>
+        </Box>
+        <IconButton onClick={handleClose} size="small">
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
       
-      <DialogContent>
-        <Box sx={{ mt: 2 }}>
-          {/* Información del item y posición */}
-          <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              Eliminando stock de:
-            </Typography>
-            <Typography variant="body1" gutterBottom>
-              <strong>Posición:</strong> {posicion ? generatePosicionTitle(posicion) : 'Posición no disponible'}
-            </Typography>
-            <Typography variant="body1" gutterBottom>
-              <strong>Material:</strong> {item?.categoria} - {item?.descripcion}
-            </Typography>
-            <Typography variant="body1" gutterBottom>
-              <strong>Partida:</strong> {item?.partida}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-              <Chip 
-                label={`Disponible: ${item?.unidades || 0} unidades`} 
-                color="warning" 
-                size="small" 
-              />
-              <Chip 
-                label={`Disponible: ${(item?.kilos || 0).toFixed(2)} kg`} 
-                color="warning" 
-                size="small" 
-              />
+      <DialogContent sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          
+          {/* Información del item */}
+          <ModernCard
+            title="Material a Ajustar"
+            subtitle="Información del stock actual"
+            padding="compact"
+            sx={{ mb: 0 }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <InventoryIcon sx={{ color: 'var(--color-primary)', fontSize: 20 }} />
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  {item?.categoria} - {item?.descripcion}
+                </Typography>
+              </Box>
+              
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                <Chip 
+                  label={`${item?.unidades || 0} unidades`} 
+                  color="primary" 
+                  size="small" 
+                  variant="outlined"
+                />
+                <Chip 
+                  label={`${(item?.kilos || 0).toFixed(2)} kg`} 
+                  color="secondary" 
+                  size="small" 
+                  variant="outlined"
+                />
+                {item?.partida && (
+                  <Chip 
+                    label={`P: ${item.partida}`} 
+                    color="default" 
+                    size="small" 
+                    variant="outlined"
+                  />
+                )}
+              </Box>
             </Box>
-          </Box>
+          </ModernCard>
 
-          <TextField
-            fullWidth
-            label="Kilos a eliminar *"
-            type="number"
-            value={formData.kilos}
-            onChange={(e) => handleInputChange('kilos', e.target.value)}
-            error={!!errors.kilos}
-            helperText={errors.kilos || `Ingrese los kilos a eliminar (máximo ${item?.kilos || 0})`}
-            placeholder={`Ej: ${item?.kilos || 0}`}
-            inputProps={{ 
-              min: 0,
-              max: item?.kilos || 0,
-              step: 0.01
+          {/* Cantidad a eliminar */}
+          <ModernCard
+            title="Cantidad a Eliminar"
+            subtitle="Especifique cuánto stock eliminar"
+            padding="compact"
+            sx={{ mb: 0 }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              
+              {/* Kilos */}
+              <Box>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+                  Kilos a eliminar: {formData.kilos || 0} kg
+                </Typography>
+                <Slider
+                  value={kilosPercentage}
+                  onChange={(_, value) => handleSliderChange('kilos', value)}
+                  min={0}
+                  max={100}
+                  step={1}
+                  valueLabelDisplay="auto"
+                  valueLabelFormat={(value) => `${Math.round((item?.kilos || 0) * value / 100)} kg`}
+                  sx={{
+                    color: 'var(--color-warning)',
+                    '& .MuiSlider-thumb': {
+                      backgroundColor: 'var(--color-warning)'
+                    }
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  label="Kilos específicos"
+                  type="number"
+                  value={formData.kilos}
+                  onChange={(e) => handleInputChange('kilos', e.target.value)}
+                  error={!!errors.kilos}
+                  helperText={errors.kilos || `Máximo: ${item?.kilos || 0} kg`}
+                  inputProps={{ 
+                    min: 0,
+                    max: item?.kilos || 0,
+                    step: 0.01
+                  }}
+                  size="small"
+                />
+              </Box>
+
+              {/* Unidades */}
+              <Box>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+                  Unidades a eliminar: {formData.unidades || 0} uds
+                </Typography>
+                <Slider
+                  value={unidadesPercentage}
+                  onChange={(_, value) => handleSliderChange('unidades', value)}
+                  min={0}
+                  max={100}
+                  step={1}
+                  valueLabelDisplay="auto"
+                  valueLabelFormat={(value) => `${Math.round((item?.unidades || 0) * value / 100)} uds`}
+                  sx={{
+                    color: 'var(--color-warning)',
+                    '& .MuiSlider-thumb': {
+                      backgroundColor: 'var(--color-warning)'
+                    }
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  label="Unidades específicas"
+                  type="number"
+                  value={formData.unidades}
+                  onChange={(e) => handleInputChange('unidades', e.target.value)}
+                  error={!!errors.unidades}
+                  helperText={errors.unidades || `Máximo: ${item?.unidades || 0} unidades`}
+                  inputProps={{ 
+                    min: 0,
+                    max: item?.unidades || 0,
+                    step: 1
+                  }}
+                  size="small"
+                />
+              </Box>
+
+              {/* Botón para eliminar todo */}
+              <Button
+                variant="outlined"
+                color="warning"
+                fullWidth
+                onClick={handleEliminarTodo}
+                startIcon={<WarningIcon />}
+                sx={{ 
+                  borderColor: 'var(--color-warning)',
+                  color: 'var(--color-warning)',
+                  '&:hover': {
+                    backgroundColor: 'var(--color-warning)',
+                    color: 'white'
+                  }
+                }}
+              >
+                Eliminar todo el stock disponible
+              </Button>
+            </Box>
+          </ModernCard>
+
+          {/* Advertencia */}
+          <Alert 
+            severity="warning" 
+            icon={<WarningIcon />}
+            sx={{ 
+              backgroundColor: 'rgba(255, 152, 0, 0.1)',
+              border: '1px solid var(--color-warning)'
             }}
-            sx={{ mb: 2 }}
-          />
-
-          <TextField
-            fullWidth
-            label="Unidades a eliminar *"
-            type="number"
-            value={formData.unidades}
-            onChange={(e) => handleInputChange('unidades', e.target.value)}
-            error={!!errors.unidades}
-            helperText={errors.unidades || `Ingrese las unidades a eliminar (máximo ${item?.unidades || 0})`}
-            placeholder={`Ej: ${item?.unidades || 0}`}
-            inputProps={{ 
-              min: 0,
-              max: item?.unidades || 0,
-              step: 1
-            }}
-            sx={{ mb: 2 }}
-          />
-
-          {/* Botón para eliminar todo */}
-          <Box sx={{ mb: 2 }}>
-            <Button
-              variant="outlined"
-              color="warning"
-              fullWidth
-              onClick={() => {
-                setFormData({
-                  kilos: (item?.kilos || 0).toString(),
-                  unidades: (item?.unidades || 0).toString()
-                });
-              }}
-            >
-              Eliminar todo el stock disponible
-            </Button>
-          </Box>
-
-
+          >
+            <Typography variant="body2">
+              <strong>Advertencia:</strong> Esta acción eliminará permanentemente el stock seleccionado. 
+              Esta operación no se puede deshacer.
+            </Typography>
+          </Alert>
         </Box>
       </DialogContent>
       
-      <DialogActions>
-        <Button onClick={handleClose} color="inherit">
+      <DialogActions sx={{ p: 3, pt: 0 }}>
+        <Button 
+          onClick={handleClose} 
+          variant="outlined"
+          sx={{ color: 'var(--color-text-secondary)' }}
+        >
           Cancelar
         </Button>
         <Button 
           onClick={handleSubmit} 
           variant="contained" 
-          color="error"
-          disabled={isSubmitting}
+          sx={{ 
+            backgroundColor: 'var(--color-warning)',
+            '&:hover': {
+              backgroundColor: 'var(--color-warning-dark)'
+            }
+          }}
+          disabled={isSubmitting || (!formData.kilos && !formData.unidades)}
+          startIcon={<EditIcon />}
         >
-          {isSubmitting ? 'Eliminando...' : 'Eliminar'}
+          {isSubmitting ? 'Eliminando...' : 'Eliminar Stock'}
         </Button>
       </DialogActions>
     </Dialog>
