@@ -2,12 +2,14 @@ import React from "react";
 import { generateMaterialTitle } from "../../../features/stock/utils/searchUtils";
 import styles from "./MaterialCard.module.css";
 
-export const MaterialCard = ({ 
+export const MaterialCard = React.memo(({ 
   material, 
   variant = "default", // "stock", "deposito", "compras"
   onClick,
   children 
 }) => {
+  // Log para debugging (puedes removerlo después)
+  console.log('🔄 MaterialCard renderizado:', material?.kilos, material?.unidades);
   const getCardContent = () => {
     switch (variant) {
       case "stock":
@@ -51,4 +53,4 @@ export const MaterialCard = ({
       {getCardContent()}
     </div>
   );
-};
+});

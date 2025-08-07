@@ -18,7 +18,7 @@ import {
 } from "@mui/icons-material";
 import { generatePosicionTitle, calculatePosicionTotalKilos, calculatePosicionTotalUnidades } from "../../../features/stock/utils/posicionUtils";
 
-export const PosicionCard = ({ 
+export const PosicionCard = React.memo(({ 
   posicion, 
   onClick,
   onAdicionRapida,
@@ -313,4 +313,4 @@ export const PosicionCard = ({
       {children}
     </Box>
   );
-}; 
+}); 

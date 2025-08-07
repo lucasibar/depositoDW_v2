@@ -11,6 +11,29 @@ import { useNavigate } from 'react-router-dom';
 import { getRoleColor, getRoleLabel } from '../../../features/stock/utils/userUtils';
 import { authService } from '../../../services/authService';
 
+// Preload de páginas para mejorar rendimiento
+const preloadPage = (pageName) => {
+  switch (pageName) {
+    case 'deposito':
+      import('../pages/DepositoPage/DepositoPage');
+      break;
+    case 'compras':
+      import('../pages/ComprasPage/ComprasPage');
+      break;
+    case 'calidad':
+      import('../pages/CalidadPage/CalidadPage');
+      break;
+    case 'salida':
+      import('../pages/SalidaPage/SalidaPage');
+      break;
+    case 'admin':
+      import('../pages/AdminPage/AdminPage');
+      break;
+    default:
+      break;
+  }
+};
+
 const AppHeader = ({ user }) => {
   const navigate = useNavigate();
 
@@ -27,6 +50,7 @@ const AppHeader = ({ user }) => {
         <Button 
           color="inherit" 
           onClick={() => navigate('/depositoDW_v2/deposito')}
+          onMouseEnter={() => preloadPage('deposito')}
           sx={{ 
             border: '1px solid rgba(255,255,255,0.3)',
             '&:hover': {
@@ -39,6 +63,7 @@ const AppHeader = ({ user }) => {
         <Button 
           color="inherit" 
           onClick={() => navigate('/depositoDW_v2/compras')}
+          onMouseEnter={() => preloadPage('compras')}
           sx={{ 
             border: '1px solid rgba(255,255,255,0.3)',
             '&:hover': {
@@ -51,6 +76,7 @@ const AppHeader = ({ user }) => {
         <Button 
           color="inherit" 
           onClick={() => navigate('/depositoDW_v2/calidad')}
+          onMouseEnter={() => preloadPage('calidad')}
           sx={{ 
             border: '1px solid rgba(255,255,255,0.3)',
             '&:hover': {
@@ -63,6 +89,7 @@ const AppHeader = ({ user }) => {
         <Button 
           color="inherit" 
           onClick={() => navigate('/depositoDW_v2/salida')}
+          onMouseEnter={() => preloadPage('salida')}
           sx={{ 
             border: '1px solid rgba(255,255,255,0.3)',
             '&:hover': {
@@ -75,6 +102,7 @@ const AppHeader = ({ user }) => {
         <Button 
           color="inherit" 
           onClick={() => navigate('/depositoDW_v2/admin')}
+          onMouseEnter={() => preloadPage('admin')}
           sx={{ 
             border: '1px solid rgba(255,255,255,0.3)',
             '&:hover': {
