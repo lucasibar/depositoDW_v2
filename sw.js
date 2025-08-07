@@ -1,9 +1,9 @@
 const CACHE_NAME = 'depositoDW-v1';
 const urlsToCache = [
-  '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
-  '/manifest.json'
+  '/depositoDW_v2/',
+  '/depositoDW_v2/static/js/bundle.js',
+  '/depositoDW_v2/static/css/main.css',
+  '/depositoDW_v2/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
