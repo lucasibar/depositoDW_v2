@@ -1,7 +1,10 @@
 import React from 'react';
-import { Box } from '@mui/material';
+import { Box, useTheme, useMediaQuery } from '@mui/material';
 
 const TabPanel = ({ children, value, index, ...other }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
   return (
     <div
       role="tabpanel"
@@ -11,7 +14,11 @@ const TabPanel = ({ children, value, index, ...other }) => {
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ 
+          p: isMobile ? 2 : 3,
+          width: '100%',
+          maxWidth: '100%'
+        }}>
           {children}
         </Box>
       )}

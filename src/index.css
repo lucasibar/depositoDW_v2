@@ -71,6 +71,7 @@ body {
   background-color: var(--color-background);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden; /* Prevenir scroll horizontal */
 }
 
 /* ===== TIPOGRAFÍA GLOBAL ===== */
@@ -129,6 +130,22 @@ p {
   h1 { font-size: var(--font-size-xl); }
   h2 { font-size: var(--font-size-lg); }
   h3 { font-size: var(--font-size-md); }
+  
+  /* Asegurar que los contenedores no se desborden */
+  .MuiContainer-root {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    max-width: 100% !important;
+  }
+  
+  /* Prevenir overflow en componentes Material-UI */
+  .MuiBox-root {
+    max-width: 100%;
+  }
+  
+  .MuiCard-root {
+    max-width: 100%;
+  }
 }
 
 /* ===== SCROLLBAR PERSONALIZADA ===== */

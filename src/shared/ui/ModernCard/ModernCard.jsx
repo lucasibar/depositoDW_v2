@@ -23,6 +23,7 @@ const ModernCard = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   const getPadding = () => {
     switch (padding) {
@@ -45,10 +46,13 @@ const ModernCard = ({
         borderRadius: 'var(--border-radius-lg)',
         border: '1px solid var(--color-border)',
         transition: 'var(--transition-normal)',
+        width: '100%',
+        maxWidth: '100%',
         '&:hover': {
           boxShadow: 'var(--shadow-md)',
           transform: 'translateY(-2px)'
         },
+        // Asegurar que los estilos sx se apliquen correctamente
         ...props.sx
       }}
       className={className}
@@ -62,7 +66,10 @@ const ModernCard = ({
               sx={{ 
                 fontWeight: 600,
                 color: 'var(--color-text-primary)',
-                mb: subtitle ? 0.5 : 0
+                mb: subtitle ? 0.5 : 0,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
               }}
             >
               {title}
@@ -74,7 +81,10 @@ const ModernCard = ({
                 variant="body2" 
                 sx={{ 
                   color: 'var(--color-text-secondary)',
-                  lineHeight: 1.4
+                  lineHeight: 1.4,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {subtitle}
@@ -86,13 +96,24 @@ const ModernCard = ({
             pb: 1,
             '& .MuiCardHeader-content': {
               minWidth: 0
+            },
+            '& .MuiCardHeader-action': {
+              flexShrink: 0
             }
           }}
         />
       )}
       
-      <CardContent sx={{ ...getPadding(), pt: (title || subtitle) ? 0 : undefined }}>
-        <Box sx={{ width: '100%' }}>
+      <CardContent sx={{ 
+        ...getPadding(), 
+        pt: (title || subtitle) ? 0 : undefined,
+        width: '100%',
+        maxWidth: '100%'
+      }}>
+        <Box sx={{ 
+          width: '100%',
+          maxWidth: '100%'
+        }}>
           {children}
         </Box>
       </CardContent>
@@ -103,7 +124,9 @@ const ModernCard = ({
             p: 3, 
             pt: 0,
             gap: 1,
-            flexWrap: 'wrap'
+            flexWrap: 'wrap',
+            width: '100%',
+            maxWidth: '100%'
           }}
         >
           {actions}
