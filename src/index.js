@@ -24,15 +24,15 @@ getFCP(console.log);
 getLCP(console.log);
 getTTFB(console.log);
 
-// Registrar Service Worker para cache
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('SW registrado: ', registration);
-      })
-      .catch((registrationError) => {
-        console.log('SW registro falló: ', registrationError);
-      });
-  });
-}
+// Registrar Service Worker para cache (temporalmente deshabilitado)
+// if ('serviceWorker' in navigator) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('/sw.js')
+//       .then((registration) => {
+//         console.log('SW registrado: ', registration);
+//       })
+//       .catch((registrationError) => {
+//         console.log('SW registro falló: ', registrationError);
+//       });
+//   });
+// }

@@ -1,32 +1,17 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { Route, Routes, Navigate } from "react-router-dom";
 import Login from '../pages/Login/Login';
+import { DepositoPage } from '../pages/DepositoPage/DepositoPage';
+import { ComprasPage } from '../pages/ComprasPage/ComprasPage';
+import { AdminPage } from '../pages/AdminPage/AdminPage';
+import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
+import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
-import { DepositoPage, ComprasPage, AdminPage, CalidadPage, SalidaPage } from '../config/lazyImports';
-
-// Componente de carga
-const LoadingSpinner = () => (
-  <div style={{ 
-    display: 'flex', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    height: '100vh',
-    fontSize: '18px',
-    color: '#666',
-    backgroundColor: '#f5f5f5'
-  }}>
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ marginBottom: '10px' }}>🔄</div>
-      <div>Cargando...</div>
-    </div>
-  </div>
-);
 
 export const App = () => {
   return (
     <div className="App">
-      <Suspense fallback={<LoadingSpinner />}>
-        <Routes>
+      <Routes>
         {/* Ruta de Depósito - Accesible para deposito, usuario, admin */}
         <Route 
           exact 
@@ -88,7 +73,6 @@ export const App = () => {
         {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/depositoDW_v2/" replace />} />
         </Routes>
-      </Suspense>
     </div>
   );
 }; 
