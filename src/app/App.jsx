@@ -1,14 +1,8 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense } from 'react';
 import { Route, Routes, Navigate } from "react-router-dom";
 import Login from '../pages/Login/Login';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
-
-// Lazy loading de todas las páginas
-const DepositoPage = lazy(() => import('../pages/DepositoPage/DepositoPage'));
-const ComprasPage = lazy(() => import('../pages/ComprasPage/ComprasPage'));
-const AdminPage = lazy(() => import('../pages/AdminPage/AdminPage'));
-const CalidadPage = lazy(() => import('../pages/CalidadPage/CalidadPage'));
-const SalidaPage = lazy(() => import('../pages/SalidaPage/SalidaPage'));
+import { DepositoPage, ComprasPage, AdminPage, CalidadPage, SalidaPage } from '../config/lazyImports';
 
 // Componente de carga
 const LoadingSpinner = () => (
