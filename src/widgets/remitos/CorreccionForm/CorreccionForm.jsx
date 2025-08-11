@@ -140,22 +140,13 @@ export const CorreccionForm = ({
       }
       
       const submitData = {
-        proveedor: item?.proveedor,
-        tipoMovimiento: 'ajusteRESTA',
-        item: {
-          itemId: item?.itemId || item?.id,
-          categoria: item?.categoria,
-          descripcion: item?.descripcion,
-          proveedor: item?.proveedor,
-          partida: item?.partida,
-          kilos: item?.kilos,
-          unidades: item?.unidades
-        },
+        posicionId: posicion?.posicionId || posicion?.id || '',
+        itemId: item?.itemId || item?.id || '',
         kilos: kilosAEliminar,
-        unidades: unidadesAEliminar,
-        partida: item?.partida,
-        posicion: posicion?.posicionId || posicion?.id || ''
+        unidades: unidadesAEliminar
       };
+      
+
       
       onSubmit(submitData);
       onClose();

@@ -236,7 +236,7 @@ export const CalidadPage = () => {
         {/* Barra de búsqueda */}
         <ModernCard
           title={isMobile || isTablet ? undefined : "Buscar Partidas"}
-          subtitle={isMobile || isTablet ? undefined : "Encuentra rápidamente las partidas que necesitas revisar"}
+          subtitle={isMobile || isTablet ? undefined : "Busca por múltiples palabras en proveedor, descripción, categoría o número de partida"}
           padding={isMobile ? "compact" : "normal"}
           sx={{ mb: isMobile ? 2 : 4 }}
         >
@@ -245,7 +245,7 @@ export const CalidadPage = () => {
             maxWidth: '100%'
           }}>
             <SearchBar 
-              placeholder="Buscar por número de partida, descripción, categoría o proveedor..."
+              placeholder="Buscar por múltiples palabras: proveedor, descripción, categoría, partida..."
               onSearch={handleSearch}
             />
           </Box>

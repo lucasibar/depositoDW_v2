@@ -24,7 +24,7 @@ import { MovimientoInternoForm } from '../../widgets/remitos/MovimientoInternoFo
 import { CorreccionForm } from '../../widgets/remitos/CorreccionForm/CorreccionForm';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
-import { fetchPosicionesConItems, adicionRapida, movimientoInterno } from '../../features/stock/model/slice';
+import { fetchPosicionesConItems, adicionRapida, movimientoInterno, correccionItem } from '../../features/stock/model/slice';
 import { selectPosiciones, selectStockLoading, selectStockError } from '../../features/stock/model/selectors';
 import { applyAllFilters } from '../../features/stock/utils/posicionUtils';
 import { getRoleColor, getRoleLabel } from '../../features/stock/utils/userUtils';
@@ -136,10 +136,13 @@ export const DepositoPage = () => {
 
   const handleCorreccionSubmit = async (data) => {
     try {
-      // Implementar lógica de corrección
+
+      await dispatch(correccionItem(data)).unwrap();
       setCorreccionOpen(false);
       setSelectedItem(null);
       setSelectedPosicion(null);
+      // Recargar las posiciones después de la corrección
+      dispatch(fetchPosicionesConItems());
     } catch (error) {
       console.error('Error en corrección:', error);
     }

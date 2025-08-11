@@ -4,21 +4,24 @@ export const usePartidasFilter = (partidas) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredPartidas = useMemo(() => {
-    if (!searchTerm) {
+    if (!searchTerm.trim()) {
       return partidas;
     }
     
-    const term = searchTerm.toLowerCase();
+    // Dividir el término de búsqueda en palabras individuales
+    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
+    
     return partidas.filter(partida => {
-      const numeroPartida = (partida.numeroPartida || partida.id || '').toString().toLowerCase();
-      const descripcion = (partida.descripcionItem || '').toLowerCase();
-      const categoria = (partida.item?.categoria || '').toLowerCase();
-      const proveedor = (partida.proveedor || '').toLowerCase();
+      // Crear un texto combinado con todos los campos buscables
+      const searchableText = [
+        partida.proveedor || '',
+        partida.descripcionItem || '',
+        partida.item?.categoria || '',
+        (partida.numeroPartida || partida.id || '').toString()
+      ].join(' ').toLowerCase();
       
-      return numeroPartida.includes(term) || 
-             descripcion.includes(term) || 
-             categoria.includes(term) || 
-             proveedor.includes(term);
+      // Verificar si TODAS las palabras están presentes en el texto combinado
+      return searchWords.every(word => searchableText.includes(word));
     });
   }, [partidas, searchTerm]);
 
