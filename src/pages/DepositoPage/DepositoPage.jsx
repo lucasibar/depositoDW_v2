@@ -118,6 +118,8 @@ export const DepositoPage = () => {
       await dispatch(adicionRapida(data)).unwrap();
       setAdicionRapidaOpen(false);
       setSelectedPosicion(null);
+      // Recargar las posiciones después de la adición rápida
+      dispatch(fetchPosicionesConItems());
     } catch (error) {
       console.error('Error en adición rápida:', error);
     }
@@ -125,10 +127,16 @@ export const DepositoPage = () => {
 
   const handleMovimientoInternoSubmit = async (data) => {
     try {
+      console.log('Iniciando movimiento interno con datos:', data);
       await dispatch(movimientoInterno(data)).unwrap();
+      console.log('Movimiento interno completado exitosamente');
       setMovimientoInternoOpen(false);
       setSelectedItem(null);
       setSelectedPosicion(null);
+      // Recargar las posiciones después del movimiento interno
+      console.log('Recargando posiciones después del movimiento interno...');
+      dispatch(fetchPosicionesConItems());
+      console.log('Comando de recarga de posiciones enviado');
     } catch (error) {
       console.error('Error en movimiento interno:', error);
     }

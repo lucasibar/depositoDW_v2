@@ -174,14 +174,17 @@ const stockSlice = createSlice({
       })
       // Fetch posiciones con items
       .addCase(fetchPosicionesConItems.pending, (state) => {
+        console.log('Fetching posiciones con items...');
         state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchPosicionesConItems.fulfilled, (state, action) => {
+        console.log('Posiciones con items cargadas:', action.payload?.length, 'posiciones');
         state.isLoading = false;
         state.posiciones = action.payload;
       })
       .addCase(fetchPosicionesConItems.rejected, (state, action) => {
+        console.error('Error cargando posiciones:', action.payload);
         state.isLoading = false;
         state.error = action.payload;
       })

@@ -77,6 +77,22 @@ export const useSalidaActions = () => {
     }
   };
 
+  const handleSubmitSalida = async (salidaData) => {
+    setLoading(true);
+    try {
+      // TODO: Implementar llamada a API para adición rápida
+      console.log('Enviando salida:', salidaData);
+      showSnackbar('Operación realizada correctamente', 'success');
+      return Promise.resolve();
+    } catch (error) {
+      console.error('Error al enviar salida:', error);
+      showSnackbar('Error al realizar la operación', 'error');
+      return Promise.reject(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     snackbar,
@@ -84,6 +100,7 @@ export const useSalidaActions = () => {
     handleAprobarSalida,
     handleRechazarSalida,
     handleCompletarSalida,
+    handleSubmitSalida,
     handleCloseSnackbar
   };
 }; 
