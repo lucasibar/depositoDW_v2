@@ -87,7 +87,8 @@ const PartidaCard = ({
               display: 'flex',
               alignItems: 'center',
               gap: 1,
-              flexWrap: 'wrap'
+              flexWrap: 'wrap',
+              mb: 0.5
             }}
           >
             <Box component="span" sx={{ color: 'var(--color-secondary)', fontWeight: 500 }}>
@@ -100,6 +101,26 @@ const PartidaCard = ({
             <Box component="span">•</Box>
             <Box component="span">
               <strong>Fecha:</strong> {partida.fecha}
+            </Box>
+          </Typography>
+          
+          {/* Tercera línea: Kilos y Unidades */}
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: 'var(--color-text-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              flexWrap: 'wrap'
+            }}
+          >
+            <Box component="span">
+              <strong>Kilos:</strong> {partida.kilos?.toFixed(2) || '0.00'}
+            </Box>
+            <Box component="span">•</Box>
+            <Box component="span">
+              <strong>Unidades:</strong> {partida.unidades || '0'}
             </Box>
           </Typography>
         </Box>
@@ -139,7 +160,8 @@ const PartidaCard = ({
             color: 'var(--color-text-secondary)',
             display: 'flex',
             alignItems: 'center',
-            gap: 2
+            gap: 2,
+            mb: 0.5
           }}
         >
           <Box component="span">
@@ -147,6 +169,24 @@ const PartidaCard = ({
           </Box>
           <Box component="span">
             <strong>Fecha:</strong> {partida.fecha}
+          </Box>
+        </Typography>
+        
+        {/* Tercera línea: Kilos y Unidades */}
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            color: 'var(--color-text-secondary)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2
+          }}
+        >
+          <Box component="span">
+            <strong>Kilos:</strong> {partida.kilos?.toFixed(2) || '0.00'}
+          </Box>
+          <Box component="span">
+            <strong>Unidades:</strong> {partida.unidades || '0'}
           </Box>
         </Typography>
       </Box>
