@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Box, 
   Typography, 
@@ -14,18 +14,61 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useRemitosAgrupados } from '../../../../../../features/remitos/hooks/useRemitosAgrupados';
+import { SearchBar } from '../../../../../../shared/ui/SearchBar/SearchBar';
 
 export const RemitosList = () => {
   const { remitos, isLoading, error, handleRetry, handleDeleteMovimiento } = useRemitosAgrupados();
   const [expandedRemito, setExpandedRemito] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, item: null });
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const remitosList = remitos;
+  // Función para filtrar remitos basada en el término de búsqueda
+  const filteredRemitos = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return remitos;
+    }
+
+    const searchLower = searchTerm.toLowerCase();
+    
+    return remitos.filter(remito => {
+      // Buscar en el nombre del proveedor
+      if (remito.proveedor?.nombre?.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+
+      // Buscar en las partidas e items
+      return remito.partidas.some(partida => {
+        // Buscar en el número de partida
+        if (partida.numeroPartida?.toLowerCase().includes(searchLower)) {
+          return true;
+        }
+
+        // Buscar en los items de la partida
+        return partida.items.some(item => {
+          return (
+            item.descripcion?.toLowerCase().includes(searchLower) ||
+            item.categoria?.toLowerCase().includes(searchLower)
+          );
+        });
+      });
+    });
+  }, [remitos, searchTerm]);
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+  };
 
   if (isLoading) {
     return (
@@ -43,7 +86,7 @@ export const RemitosList = () => {
     );
   }
 
-  if (remitosList.length === 0) {
+  if (remitos.length === 0) {
     return (
       <Typography color="textSecondary" textAlign="center" p={3}>
         No hay remitos de entrada cargados. Crea uno nuevo para comenzar.
@@ -76,8 +119,29 @@ export const RemitosList = () => {
 
   return (
     <>
+      {/* SearchBar */}
+      <Box sx={{ mb: 3 }}>
+        <SearchBar 
+          placeholder="Buscar por proveedor, partida, descripción o categoría..."
+          onSearch={handleSearch}
+          debounceMs={300}
+        />
+      </Box>
+
+      {/* Información de resultados */}
+      {searchTerm && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" color="textSecondary">
+            {filteredRemitos.length === 0 
+              ? `No se encontraron remitos que coincidan con "${searchTerm}"`
+              : `Se encontraron ${filteredRemitos.length} remito${filteredRemitos.length !== 1 ? 's' : ''} que coinciden con "${searchTerm}"`
+            }
+          </Typography>
+        </Box>
+      )}
+
       <Box>
-        {remitosList.map((remito, index) => {
+        {filteredRemitos.map((remito, index) => {
           const remitoKey = `remito-${index}`;
           const totalKilos = remito.partidas.reduce((sum, partida) => 
             sum + partida.items.reduce((partidaSum, item) => partidaSum + item.kilos, 0), 0
@@ -86,7 +150,7 @@ export const RemitosList = () => {
             sum + partida.items.reduce((partidaSum, item) => partidaSum + item.unidades, 0), 0
           );
           const totalItems = remito.partidas.reduce((sum, partida) => sum + partida.items.length, 0);
-         
+        
           return (
             <Accordion 
               key={remitoKey}
@@ -133,79 +197,61 @@ export const RemitosList = () => {
               </AccordionSummary>
               
               <AccordionDetails>
-                <Box>
-                  <Typography variant="subtitle2" fontWeight="bold" mb={2}>
-                    Detalle del Remito:
-                  </Typography>
-                  
-                  <Grid container spacing={2}>
-                    {remito.partidas.map((partida, partidaIndex) => (
-                      <Grid item xs={12} key={partidaIndex}>
-                        <Box 
-                          sx={{ 
-                            p: 2, 
-                            border: '1px solid #e0e0e0', 
-                            borderRadius: 1,
-                            backgroundColor: '#f8f9fa',
-                            mb: 2
-                          }}
-                        >
-                          <Typography variant="subtitle1" fontWeight="bold" mb={2}>
-                            Partida: {partida.numeroPartida}
-                          </Typography>
-                          <Grid container spacing={2}>
-                            {partida.items.map((item, itemIndex) => (
-                              <Grid item xs={12} sm={6} md={4} key={itemIndex}>
-                                <Box 
-                                  sx={{ 
-                                    p: 2, 
-                                    border: '1px solid #e0e0e0', 
-                                    borderRadius: 1,
-                                    backgroundColor: '#ffffff',
-                                    position: 'relative'
-                                  }}
+                <TableContainer component={Paper} sx={{ boxShadow: 'none', border: '1px solid #e0e0e0' }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Partida</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Descripción</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>Categoría</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }} align="right">Kilos</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }} align="right">Unidades</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.875rem' }} align="center">Acciones</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {remito.partidas.map((partida, partidaIndex) => 
+                        partida.items.map((item, itemIndex) => (
+                          <TableRow 
+                            key={`${partidaIndex}-${itemIndex}`}
+                            sx={{ 
+                              '&:nth-of-type(odd)': { backgroundColor: '#fafafa' },
+                              '&:hover': { backgroundColor: '#f0f0f0' }
+                            }}
+                          >
+                            <TableCell sx={{ fontSize: '0.875rem' }}>
+                              {partida.numeroPartida}
+                            </TableCell>
+                            <TableCell sx={{ fontSize: '0.875rem', fontWeight: 500 }}>
+                              {item.descripcion}
+                            </TableCell>
+                            <TableCell sx={{ fontSize: '0.875rem' }}>
+                              {item.categoria}
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontSize: '0.875rem' }}>
+                              {item.kilos} kg
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontSize: '0.875rem' }}>
+                              {item.unidades} uds
+                            </TableCell>
+                            <TableCell align="center">
+                              {partida.estado !== 'stock' && (
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleDeleteItem(item)}
+                                  sx={{ padding: '4px' }}
                                 >
-                                 {partida.estado !== 'stock' && (
-                                   <IconButton
-                                     size="small"
-                                     color="error"
-                                     onClick={() => handleDeleteItem(item)}
-                                     sx={{
-                                       position: 'absolute',
-                                       top: 4,
-                                       right: 4,
-                                     }}
-                                   >
-                                     <DeleteIcon fontSize="small" />
-                                   </IconButton>
-                                 )}
-                                  <Typography variant="subtitle2" fontWeight="bold">
-                                    {item.descripcion}
-                                  </Typography>
-                                  <Typography variant="body2" color="textSecondary">
-                                    Categoría: {item.categoria}
-                                  </Typography>
-                                  <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                                    <Chip 
-                                      label={`${item.kilos} kg`} 
-                                      size="small" 
-                                      color="secondary"
-                                    />
-                                    <Chip 
-                                      label={`${item.unidades} uds`} 
-                                      size="small" 
-                                      color="info"
-                                    />
-                                  </Box>
-                                </Box>
-                              </Grid>
-                            ))}
-                          </Grid>
-                        </Box>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </AccordionDetails>
             </Accordion>
           );
@@ -232,4 +278,4 @@ export const RemitosList = () => {
       </Dialog>
     </>
   );
- }; 
+}; 
