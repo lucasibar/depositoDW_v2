@@ -12,8 +12,7 @@ import {
   Chip,
   useTheme,
   useMediaQuery,
-  IconButton,
-  Slider
+  IconButton
 } from '@mui/material';
 import { 
   Edit as EditIcon,
@@ -35,7 +34,6 @@ export const CorreccionForm = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
   const [formData, setFormData] = useState({
-    kilos: '',
     unidades: ''
   });
   
@@ -75,7 +73,6 @@ export const CorreccionForm = ({
 
   const resetForm = () => {
     setFormData({
-      kilos: '',
       unidades: ''
     });
     setErrors({});
@@ -95,29 +92,31 @@ export const CorreccionForm = ({
     }
   };
 
-  const handleSliderChange = (field, value) => {
-    const maxValue = field === 'kilos' ? item?.kilos || 0 : item?.unidades || 0;
-    const percentage = value / 100;
-    const newValue = Math.round(maxValue * percentage * 100) / 100;
+  // Calcular kilos correspondientes basado en unidades
+  const calcularKilosCorrespondientes = (unidades) => {
+    if (!unidades || !item?.kilos || !item?.unidades) return 0;
     
-    setFormData(prev => ({
-      ...prev,
-      [field]: newValue.toString()
-    }));
+    const unidadesNum = parseInt(unidades);
+    if (unidadesNum <= 0) return 0;
+    
+    // Fórmula: (total kilos / total unidades) * unidades a eliminar
+    const kilosPorUnidad = item.kilos / item.unidades;
+    const kilosCorrespondientes = Math.round(kilosPorUnidad * unidadesNum);
+    
+    return kilosCorrespondientes;
   };
 
   const validateForm = () => {
     const newErrors = {};
     
-    const nuevosKilos = parseFloat(formData.kilos);
     const nuevasUnidades = parseInt(formData.unidades);
     
-    if (!formData.kilos || nuevosKilos < 0) {
-      newErrors.kilos = 'Debe ingresar kilos válidos (mínimo 0)';
+    if (!formData.unidades || nuevasUnidades <= 0) {
+      newErrors.unidades = 'Debe ingresar unidades válidas (mínimo 1)';
     }
     
-    if (!formData.unidades || nuevasUnidades < 0) {
-      newErrors.unidades = 'Debe ingresar unidades válidas (mínimo 0)';
+    if (nuevasUnidades > (item?.unidades || 0)) {
+      newErrors.unidades = `No puede eliminar más de ${item?.unidades || 0} unidades disponibles`;
     }
     
     setErrors(newErrors);
@@ -126,18 +125,8 @@ export const CorreccionForm = ({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      const kilosAEliminar = parseFloat(formData.kilos);
       const unidadesAEliminar = parseInt(formData.unidades);
-      
-      if (kilosAEliminar > (item?.kilos || 0)) {
-        setErrors({ kilos: `No puede eliminar más de ${item?.kilos || 0} kilos disponibles` });
-        return;
-      }
-      
-      if (unidadesAEliminar > (item?.unidades || 0)) {
-        setErrors({ unidades: `No puede eliminar más de ${item?.unidades || 0} unidades disponibles` });
-        return;
-      }
+      const kilosAEliminar = calcularKilosCorrespondientes(unidadesAEliminar);
       
       const submitData = {
         posicionId: posicion?.posicionId || posicion?.id || '',
@@ -145,8 +134,6 @@ export const CorreccionForm = ({
         kilos: kilosAEliminar,
         unidades: unidadesAEliminar
       };
-      
-
       
       onSubmit(submitData);
       onClose();
@@ -160,13 +147,12 @@ export const CorreccionForm = ({
 
   const handleEliminarTodo = () => {
     setFormData({
-      kilos: (item?.kilos || 0).toString(),
       unidades: (item?.unidades || 0).toString()
     });
   };
 
-  const kilosPercentage = formData.kilos ? (parseFloat(formData.kilos) / (item?.kilos || 1)) * 100 : 0;
-  const unidadesPercentage = formData.unidades ? (parseInt(formData.unidades) / (item?.unidades || 1)) * 100 : 0;
+  // Calcular kilos correspondientes para mostrar en tiempo real
+  const kilosCalculados = calcularKilosCorrespondientes(formData.unidades);
 
   return (
     <Dialog 
@@ -245,84 +231,38 @@ export const CorreccionForm = ({
           {/* Cantidad a eliminar */}
           <ModernCard
             title="Cantidad a Eliminar"
-            subtitle="Especifique cuánto stock eliminar"
+            subtitle="Especifique cuántas unidades eliminar"
             padding="compact"
             sx={{ mb: 0 }}
           >
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               
-              {/* Kilos */}
-              <Box>
-                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                  Kilos a eliminar: {formData.kilos || 0} kg
-                </Typography>
-                <Slider
-                  value={kilosPercentage}
-                  onChange={(_, value) => handleSliderChange('kilos', value)}
-                  min={0}
-                  max={100}
-                  step={1}
-                  valueLabelDisplay="auto"
-                  valueLabelFormat={(value) => `${Math.round((item?.kilos || 0) * value / 100)} kg`}
-                  sx={{
-                    color: 'var(--color-warning)',
-                    '& .MuiSlider-thumb': {
-                      backgroundColor: 'var(--color-warning)'
-                    }
-                  }}
-                />
-                <TextField
-                  fullWidth
-                  label="Kilos específicos"
-                  type="number"
-                  value={formData.kilos}
-                  onChange={(e) => handleInputChange('kilos', e.target.value)}
-                  error={!!errors.kilos}
-                  helperText={errors.kilos || `Máximo: ${item?.kilos || 0} kg`}
-                  inputProps={{ 
-                    min: 0,
-                    max: item?.kilos || 0,
-                    step: 0.01
-                  }}
-                  size="small"
-                />
-              </Box>
-
               {/* Unidades */}
               <Box>
-                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                  Unidades a eliminar: {formData.unidades || 0} uds
-                </Typography>
-                <Slider
-                  value={unidadesPercentage}
-                  onChange={(_, value) => handleSliderChange('unidades', value)}
-                  min={0}
-                  max={100}
-                  step={1}
-                  valueLabelDisplay="auto"
-                  valueLabelFormat={(value) => `${Math.round((item?.unidades || 0) * value / 100)} uds`}
-                  sx={{
-                    color: 'var(--color-warning)',
-                    '& .MuiSlider-thumb': {
-                      backgroundColor: 'var(--color-warning)'
-                    }
-                  }}
-                />
                 <TextField
                   fullWidth
-                  label="Unidades específicas"
+                  label="Unidades a eliminar"
                   type="number"
                   value={formData.unidades}
                   onChange={(e) => handleInputChange('unidades', e.target.value)}
                   error={!!errors.unidades}
                   helperText={errors.unidades || `Máximo: ${item?.unidades || 0} unidades`}
                   inputProps={{ 
-                    min: 0,
+                    min: 1,
                     max: item?.unidades || 0,
                     step: 1
                   }}
-                  size="small"
+                  size="medium"
                 />
+                
+                {/* Mostrar kilos calculados */}
+                {formData.unidades && !errors.unidades && (
+                  <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(255, 152, 0, 0.1)', borderRadius: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'var(--color-warning)' }}>
+                      Kilos correspondientes a eliminar: <strong>{kilosCalculados} kg</strong>
+                    </Typography>
+                  </Box>
+                )}
               </Box>
 
               {/* Botón para eliminar todo */}
@@ -380,7 +320,7 @@ export const CorreccionForm = ({
               backgroundColor: 'var(--color-warning-dark)'
             }
           }}
-          disabled={isSubmitting || (!formData.kilos && !formData.unidades)}
+          disabled={isSubmitting || !formData.unidades}
           startIcon={<EditIcon />}
         >
           {isSubmitting ? 'Eliminando...' : 'Eliminar Stock'}
