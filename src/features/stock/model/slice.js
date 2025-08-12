@@ -74,6 +74,18 @@ export const adicionRapida = createAsyncThunk(
   }
 );
 
+export const ajusteStock = createAsyncThunk(
+  'stock/ajusteStock',
+  async (ajusteData, { rejectWithValue }) => {
+    try {
+      const response = await stockApi.ajusteStock(ajusteData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error en ajuste de stock');
+    }
+  }
+);
+
 export const movimientoInterno = createAsyncThunk(
   'stock/movimientoInterno',
   async (movimientoData, { rejectWithValue }) => {

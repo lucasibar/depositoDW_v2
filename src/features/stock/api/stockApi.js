@@ -36,6 +36,9 @@ export const stockApi = {
   // Adición rápida
   adicionRapida: (data) => apiClient.post(`/movimientos/adicion-rapida`, data),
   
+  // Ajuste de stock (eliminación)
+  ajusteStock: (data) => apiClient.post(`/movimientos/ajuste-stock`, data),
+  
   // Movimiento interno
   movimientoInterno: (data) => apiClient.post(`/movimientos/interno`, data),
   

@@ -128,11 +128,23 @@ export const CorreccionForm = ({
       const unidadesAEliminar = parseInt(formData.unidades);
       const kilosAEliminar = calcularKilosCorrespondientes(unidadesAEliminar);
       
+      // Crear los datos en el formato que espera la nueva función de ajuste
       const submitData = {
-        posicionId: posicion?.posicionId || posicion?.id || '',
-        itemId: item?.itemId || item?.id || '',
+        proveedor: item?.proveedor,
+        tipoMovimiento: 'ajusteRESTA', // Esto se sobrescribirá en el backend
+        item: {
+          itemId: item?.itemId || item?.id || '',
+          categoria: item?.categoria || '',
+          descripcion: item?.descripcion || '',
+          proveedor: item?.proveedor,
+          partida: item?.partida || '',
+          kilos: item?.kilos || 0,
+          unidades: item?.unidades || 0
+        },
         kilos: kilosAEliminar,
-        unidades: unidadesAEliminar
+        unidades: unidadesAEliminar,
+        partida: item?.partida || '',
+        posicion: posicion?.posicionId || posicion?.id || ''
       };
       
       onSubmit(submitData);
