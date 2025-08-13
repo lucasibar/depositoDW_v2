@@ -37,9 +37,10 @@ export const filterPosicionesBySearch = (posiciones, searchTerm) => {
   const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
   
   return posiciones.filter(posicion => {
-    // Verificar si la posición tiene items que coincidan con la búsqueda
+    // Si la posición no tiene items, verificar si el término de búsqueda coincide con el título de la posición
     if (!posicion.items || posicion.items.length === 0) {
-      return false;
+      const posicionTitle = generatePosicionTitle(posicion).toLowerCase();
+      return searchWords.every(word => posicionTitle.includes(word));
     }
 
     // Verificar si al menos un item coincide con la búsqueda
@@ -127,5 +128,54 @@ export const applyAllFilters = (posiciones, searchTerm, advancedFilters) => {
     filtered = filterPosicionesByAdvancedFilters(filtered, advancedFilters);
   }
   
-  return filtered;
+  // Ordenar las posiciones según el criterio especificado
+  return sortPosiciones(filtered);
+};
+
+/**
+ * Ordena las posiciones según el criterio especificado:
+ * 1. Posiciones con entrada=true primero
+ * 2. Posiciones con rack y fila ordenadas por rack, luego por fila
+ * 3. Posiciones de pasillo al final
+ * @param {Array} posiciones - Lista de posiciones a ordenar
+ * @returns {Array} - Posiciones ordenadas
+ */
+export const sortPosiciones = (posiciones) => {
+  return [...posiciones].sort((a, b) => {
+    // 1. Posiciones con entrada=true van primero
+    if (a.entrada && !b.entrada) return -1;
+    if (!a.entrada && b.entrada) return 1;
+    
+    // 2. Si ambas tienen entrada=true, mantener el orden original
+    if (a.entrada && b.entrada) {
+      return 0;
+    }
+    
+    // 3. Posiciones con rack y fila van antes que las de pasillo
+    const aHasRack = a.rack && a.fila;
+    const bHasRack = b.rack && b.fila;
+    
+    if (aHasRack && !bHasRack) return -1;
+    if (!aHasRack && bHasRack) return 1;
+    
+    // 4. Si ambas tienen rack y fila, ordenar por rack, luego por fila
+    if (aHasRack && bHasRack) {
+      if (a.rack !== b.rack) {
+        return a.rack - b.rack;
+      }
+      return a.fila - b.fila;
+    }
+    
+    // 5. Si ambas son pasillos, ordenar por número de pasillo
+    if (a.pasillo && b.pasillo) {
+      return a.pasillo - b.pasillo;
+    }
+    
+    // 6. Si una es pasillo y la otra no, la que no es pasillo va primero
+    if (a.pasillo && !b.pasillo) return 1;
+    if (!a.pasillo && b.pasillo) return -1;
+    
+    // 7. Si ninguna tiene rack ni pasillo, mantener el orden original
+    return 0;
+  });
 }; 

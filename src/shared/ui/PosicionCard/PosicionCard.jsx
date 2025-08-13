@@ -91,9 +91,15 @@ export const PosicionCard = ({
 
   const hasMoreItems = filteredItems.length > (isMobile ? 2 : 3);
 
-  // Si no hay items filtrados y hay término de búsqueda, no mostrar la tarjeta
+  // Si no hay items filtrados y hay término de búsqueda, verificar si el término coincide con el título de la posición
   if (searchTerm.trim() && filteredItems.length === 0) {
-    return null;
+    const posicionTitle = titulo.toLowerCase();
+    const searchWords = searchTerm.toLowerCase().trim().split(/\s+/);
+    const titleMatches = searchWords.every(word => posicionTitle.includes(word));
+    
+    if (!titleMatches) {
+      return null;
+    }
   }
 
   return (
