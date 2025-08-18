@@ -123,7 +123,7 @@ export const SalidaPage = () => {
   const posiciones = useSelector(selectPosiciones);
   const isLoading = useSelector(selectStockLoading);
   const error = useSelector(selectStockError);
-  const historialSalida = useSelector(state => state.salida.historial);
+  const historialSalida = useSelector(state => state.historial?.historialSalida || []);
 
   const {
     loading: salidaLoading,
