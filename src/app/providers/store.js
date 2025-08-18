@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import authReducer from '../../features/auth/model/authSlice';
 import comprasReducer from '../../features/compras/model/slice';
 import stockReducer from '../../features/stock/model/slice';
 import remitosReducer from '../../features/remitos/model/slice';
@@ -10,6 +11,7 @@ import notificacionesReducer from '../../features/notificaciones/model/notificac
 
 export const store = configureStore({
   reducer: {
+    auth: authReducer,
     compras: comprasReducer,
     stock: stockReducer,
     remitos: remitosReducer,

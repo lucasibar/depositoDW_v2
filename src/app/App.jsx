@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Route, Routes, Navigate } from "react-router-dom";
+import { useSelector } from 'react-redux';
 import Login from '../pages/Login/Login';
 import { DepositoPage } from '../pages/DepositoPage/DepositoPage';
 import { ComprasPage } from '../pages/ComprasPage/ComprasPage';
@@ -7,8 +8,29 @@ import { AdminPage } from '../pages/AdminPage/AdminPage';
 import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
 import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
+import { initOfflineSync } from '../features/notificaciones/services/initOfflineSync';
+import { useAuthSync } from '../features/auth/hooks/useAuthSync';
+import { setStore } from '../services/authService';
 
 export const App = () => {
+  const user = useSelector(state => state.auth.user);
+  
+  // Sincronizar auth con localStorage
+  useAuthSync();
+
+  useEffect(() => {
+    // Inicializar servicios cuando el store esté disponible
+    import('../app/providers/store').then(({ store }) => {
+      // Configurar el store en authService
+      setStore(store);
+      
+      // Inicializar offlineSyncService cuando el usuario esté autenticado
+      if (user) {
+        initOfflineSync(store);
+      }
+    });
+  }, [user]);
+
   return (
     <div className="App">
       <Routes>

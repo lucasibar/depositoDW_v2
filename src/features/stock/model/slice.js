@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { stockApi } from '../api/stockApi';
-import { offlineSyncService } from '../../notificaciones/services/offlineSyncService';
 
 // Async thunks
 export const fetchStock = createAsyncThunk(

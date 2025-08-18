@@ -1,4 +1,3 @@
-import { store } from '../../../app/providers/store';
 import { 
   addNotificacion, 
   addPendingOperation, 
@@ -14,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 class OfflineSyncService {
   constructor() {
+    this.store = null;
     this.syncInterval = null;
     this.isInitialized = false;
     this.operationHandlers = {
@@ -24,10 +24,11 @@ class OfflineSyncService {
     };
   }
 
-  // Inicializar el servicio
-  init() {
+  // Inicializar el servicio con el store
+  init(store) {
     if (this.isInitialized) return;
     
+    this.store = store;
     this.setupNetworkListeners();
     this.startSyncInterval();
     this.isInitialized = true;
@@ -36,23 +37,29 @@ class OfflineSyncService {
   // Configurar listeners de red
   setupNetworkListeners() {
     window.addEventListener('online', () => {
-      store.dispatch(setOnlineStatus(true));
-      this.addNotificacion('info', 'Conexión restaurada. Sincronizando operaciones pendientes...');
-      this.syncPendingOperations();
+      if (this.store) {
+        this.store.dispatch(setOnlineStatus(true));
+        this.addNotificacion('info', 'Conexión restaurada. Sincronizando operaciones pendientes...');
+        this.syncPendingOperations();
+      }
     });
 
     window.addEventListener('offline', () => {
-      store.dispatch(setOnlineStatus(false));
-      this.addNotificacion('alerta', 'Conexión perdida. Las operaciones se guardarán localmente.');
+      if (this.store) {
+        this.store.dispatch(setOnlineStatus(false));
+        this.addNotificacion('alerta', 'Conexión perdida. Las operaciones se guardarán localmente.');
+      }
     });
   }
 
   // Iniciar intervalo de sincronización
   startSyncInterval() {
     this.syncInterval = setInterval(() => {
-      const state = store.getState();
-      if (state.notificaciones.isOnline && state.notificaciones.pendingOperations.length > 0) {
-        this.syncPendingOperations();
+      if (this.store) {
+        const state = this.store.getState();
+        if (state.notificaciones.isOnline && state.notificaciones.pendingOperations.length > 0) {
+          this.syncPendingOperations();
+        }
       }
     }, 30000); // Sincronizar cada 30 segundos si hay operaciones pendientes
   }
@@ -67,8 +74,10 @@ class OfflineSyncService {
 
   // Agregar notificación
   addNotificacion(categoria, mensaje, data = null) {
+    if (!this.store) return;
+    
     const id = uuidv4();
-    store.dispatch(addNotificacion({
+    this.store.dispatch(addNotificacion({
       id,
       categoria,
       mensaje,
@@ -78,13 +87,17 @@ class OfflineSyncService {
 
   // Ejecutar operación con manejo offline
   async executeOperation(tipo, data, optimisticUpdate = null) {
-    const state = store.getState();
+    if (!this.store) {
+      throw new Error('OfflineSyncService no está inicializado. Llama a init() primero.');
+    }
+    
+    const state = this.store.getState();
     const isOnline = state.notificaciones.isOnline;
 
     // Si estamos offline, agregar a la queue
     if (!isOnline) {
       const operationId = uuidv4();
-      store.dispatch(addPendingOperation({
+      this.store.dispatch(addPendingOperation({
         id: operationId,
         tipo,
         data,
@@ -118,7 +131,7 @@ class OfflineSyncService {
     } catch (error) {
       // Si falla, agregar a la queue
       const operationId = uuidv4();
-      store.dispatch(addPendingOperation({
+      this.store.dispatch(addPendingOperation({
         id: operationId,
         tipo,
         data,
@@ -142,12 +155,14 @@ class OfflineSyncService {
 
   // Sincronizar operaciones pendientes
   async syncPendingOperations() {
-    const state = store.getState();
+    if (!this.store) return;
+    
+    const state = this.store.getState();
     const pendingOps = state.notificaciones.pendingOperations.filter(op => !op.failed);
 
     if (pendingOps.length === 0) return;
 
-    store.dispatch(setSyncingStatus(true));
+    this.store.dispatch(setSyncingStatus(true));
 
     for (const operation of pendingOps) {
       try {
@@ -159,19 +174,19 @@ class OfflineSyncService {
         await handler(operation.data);
         
         // Remover operación exitosa
-        store.dispatch(removePendingOperation({ id: operation.id }));
+        this.store.dispatch(removePendingOperation({ id: operation.id }));
         
         this.addNotificacion('info', `Operación sincronizada exitosamente: ${operation.tipo}`);
       } catch (error) {
         // Incrementar intentos
-        store.dispatch(incrementIntentos({ id: operation.id }));
+        this.store.dispatch(incrementIntentos({ id: operation.id }));
         
-        const updatedState = store.getState();
+        const updatedState = this.store.getState();
         const updatedOp = updatedState.notificaciones.pendingOperations.find(op => op.id === operation.id);
         
         if (updatedOp && updatedOp.intentos >= updatedOp.maxIntentos) {
           // Marcar como fallida permanentemente
-          store.dispatch(markOperationAsFailed({ id: operation.id }));
+          this.store.dispatch(markOperationAsFailed({ id: operation.id }));
           
           this.addNotificacion('error', `Operación falló permanentemente después de ${updatedOp.maxIntentos} intentos: ${operation.tipo}`, {
             error: error.message,
@@ -188,7 +203,7 @@ class OfflineSyncService {
       }
     }
 
-    store.dispatch(setSyncingStatus(false));
+    this.store.dispatch(setSyncingStatus(false));
   }
 
   // Handlers específicos para cada tipo de operación
@@ -214,12 +229,24 @@ class OfflineSyncService {
 
   // Limpiar operaciones fallidas
   clearFailedOperations() {
-    store.dispatch(clearFailedOperations());
+    if (this.store) {
+      this.store.dispatch(clearFailedOperations());
+    }
   }
 
   // Obtener estadísticas de sincronización
   getSyncStats() {
-    const state = store.getState();
+    if (!this.store) {
+      return {
+        isOnline: navigator.onLine,
+        isSyncing: false,
+        pendingCount: 0,
+        failedCount: 0,
+        totalCount: 0
+      };
+    }
+    
+    const state = this.store.getState();
     const { pendingOperations, isOnline, isSyncing } = state.notificaciones;
     
     return {
