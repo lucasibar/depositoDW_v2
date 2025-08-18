@@ -21,12 +21,15 @@ import {
   TrendingUp as TrendingUpIcon,
   Business as BusinessIcon,
   Add as AddIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  Notifications as NotificationsIcon
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { authService } from '../../services/authService';
 import { userService } from '../../services/userService';
+import NotificacionesPanel from '../../features/notificaciones/ui/NotificacionesPanel';
+import { offlineSyncService } from '../../features/notificaciones/services/offlineSyncService';
 
 export const AdminPage = () => {
   const [user, setUser] = useState(null);
@@ -40,6 +43,9 @@ export const AdminPage = () => {
   useEffect(() => {
     const currentUser = authService.getUser();
     setUser(currentUser);
+    
+    // Inicializar el servicio de sincronización offline
+    offlineSyncService.init();
   }, []);
 
   const navigate = useNavigate();
@@ -258,6 +264,10 @@ export const AdminPage = () => {
     </ModernCard>
   );
 
+  const renderNotificacionesTab = () => (
+    <NotificacionesPanel />
+  );
+
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
@@ -318,6 +328,15 @@ export const AdminPage = () => {
             <Tab label="Usuarios" value="users" />
             <Tab label="Sistema" value="system" />
             <Tab label="Reportes" value="reports" />
+            <Tab 
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <NotificationsIcon sx={{ fontSize: '1rem' }} />
+                  Notificaciones
+                </Box>
+              } 
+              value="notificaciones" 
+            />
           </Tabs>
         </Box>
 
@@ -327,6 +346,7 @@ export const AdminPage = () => {
           {activeTab === 'users' && renderUsersTab()}
           {activeTab === 'system' && renderSystemTab()}
           {activeTab === 'reports' && renderReportsTab()}
+          {activeTab === 'notificaciones' && renderNotificacionesTab()}
         </Box>
       </Box>
     </AppLayout>

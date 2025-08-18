@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { stockApi } from '../api/stockApi';
+import { offlineSyncService } from '../../notificaciones/services/offlineSyncService';
 
 // Async thunks
 export const fetchStock = createAsyncThunk(
@@ -129,6 +130,78 @@ const stockSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    // Actualizaciones optimistas para operaciones offline
+    updatePosicionOptimistic: (state, action) => {
+      const { posicionId, itemId, kilos, unidades } = action.payload;
+      const posicion = state.posiciones.find(p => p.id === posicionId);
+      if (posicion) {
+        const item = posicion.items.find(i => i.id === itemId);
+        if (item) {
+          item.kilos = kilos;
+          item.unidades = unidades;
+        }
+      }
+    },
+    addItemToPosicionOptimistic: (state, action) => {
+      const { posicionId, item } = action.payload;
+      const posicion = state.posiciones.find(p => p.id === posicionId);
+      if (posicion) {
+        const existingItem = posicion.items.find(i => i.id === item.id);
+        if (existingItem) {
+          existingItem.kilos += item.kilos;
+          existingItem.unidades += item.unidades;
+        } else {
+          posicion.items.push(item);
+        }
+      }
+    },
+    removeItemFromPosicionOptimistic: (state, action) => {
+      const { posicionId, itemId, kilos, unidades } = action.payload;
+      const posicion = state.posiciones.find(p => p.id === posicionId);
+      if (posicion) {
+        const item = posicion.items.find(i => i.id === itemId);
+        if (item) {
+          item.kilos -= kilos;
+          item.unidades -= unidades;
+          if (item.kilos <= 0 && item.unidades <= 0) {
+            posicion.items = posicion.items.filter(i => i.id !== itemId);
+          }
+        }
+      }
+    },
+    moveItemOptimistic: (state, action) => {
+      const { fromPosicionId, toPosicionId, itemId, kilos, unidades } = action.payload;
+      
+      // Remover de la posición origen
+      const fromPosicion = state.posiciones.find(p => p.id === fromPosicionId);
+      if (fromPosicion) {
+        const fromItem = fromPosicion.items.find(i => i.id === itemId);
+        if (fromItem) {
+          fromItem.kilos -= kilos;
+          fromItem.unidades -= unidades;
+          if (fromItem.kilos <= 0 && fromItem.unidades <= 0) {
+            fromPosicion.items = fromPosicion.items.filter(i => i.id !== itemId);
+          }
+        }
+      }
+      
+      // Agregar a la posición destino
+      const toPosicion = state.posiciones.find(p => p.id === toPosicionId);
+      if (toPosicion) {
+        const toItem = toPosicion.items.find(i => i.id === itemId);
+        if (toItem) {
+          toItem.kilos += kilos;
+          toItem.unidades += unidades;
+        } else {
+          toPosicion.items.push({
+            id: itemId,
+            kilos,
+            unidades,
+            // Otros campos necesarios del item
+          });
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -239,5 +312,12 @@ const stockSlice = createSlice({
   },
 });
 
-export const { setSelectedStock, clearError } = stockSlice.actions;
+export const { 
+  setSelectedStock, 
+  clearError,
+  updatePosicionOptimistic,
+  addItemToPosicionOptimistic,
+  removeItemFromPosicionOptimistic,
+  moveItemOptimistic
+} = stockSlice.actions;
 export default stockSlice.reducer; 
