@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
 import { 
   Box, 
   Typography, 
@@ -9,7 +8,9 @@ import {
   Container,
   Grid,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { 
   Add as AddIcon,
@@ -24,22 +25,22 @@ import { MovimientoInternoForm } from '../../widgets/remitos/MovimientoInternoFo
 import { CorreccionForm } from '../../widgets/remitos/CorreccionForm/CorreccionForm';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
-import { adicionRapida, movimientoInterno, correccionItem, ajusteStock } from '../../features/stock/model/slice';
 import { usePosicionesCache } from '../../features/stock/hooks/usePosicionesCache';
 import { useOptimizedMovements } from '../../features/stock/hooks/useOptimizedMovements';
 import { applyAllFilters } from '../../features/stock/utils/posicionUtils';
-import { getRoleColor, getRoleLabel } from '../../features/stock/utils/userUtils';
 import { checkAuthentication, handleLogout } from '../../features/stock/utils/navigationUtils';
-import { SEARCH_PLACEHOLDERS, ERROR_MESSAGES } from '../../features/stock/constants/stockConstants';
+import { SEARCH_PLACEHOLDERS } from '../../features/stock/constants/stockConstants';
 
 export const DepositoPage = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   
+  // Estados del usuario y autenticación
   const [user, setUser] = useState(null);
+  
+  // Estados de filtros y búsqueda
   const [filteredPosiciones, setFilteredPosiciones] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState({
@@ -49,7 +50,7 @@ export const DepositoPage = () => {
     pasillo: ''
   });
   
-  // Estados para los formularios
+  // Estados de formularios
   const [adicionRapidaOpen, setAdicionRapidaOpen] = useState(false);
   const [movimientoInternoOpen, setMovimientoInternoOpen] = useState(false);
   const [correccionOpen, setCorreccionOpen] = useState(false);
@@ -58,8 +59,15 @@ export const DepositoPage = () => {
   
   // Hooks optimizados
   const { posiciones, isLoading, error } = usePosicionesCache();
-  const { executeMovimientoInterno, executeAdicionRapida, executeAjusteStock } = useOptimizedMovements();
+  const { 
+    executeMovimientoInterno, 
+    executeAdicionRapida, 
+    executeAjusteStock,
+    notification,
+    closeNotification
+  } = useOptimizedMovements();
 
+  // Inicialización y autenticación
   useEffect(() => {
     const currentUser = checkAuthentication(navigate);
     if (currentUser) {
@@ -67,17 +75,18 @@ export const DepositoPage = () => {
     }
   }, [navigate]);
 
-  // Las posiciones se cargan automáticamente con usePosicionesCache
-
+  // Aplicar filtros cuando cambien las posiciones o filtros
   useEffect(() => {
     const filtered = applyAllFilters(posiciones, searchTerm, advancedFilters);
     setFilteredPosiciones(filtered);
   }, [posiciones, searchTerm, advancedFilters]);
 
+  // Handlers de navegación
   const handleLogoutClick = () => {
     handleLogout(navigate);
   };
 
+  // Handlers de búsqueda y filtros
   const handleSearch = (searchTerm) => {
     setSearchTerm(searchTerm);
   };
@@ -86,23 +95,22 @@ export const DepositoPage = () => {
     setAdvancedFilters(newFilters);
   };
 
+  // Handlers de posiciones
   const handlePosicionClick = (posicion) => {
     console.log("Posición seleccionada:", posicion);
   };
 
+  // Handlers de formularios
   const handleAdicionRapida = (posicion) => {
     setSelectedPosicion(posicion);
     setAdicionRapidaOpen(true);
   };
 
   const handleMovimientoInterno = (item, posicion) => {
-    console.log('Datos recibidos para movimiento interno:', { item, posicion });
     if (item && posicion) {
       setSelectedItem(item);
       setSelectedPosicion(posicion);
       setMovimientoInternoOpen(true);
-    } else {
-      console.error('Datos inválidos para movimiento interno:', { item, posicion });
     }
   };
 
@@ -112,17 +120,13 @@ export const DepositoPage = () => {
     setCorreccionOpen(true);
   };
 
+  // Handlers de envío de formularios
   const handleAdicionRapidaSubmit = async (data) => {
     try {
-      console.log('Ejecutando adición rápida optimista...');
       const result = await executeAdicionRapida(data);
-      
       if (result.success) {
-        console.log('Adición rápida exitosa:', result.data);
         setAdicionRapidaOpen(false);
         setSelectedPosicion(null);
-      } else {
-        console.error('Error en adición rápida:', result.error);
       }
     } catch (error) {
       console.error('Error en adición rápida:', error);
@@ -131,16 +135,11 @@ export const DepositoPage = () => {
 
   const handleMovimientoInternoSubmit = async (data) => {
     try {
-      console.log('Ejecutando movimiento interno optimista...');
       const result = await executeMovimientoInterno(data);
-      
       if (result.success) {
-        console.log('Movimiento interno exitoso:', result.data);
         setMovimientoInternoOpen(false);
         setSelectedItem(null);
         setSelectedPosicion(null);
-      } else {
-        console.error('Error en movimiento interno:', result.error);
       }
     } catch (error) {
       console.error('Error en movimiento interno:', error);
@@ -149,26 +148,23 @@ export const DepositoPage = () => {
 
   const handleCorreccionSubmit = async (data) => {
     try {
-      console.log('Ejecutando corrección optimista...');
       const result = await executeAjusteStock(data);
-      
       if (result.success) {
-        console.log('Corrección exitosa:', result.data);
         setCorreccionOpen(false);
         setSelectedItem(null);
         setSelectedPosicion(null);
-      } else {
-        console.error('Error en corrección:', result.error);
       }
     } catch (error) {
       console.error('Error en corrección:', error);
     }
   };
 
+  // Renderizado condicional si no hay usuario
   if (!user) {
     return null;
   }
 
+  // Renderizado de loading
   if (isLoading) {
     return (
       <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Depósito">
@@ -189,6 +185,7 @@ export const DepositoPage = () => {
     );
   }
 
+  // Renderizado de error
   if (error) {
     return (
       <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Depósito">
@@ -249,7 +246,6 @@ export const DepositoPage = () => {
           sx={{ mb: isMobile ? 2 : 4 }}
           padding={isMobile ? "compact" : "normal"}
         >
-          {/* Layout en una línea para todos los dispositivos */}
           <Box sx={{ 
             display: 'flex', 
             flexDirection: 'row',
@@ -257,7 +253,7 @@ export const DepositoPage = () => {
             alignItems: 'center',
             overflow: 'hidden'
           }}>
-            {/* Barra de búsqueda - 2/3 del espacio en móvil/tablet */}
+            {/* Barra de búsqueda */}
             <Box sx={{ 
               flex: isMobile || isTablet ? '0 0 66.666%' : '1',
               minWidth: 0
@@ -268,7 +264,7 @@ export const DepositoPage = () => {
               />
             </Box>
             
-            {/* Filtros avanzados - 1/3 del espacio en móvil/tablet */}
+            {/* Filtros avanzados */}
             <Box sx={{ 
               flex: isMobile || isTablet ? '0 0 33.333%' : '0 0 auto',
               minWidth: isMobile ? '120px' : isTablet ? '140px' : '220px'
@@ -281,7 +277,7 @@ export const DepositoPage = () => {
           </Box>
         </ModernCard>
         
-        {/* Lista de Posiciones - Sin título en móvil para ahorrar espacio */}
+        {/* Lista de Posiciones */}
         <ModernCard
           title={isMobile ? undefined : `Posiciones (${filteredPosiciones.length})`}
           subtitle={isMobile ? undefined : `Mostrando ${filteredPosiciones.length} de ${posiciones.length} posiciones`}
@@ -337,6 +333,22 @@ export const DepositoPage = () => {
           posicion={selectedPosicion}
           onSubmit={handleCorreccionSubmit}
         />
+
+        {/* Snackbar para notificaciones */}
+        <Snackbar
+          open={notification.open}
+          autoHideDuration={6000}
+          onClose={closeNotification}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert
+            onClose={closeNotification}
+            severity={notification.severity}
+            sx={{ width: '100%' }}
+          >
+            {notification.message}
+          </Alert>
+        </Snackbar>
       </Container>
     </AppLayout>
   );

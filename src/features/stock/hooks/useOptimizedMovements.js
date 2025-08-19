@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   movimientoInterno, 
@@ -11,15 +11,29 @@ import {
   updatePosicionOptimistic
 } from '../model/slice';
 import { selectPosiciones } from '../model/selectors';
-import { offlineSyncService } from '../../notificaciones/services/offlineSyncService';
 
 export const useOptimizedMovements = () => {
   const dispatch = useDispatch();
   const posiciones = useSelector(selectPosiciones);
+  const [notification, setNotification] = useState({ open: false, message: '', severity: 'error' });
 
-  // Movimiento interno optimista
+  // Función para mostrar notificación
+  const showNotification = useCallback((message, severity = 'error') => {
+    setNotification({ open: true, message, severity });
+  }, []);
+
+  // Función para cerrar notificación
+  const closeNotification = useCallback(() => {
+    setNotification(prev => ({ ...prev, open: false }));
+  }, []);
+
   const executeMovimientoInterno = useCallback(async (movimientoData) => {
     const { selectedItem, data, id } = movimientoData;
+    
+    // Guardar valores originales para revertir si falla
+    const originalFromPosicion = posiciones.find(p => p.id === id);
+    const originalToPosicion = posiciones.find(p => p.id === data.posicionDestinoId);
+    const originalItem = originalFromPosicion?.items.find(i => i.id === selectedItem.id);
     
     // Actualización optimista inmediata
     dispatch(moveItemOptimistic({
@@ -31,27 +45,25 @@ export const useOptimizedMovements = () => {
     }));
 
     try {
-      // Enviar al servidor en segundo plano
       const result = await dispatch(movimientoInterno(movimientoData)).unwrap();
-      console.log('Movimiento interno exitoso:', result);
       return { success: true, data: result };
     } catch (error) {
-      console.error('Error en movimiento interno:', error);
-      
       // Revertir cambios optimistas si falla
-      dispatch(moveItemOptimistic({
-        fromPosicionId: data.posicionDestinoId,
-        toPosicionId: id,
-        itemId: selectedItem.id,
-        kilos: data.kilos,
-        unidades: data.unidades
-      }));
+      if (originalItem) {
+        dispatch(moveItemOptimistic({
+          fromPosicionId: data.posicionDestinoId,
+          toPosicionId: id,
+          itemId: selectedItem.id,
+          kilos: originalItem.kilos,
+          unidades: originalItem.unidades
+        }));
+      }
       
+      showNotification(error.message || 'Error en movimiento interno', 'error');
       return { success: false, error: error.message };
     }
-  }, [dispatch]);
+  }, [dispatch, posiciones, showNotification]);
 
-  // Adición rápida optimista
   const executeAdicionRapida = useCallback(async (adicionData) => {
     const { posicionId, item } = adicionData;
     
@@ -62,13 +74,9 @@ export const useOptimizedMovements = () => {
     }));
 
     try {
-      // Enviar al servidor en segundo plano
       const result = await dispatch(adicionRapida(adicionData)).unwrap();
-      console.log('Adición rápida exitosa:', result);
       return { success: true, data: result };
     } catch (error) {
-      console.error('Error en adición rápida:', error);
-      
       // Revertir cambios optimistas si falla
       dispatch(removeItemFromPosicionOptimistic({
         posicionId,
@@ -77,40 +85,17 @@ export const useOptimizedMovements = () => {
         unidades: item.unidades
       }));
       
+      showNotification(error.message || 'Error en adición rápida', 'error');
       return { success: false, error: error.message };
     }
-  }, [dispatch]);
+  }, [dispatch, showNotification]);
 
-  // Ajuste de stock optimista
   const executeAjusteStock = useCallback(async (ajusteData) => {
     const { posicionId, itemId, kilos, unidades } = ajusteData;
     
-    // Actualización optimista inmediata
-    dispatch(updatePosicionOptimistic({
-      posicionId,
-      itemId,
-      kilos,
-      unidades
-    }));
-
-    try {
-      // Enviar al servidor en segundo plano
-      const result = await dispatch(ajusteStock(ajusteData)).unwrap();
-      console.log('Ajuste de stock exitoso:', result);
-      return { success: true, data: result };
-    } catch (error) {
-      console.error('Error en ajuste de stock:', error);
-      
-      // Revertir cambios optimistas si falla
-      // Aquí necesitarías los valores originales para revertir
-      
-      return { success: false, error: error.message };
-    }
-  }, [dispatch]);
-
-  // Corrección de item optimista
-  const executeCorreccionItem = useCallback(async (correccionData) => {
-    const { posicionId, itemId, kilos, unidades } = correccionData;
+    // Guardar valores originales para revertir si falla
+    const originalPosicion = posiciones.find(p => p.id === posicionId);
+    const originalItem = originalPosicion?.items.find(i => i.id === itemId);
     
     // Actualización optimista inmediata
     dispatch(updatePosicionOptimistic({
@@ -121,43 +106,29 @@ export const useOptimizedMovements = () => {
     }));
 
     try {
-      // Enviar al servidor en segundo plano
-      const result = await dispatch(correccionItem(correccionData)).unwrap();
-      console.log('Corrección exitosa:', result);
+      const result = await dispatch(ajusteStock(ajusteData)).unwrap();
       return { success: true, data: result };
     } catch (error) {
-      console.error('Error en corrección:', error);
-      
       // Revertir cambios optimistas si falla
-      // Aquí necesitarías los valores originales para revertir
+      if (originalItem) {
+        dispatch(updatePosicionOptimistic({
+          posicionId,
+          itemId,
+          kilos: originalItem.kilos,
+          unidades: originalItem.unidades
+        }));
+      }
       
+      showNotification(error.message || 'Error en ajuste de stock', 'error');
       return { success: false, error: error.message };
     }
-  }, [dispatch]);
-
-  // Función para obtener posición por ID
-  const getPosicionById = useCallback((posicionId) => {
-    return posiciones.find(p => p.id === posicionId);
-  }, [posiciones]);
-
-  // Función para obtener item de posición
-  const getItemFromPosicion = useCallback((posicionId, itemId) => {
-    const posicion = getPosicionById(posicionId);
-    return posicion?.items.find(i => i.id === itemId);
-  }, [getPosicionById]);
+  }, [dispatch, posiciones, showNotification]);
 
   return {
-    // Funciones de movimiento optimistas
     executeMovimientoInterno,
     executeAdicionRapida,
     executeAjusteStock,
-    executeCorreccionItem,
-    
-    // Funciones de utilidad
-    getPosicionById,
-    getItemFromPosicion,
-    
-    // Datos
-    posiciones
+    notification,
+    closeNotification
   };
 };
