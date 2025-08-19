@@ -1,20 +1,42 @@
-// Configuración de la API
+// Configuración de la API optimizada para móviles
 export const API_CONFIG = {
   // URL base del servidor de producción
   BASE_URL: process.env.REACT_APP_API_URL || 'https://derwill-deposito-backend.onrender.com',
   
-  // Timeout para las peticiones (en milisegundos)
-  TIMEOUT: 30000,
+  // Sin timeout para conexiones lentas
+  TIMEOUT: 0,
   
-  // Headers por defecto
+  // Headers optimizados (sin headers problemáticos de CORS)
   DEFAULT_HEADERS: {
     'Content-Type': 'application/json',
   },
+  
+  // Configuración de reintentos
+  RETRY_CONFIG: {
+    retries: 2,
+    retryDelay: 1000,
+    retryCondition: (error) => {
+      return error.code === 'ECONNABORTED' || 
+             error.response?.status >= 500 || 
+             error.message.includes('timeout');
+    }
+  },
+  
+  // Configuración de caché
+  CACHE_CONFIG: {
+    // Tiempo de caché en milisegundos (5 minutos)
+    defaultTTL: 5 * 60 * 1000,
+    // Tamaño máximo del caché (50 MB)
+    maxSize: 50 * 1024 * 1024,
+  }
 };
 
-// Configuración de axios
+// Configuración de axios optimizada
 export const axiosConfig = {
   baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
   headers: API_CONFIG.DEFAULT_HEADERS,
+  // Configuración para mejorar rendimiento en móviles
+  maxContentLength: 10 * 1024 * 1024, // 10MB máximo
+  maxBodyLength: 10 * 1024 * 1024, // 10MB máximo
 }; 

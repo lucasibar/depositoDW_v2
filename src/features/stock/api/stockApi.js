@@ -1,49 +1,41 @@
-import axios from 'axios';
-import { API_CONFIG } from '../../../config/api';
-
-// Crear una instancia de axios configurada
-const apiClient = axios.create({
-  baseURL: API_CONFIG.BASE_URL,
-  timeout: API_CONFIG.TIMEOUT,
-  headers: API_CONFIG.DEFAULT_HEADERS,
-});
+import { optimizedApiClient } from '../../../services/optimizedApiClient';
 
 export const stockApi = {
   // Obtener stock total de un item
-  getStockTotal: (idItem) => apiClient.get(`/stock/total/${idItem}`),
+  getStockTotal: (idItem) => optimizedApiClient.get(`/stock/total/${idItem}`),
   
   // Obtener stock detallado de un item
-  getStockByItem: (idItem) => apiClient.get(`/stock/${idItem}`),
+  getStockByItem: (idItem) => optimizedApiClient.get(`/stock/${idItem}`),
   
   // Obtener stock por posición
-  getStockByPosition: (dataPosicion) => apiClient.post(`/stock/posicion`, dataPosicion),
+  getStockByPosition: (dataPosicion) => optimizedApiClient.post(`/stock/posicion`, dataPosicion),
   
   // Obtener todos los movimientos de entrada (para stock general)
-  getAllMovimientos: () => apiClient.get(`/movimientos/entrada`),
+  getAllMovimientos: () => optimizedApiClient.get(`/movimientos/entrada`),
   
   // Obtener stock consolidado por item y partida
-  getStockConsolidado: () => apiClient.get('/movimientos/stock-consolidado'),
+  getStockConsolidado: () => optimizedApiClient.get('/movimientos/stock-consolidado'),
   
   // Obtener posiciones con sus items
-  getPosicionesConItems: () => apiClient.get(`/posiciones/items`),
+  getPosicionesConItems: () => optimizedApiClient.get(`/posiciones/items`),
   
   // Obtener movimientos de salida
-  getMovimientosSalida: () => apiClient.get(`/movimientos/salida`),
+  getMovimientosSalida: () => optimizedApiClient.get(`/movimientos/salida`),
   
   // Obtener salidas sin remito asignado
-  getSalidasSinRemito: () => apiClient.get(`/movimientos/sin-remito`),
+  getSalidasSinRemito: () => optimizedApiClient.get(`/movimientos/sin-remito`),
   
   // Adición rápida
-  adicionRapida: (data) => apiClient.post(`/movimientos/adicion-rapida`, data),
+  adicionRapida: (data) => optimizedApiClient.post(`/movimientos/adicion-rapida`, data),
   
   // Ajuste de stock (eliminación)
-  ajusteStock: (data) => apiClient.post(`/movimientos/ajuste-stock`, data),
+  ajusteStock: (data) => optimizedApiClient.post(`/movimientos/ajuste-stock`, data),
   
   // Movimiento interno
-  movimientoInterno: (data) => apiClient.post(`/movimientos/interno`, data),
+  movimientoInterno: (data) => optimizedApiClient.post(`/movimientos/interno`, data),
   
   // Corrección de item
-  correccionItem: (data) => apiClient.put(`/movimientos/correccion/${data.posicionId}/${data.itemId}`, {
+  correccionItem: (data) => optimizedApiClient.put(`/movimientos/correccion/${data.posicionId}/${data.itemId}`, {
     kilos: data.kilos,
     unidades: data.unidades
   }),

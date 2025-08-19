@@ -8,6 +8,7 @@ import { AdminPage } from '../pages/AdminPage/AdminPage';
 import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
 import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
+import PerformanceIndicator from '../components/PerformanceIndicator';
 import { initOfflineSync } from '../features/notificaciones/services/initOfflineSync';
 import { useAuthSync } from '../features/auth/hooks/useAuthSync';
 import { setStore } from '../services/authService';
@@ -95,6 +96,9 @@ export const App = () => {
         {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/depositoDW_v2/" replace />} />
       </Routes>
+      
+      {/* Indicador de rendimiento */}
+      <PerformanceIndicator />
     </div>
   );
 }; 

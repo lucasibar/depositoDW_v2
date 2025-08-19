@@ -24,8 +24,9 @@ import { MovimientoInternoForm } from '../../widgets/remitos/MovimientoInternoFo
 import { CorreccionForm } from '../../widgets/remitos/CorreccionForm/CorreccionForm';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
-import { fetchPosicionesConItems, adicionRapida, movimientoInterno, correccionItem, ajusteStock } from '../../features/stock/model/slice';
-import { selectPosiciones, selectStockLoading, selectStockError } from '../../features/stock/model/selectors';
+import { adicionRapida, movimientoInterno, correccionItem, ajusteStock } from '../../features/stock/model/slice';
+import { usePosicionesCache } from '../../features/stock/hooks/usePosicionesCache';
+import { useOptimizedMovements } from '../../features/stock/hooks/useOptimizedMovements';
 import { applyAllFilters } from '../../features/stock/utils/posicionUtils';
 import { getRoleColor, getRoleLabel } from '../../features/stock/utils/userUtils';
 import { checkAuthentication, handleLogout } from '../../features/stock/utils/navigationUtils';
@@ -55,9 +56,9 @@ export const DepositoPage = () => {
   const [selectedPosicion, setSelectedPosicion] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   
-  const posiciones = useSelector(selectPosiciones);
-  const isLoading = useSelector(selectStockLoading);
-  const error = useSelector(selectStockError);
+  // Hooks optimizados
+  const { posiciones, isLoading, error } = usePosicionesCache();
+  const { executeMovimientoInterno, executeAdicionRapida, executeAjusteStock } = useOptimizedMovements();
 
   useEffect(() => {
     const currentUser = checkAuthentication(navigate);
@@ -66,9 +67,7 @@ export const DepositoPage = () => {
     }
   }, [navigate]);
 
-  useEffect(() => {
-    dispatch(fetchPosicionesConItems());
-  }, [dispatch]);
+  // Las posiciones se cargan automáticamente con usePosicionesCache
 
   useEffect(() => {
     const filtered = applyAllFilters(posiciones, searchTerm, advancedFilters);
@@ -115,11 +114,16 @@ export const DepositoPage = () => {
 
   const handleAdicionRapidaSubmit = async (data) => {
     try {
-      await dispatch(adicionRapida(data)).unwrap();
-      setAdicionRapidaOpen(false);
-      setSelectedPosicion(null);
-      // Recargar las posiciones después de la adición rápida
-      dispatch(fetchPosicionesConItems());
+      console.log('Ejecutando adición rápida optimista...');
+      const result = await executeAdicionRapida(data);
+      
+      if (result.success) {
+        console.log('Adición rápida exitosa:', result.data);
+        setAdicionRapidaOpen(false);
+        setSelectedPosicion(null);
+      } else {
+        console.error('Error en adición rápida:', result.error);
+      }
     } catch (error) {
       console.error('Error en adición rápida:', error);
     }
@@ -127,16 +131,17 @@ export const DepositoPage = () => {
 
   const handleMovimientoInternoSubmit = async (data) => {
     try {
-      console.log('Iniciando movimiento interno con datos:', data);
-      await dispatch(movimientoInterno(data)).unwrap();
-      console.log('Movimiento interno completado exitosamente');
-      setMovimientoInternoOpen(false);
-      setSelectedItem(null);
-      setSelectedPosicion(null);
-      // Recargar las posiciones después del movimiento interno
-      console.log('Recargando posiciones después del movimiento interno...');
-      dispatch(fetchPosicionesConItems());
-      console.log('Comando de recarga de posiciones enviado');
+      console.log('Ejecutando movimiento interno optimista...');
+      const result = await executeMovimientoInterno(data);
+      
+      if (result.success) {
+        console.log('Movimiento interno exitoso:', result.data);
+        setMovimientoInternoOpen(false);
+        setSelectedItem(null);
+        setSelectedPosicion(null);
+      } else {
+        console.error('Error en movimiento interno:', result.error);
+      }
     } catch (error) {
       console.error('Error en movimiento interno:', error);
     }
@@ -144,12 +149,17 @@ export const DepositoPage = () => {
 
   const handleCorreccionSubmit = async (data) => {
     try {
-      await dispatch(ajusteStock(data)).unwrap();
-      setCorreccionOpen(false);
-      setSelectedItem(null);
-      setSelectedPosicion(null);
-      // Recargar las posiciones después de la corrección
-      dispatch(fetchPosicionesConItems());
+      console.log('Ejecutando corrección optimista...');
+      const result = await executeAjusteStock(data);
+      
+      if (result.success) {
+        console.log('Corrección exitosa:', result.data);
+        setCorreccionOpen(false);
+        setSelectedItem(null);
+        setSelectedPosicion(null);
+      } else {
+        console.error('Error en corrección:', result.error);
+      }
     } catch (error) {
       console.error('Error en corrección:', error);
     }
@@ -193,7 +203,7 @@ export const DepositoPage = () => {
             </Typography>
             <Button 
               variant="contained" 
-              onClick={() => dispatch(fetchPosicionesConItems())}
+              onClick={() => window.location.reload()}
               sx={{ backgroundColor: 'var(--color-primary)' }}
             >
               Reintentar

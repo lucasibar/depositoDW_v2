@@ -61,7 +61,7 @@ class OfflineSyncService {
           this.syncPendingOperations();
         }
       }
-    }, 30000); // Sincronizar cada 30 segundos si hay operaciones pendientes
+    }, 120000); // Sincronizar cada 2 minutos para reducir consumo de datos
   }
 
   // Detener intervalo de sincronización
