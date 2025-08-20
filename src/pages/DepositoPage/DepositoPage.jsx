@@ -20,7 +20,7 @@ import {
 import { SearchBar } from '../../shared/ui/SearchBar/SearchBar';
 import { AdvancedFilters } from '../../shared/ui/AdvancedFilters/AdvancedFilters';
 import { PosicionList } from '../../widgets/PosicionList/PosicionList';
-import { AdicionRapidaForm } from '../../widgets/remitos/AdicionRapidaForm/AdicionRapidaForm';
+
 import { MovimientoInternoForm } from '../../widgets/remitos/MovimientoInternoForm/MovimientoInternoForm';
 import { CorreccionForm } from '../../widgets/remitos/CorreccionForm/CorreccionForm';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
@@ -51,7 +51,6 @@ export const DepositoPage = () => {
   });
   
   // Estados de formularios
-  const [adicionRapidaOpen, setAdicionRapidaOpen] = useState(false);
   const [movimientoInternoOpen, setMovimientoInternoOpen] = useState(false);
   const [correccionOpen, setCorreccionOpen] = useState(false);
   const [selectedPosicion, setSelectedPosicion] = useState(null);
@@ -61,7 +60,6 @@ export const DepositoPage = () => {
   const { posiciones, isLoading, error } = usePosicionesCache();
   const { 
     executeMovimientoInterno, 
-    executeAdicionRapida, 
     executeAjusteStock,
     notification,
     closeNotification
@@ -101,11 +99,6 @@ export const DepositoPage = () => {
   };
 
   // Handlers de formularios
-  const handleAdicionRapida = (posicion) => {
-    setSelectedPosicion(posicion);
-    setAdicionRapidaOpen(true);
-  };
-
   const handleMovimientoInterno = (item, posicion) => {
     if (item && posicion) {
       setSelectedItem(item);
@@ -121,18 +114,6 @@ export const DepositoPage = () => {
   };
 
   // Handlers de envío de formularios
-  const handleAdicionRapidaSubmit = async (data) => {
-    try {
-      const result = await executeAdicionRapida(data);
-      if (result.success) {
-        setAdicionRapidaOpen(false);
-        setSelectedPosicion(null);
-      }
-    } catch (error) {
-      console.error('Error en adición rápida:', error);
-    }
-  };
-
   const handleMovimientoInternoSubmit = async (data) => {
     try {
       const result = await executeMovimientoInterno(data);
@@ -295,7 +276,6 @@ export const DepositoPage = () => {
           <PosicionList
             posiciones={filteredPosiciones}
             onPosicionClick={handlePosicionClick}
-            onAdicionRapida={handleAdicionRapida}
             onMovimientoInterno={handleMovimientoInterno}
             onCorreccion={handleCorreccion}
             searchTerm={searchTerm}
@@ -303,13 +283,6 @@ export const DepositoPage = () => {
         </ModernCard>
         
         {/* Formularios */}
-        <AdicionRapidaForm
-          open={adicionRapidaOpen}
-          onClose={() => setAdicionRapidaOpen(false)}
-          posicion={selectedPosicion}
-          onSubmit={handleAdicionRapidaSubmit}
-        />
-        
         <MovimientoInternoForm
           open={movimientoInternoOpen}
           onClose={() => {

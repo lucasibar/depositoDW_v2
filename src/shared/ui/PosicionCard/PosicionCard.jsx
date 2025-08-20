@@ -10,7 +10,6 @@ import {
   useMediaQuery
 } from "@mui/material";
 import { 
-  Add as AddIcon,
   SwapHoriz as SwapIcon,
   Edit as EditIcon,
   ExpandMore as ExpandMoreIcon,
@@ -21,7 +20,6 @@ import { generatePosicionTitle, calculatePosicionTotalKilos, calculatePosicionTo
 export const PosicionCard = ({ 
   posicion, 
   onClick,
-  onAdicionRapida,
   onMovimientoInterno,
   onCorreccion,
   searchTerm = "",
@@ -74,10 +72,7 @@ export const PosicionCard = ({
     setIsExpanded(!isExpanded);
   };
 
-  const handleAdicionRapida = (e) => {
-    e.stopPropagation();
-    onAdicionRapida?.(posicion);
-  };
+
 
   const handleMovimientoInterno = (e, item) => {
     e.stopPropagation();
@@ -138,23 +133,6 @@ export const PosicionCard = ({
         </Typography>
         
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          {/* Botón de Adición Rápida */}
-          <IconButton
-            size="small"
-            onClick={handleAdicionRapida}
-            sx={{ 
-              color: 'var(--color-primary)',
-              backgroundColor: 'rgba(46, 125, 50, 0.1)',
-              '&:hover': {
-                backgroundColor: 'var(--color-primary)',
-                color: 'white'
-              },
-              p: 0.5
-            }}
-          >
-            <AddIcon fontSize="small" />
-          </IconButton>
-          
           {/* Botón de expandir */}
           {hasMoreItems && (
             <IconButton

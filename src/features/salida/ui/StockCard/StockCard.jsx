@@ -6,7 +6,6 @@ import styles from "./StockCard.module.css";
 export const StockCard = ({ 
   posicion, 
   onClick,
-  onAdicionRapida,
   onMovimientoInterno,
   onCorreccion,
   searchTerm = "",
@@ -55,10 +54,7 @@ export const StockCard = ({
     onClick?.(posicion);
   };
 
-  const handleAdicionRapida = (e) => {
-    e.stopPropagation();
-    onAdicionRapida?.(posicion);
-  };
+
 
   const handleMovimientoInterno = (e, item) => {
     e.stopPropagation();
@@ -95,18 +91,7 @@ export const StockCard = ({
         <p><strong>Total Unidades:</strong> {totalUnidades}</p>
         <p><strong>Items:</strong> {filteredItems.length}</p>
         
-        {/* Botón de Adición Rápida (oculto en Salida) */}
-        <Box sx={{ mt: 2, mb: 2, display: 'none' }}>
-          <Button
-            variant="contained"
-            color="success"
-            size="small"
-            onClick={handleAdicionRapida}
-            sx={{ width: '100%' }}
-          >
-            + Adición Rápida
-          </Button>
-        </Box>
+
         {filteredItems.length > 0 && (
           <div className={styles.itemsList}>
             <p><strong>Materiales:</strong></p>

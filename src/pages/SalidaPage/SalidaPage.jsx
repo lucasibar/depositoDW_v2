@@ -158,10 +158,7 @@ export const SalidaPage = () => {
     console.log("Posición seleccionada:", posicion);
   };
 
-  const handleAdicionRapida = (posicion) => {
-    setSelectedPosicion(posicion);
-    setSalidaFormOpen(true);
-  };
+
 
   const handleMovimientoInterno = (item, posicion) => {
     console.log('Datos recibidos para movimiento interno:', { item, posicion });
@@ -343,7 +340,6 @@ export const SalidaPage = () => {
                     <StockCard
                       posicion={posicion}
                       onPosicionClick={handlePosicionClick}
-                      onAdicionRapida={handleAdicionRapida}
                       onMovimientoInterno={handleMovimientoInterno}
                       onCorreccion={handleCorreccion}
                       searchTerm={searchTerm}

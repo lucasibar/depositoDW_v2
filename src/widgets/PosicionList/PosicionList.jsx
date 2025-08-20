@@ -5,7 +5,6 @@ import { PosicionCard } from "../../shared/ui/PosicionCard/PosicionCard";
 export const PosicionList = ({ 
   posiciones, 
   onPosicionClick,
-  onAdicionRapida,
   onMovimientoInterno,
   onCorreccion,
   searchTerm = ""
@@ -47,7 +46,6 @@ export const PosicionList = ({
             key={uniqueKey}
             posicion={posicion}
             onClick={onPosicionClick}
-            onAdicionRapida={onAdicionRapida}
             onMovimientoInterno={onMovimientoInterno}
             onCorreccion={onCorreccion}
             searchTerm={searchTerm}

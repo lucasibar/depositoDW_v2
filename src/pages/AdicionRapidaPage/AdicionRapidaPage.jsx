@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   Box, 
@@ -14,11 +14,22 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  Alert
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { agregarRegistro, limpiarRegistros, eliminarRegistro } from '../../features/adicionesRapidas/model/slice';
-import { selectAdicionesRapidas } from '../../features/adicionesRapidas/model/selectors';
+import { 
+  selectAdicionesRapidas, 
+  selectProveedores, 
+  selectItems, 
+  selectAdicionesRapidasLoading, 
+  selectAdicionesRapidasError 
+} from '../../features/adicionesRapidas/model/selectors';
+import { cargarDatosIniciales, enviarAdicionRapida } from '../../features/adicionesRapidas/model/thunks';
+import { useAdicionRapida } from '../../features/adicionesRapidas/hooks/useAdicionRapida';
+import AutocompleteSelect from '../../shared/ui/AutocompleteSelect';
+import LoadingInfo from '../../shared/ui/LoadingInfo';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 
 // Componente de input compacto
@@ -48,6 +59,10 @@ const CompactInput = ({ label, value, onChange, type = "text" }) => (
 export const AdicionRapidaPage = () => {
   const dispatch = useDispatch();
   const registros = useSelector(selectAdicionesRapidas);
+  const proveedores = useSelector(selectProveedores);
+  const items = useSelector(selectItems);
+  const loading = useSelector(selectAdicionesRapidasLoading);
+  const error = useSelector(selectAdicionesRapidasError);
   
   const [formData, setFormData] = useState({
     proveedor: '',
@@ -61,11 +76,34 @@ export const AdicionRapidaPage = () => {
     pasillo: ''
   });
 
+  const [enviando, setEnviando] = useState(false);
+
+  // Usar el hook personalizado
+  const { itemsFiltrados, filterProveedores, filterItems, isFormValid } = useAdicionRapida(
+    proveedores, 
+    items, 
+    formData.proveedor
+  );
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    dispatch(cargarDatosIniciales());
+  }, [dispatch]);
+
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      
+      // Si cambia el proveedor, limpiar el item
+      if (field === 'proveedor') {
+        newData.item = '';
+      }
+      
+      return newData;
+    });
   };
 
   const handleAgregarRegistro = () => {
@@ -94,10 +132,27 @@ export const AdicionRapidaPage = () => {
     dispatch(eliminarRegistro(index));
   };
 
-  const handleSubmit = () => {
-    // Aquí iría la lógica para enviar al backend
-    console.log('Registros a enviar:', registros);
-    alert('Función de envío al backend no implementada aún');
+  const handleSubmit = async () => {
+    if (enviando) return;
+    
+    setEnviando(true);
+    try {
+      const resultado = await dispatch(enviarAdicionRapida(registros)).unwrap();
+      
+      if (resultado.totalErrores === 0) {
+        alert(`¡Éxito! Se procesaron ${resultado.totalExitosos} registros correctamente.`);
+        // Limpiar los registros después del envío exitoso
+        dispatch(limpiarRegistros());
+      } else {
+        alert(`Se procesaron ${resultado.totalExitosos} registros exitosamente, pero hubo ${resultado.totalErrores} errores. Revisa la consola para más detalles.`);
+        console.log('Errores:', resultado.errores);
+      }
+    } catch (error) {
+      console.error('Error al enviar registros:', error);
+      alert('Error al enviar los registros. Revisa la consola para más detalles.');
+    } finally {
+      setEnviando(false);
+    }
   };
 
   const handleLimpiarTodo = () => {
@@ -106,116 +161,141 @@ export const AdicionRapidaPage = () => {
 
   return (
     <AppLayout>
-             <Container maxWidth={false} sx={{ width: '100%', px: 2 }}>
-                 <Box sx={{ py: 3, width: '100%' }}>
+      <Box sx={{ 
+        width: '100%', 
+        maxWidth: '100%', 
+        px: { xs: 1, sm: 2, md: 3 }, 
+        py: 3,
+        overflow: 'hidden',
+        boxSizing: 'border-box'
+      }}>
           <Typography variant="h4" component="h1" gutterBottom>
             Adición Rápida
           </Typography>
           
           {/* Formulario de entrada */}
-          <Paper sx={{ p: 3, mb: 3 }}>
+          <LoadingInfo loading={loading} error={error}>
+            <Paper sx={{ p: 3, mb: 3, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
             <Typography variant="h6" gutterBottom>
               Nuevo Registro
             </Typography>
             
-                                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', width: '100%' }}>
-               <Box sx={{ flex: 1 }}>
-                 <CompactInput
+                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'flex-end' }}>
+               <Box sx={{ flex: '1 1 200px', minWidth: '180px' }}>
+                 <AutocompleteSelect
                    label="Proveedor"
                    value={formData.proveedor}
-                   onChange={(e) => handleInputChange('proveedor', e.target.value)}
+                   onChange={(value) => handleInputChange('proveedor', value)}
+                   options={proveedores}
+                   getOptionLabel={(option) => option.nombre || ''}
+                   getOptionKey={(option) => `proveedor-${option.id || option.nombre}`}
+                   filterOptions={filterProveedores}
+                   loading={loading}
                  />
                </Box>
                
-               <Box sx={{ flex: 1 }}>
-                 <CompactInput
+               <Box sx={{ flex: '1 1 250px', minWidth: '200px' }}>
+                 <AutocompleteSelect
                    label="Item"
                    value={formData.item}
-                   onChange={(e) => handleInputChange('item', e.target.value)}
+                   onChange={(value) => handleInputChange('item', value)}
+                   options={itemsFiltrados}
+                   getOptionLabel={(option) => `${option.categoria} - ${option.descripcion}` || ''}
+                   getOptionKey={(option) => `item-${option.id || `${option.categoria}-${option.descripcion}`}`}
+                   filterOptions={filterItems}
+                   loading={loading}
+                   disabled={!formData.proveedor}
+                   noOptionsText={formData.proveedor && itemsFiltrados.length === 0 ? "No hay items para este proveedor" : "No hay opciones"}
                  />
                </Box>
-               
-               <Box sx={{ flex: 1 }}>
-                 <CompactInput
-                   label="Partida"
-                   value={formData.partida}
-                   onChange={(e) => handleInputChange('partida', e.target.value)}
-                 />
-               </Box>
-               
-               <Box sx={{ flex: 1 }}>
-                 <CompactInput
-                   label="Kilos"
-                   type="number"
-                   value={formData.kilos}
-                   onChange={(e) => handleInputChange('kilos', e.target.value)}
-                 />
-               </Box>
-               
-               <Box sx={{ flex: 1 }}>
-                 <CompactInput
-                   label="Unidades"
-                   type="number"
-                   value={formData.unidades}
-                   onChange={(e) => handleInputChange('unidades', e.target.value)}
-                 />
-               </Box>
-               
-               <Box sx={{ flex: 1 }}>
-                 <CompactInput
-                   label="Rack"
-                   value={formData.rack}
-                   onChange={(e) => handleInputChange('rack', e.target.value)}
-                 />
-               </Box>
-               
-               <Box sx={{ flex: 1 }}>
-                 <CompactInput
-                   label="Fila"
-                   value={formData.fila}
-                   onChange={(e) => handleInputChange('fila', e.target.value)}
-                 />
-               </Box>
-               
-               <Box sx={{ flex: 1 }}>
-                 <CompactInput
-                   label="Nivel (AB)"
-                   value={formData.nivel}
-                   onChange={(e) => handleInputChange('nivel', e.target.value)}
-                 />
-               </Box>
-               
-               <Box sx={{ flex: 1 }}>
-                 <CompactInput
-                   label="Pasillo"
-                   value={formData.pasillo}
-                   onChange={(e) => handleInputChange('pasillo', e.target.value)}
-                 />
-               </Box>
-               
-               <Box sx={{ flexShrink: 0 }}>
-                 <IconButton
-                   color="primary"
-                   onClick={handleAgregarRegistro}
-                   sx={{ 
-                     backgroundColor: 'primary.main', 
-                     color: 'white',
-                     height: '28px',
-                     width: '28px',
-                     '&:hover': {
-                       backgroundColor: 'primary.dark'
-                     }
-                   }}
-                 >
-                   <AddIcon sx={{ fontSize: '16px' }} />
-                 </IconButton>
-               </Box>
-             </Box>
-          </Paper>
+              
+              <Box sx={{ flex: '1 1 120px', minWidth: '100px' }}>
+                <CompactInput
+                  label="Partida"
+                  value={formData.partida}
+                  onChange={(e) => handleInputChange('partida', e.target.value)}
+                />
+              </Box>
+              
+              <Box sx={{ flex: '1 1 100px', minWidth: '80px' }}>
+                <CompactInput
+                  label="Kilos"
+                  type="number"
+                  value={formData.kilos}
+                  onChange={(e) => handleInputChange('kilos', e.target.value)}
+                />
+              </Box>
+              
+              <Box sx={{ flex: '1 1 100px', minWidth: '80px' }}>
+                <CompactInput
+                  label="Unidades"
+                  type="number"
+                  value={formData.unidades}
+                  onChange={(e) => handleInputChange('unidades', e.target.value)}
+                />
+              </Box>
+              
+              <Box sx={{ flex: '1 1 80px', minWidth: '70px' }}>
+                <CompactInput
+                  label="Rack"
+                  value={formData.rack}
+                  onChange={(e) => handleInputChange('rack', e.target.value)}
+                />
+              </Box>
+              
+              <Box sx={{ flex: '1 1 80px', minWidth: '70px' }}>
+                <CompactInput
+                  label="Fila"
+                  value={formData.fila}
+                  onChange={(e) => handleInputChange('fila', e.target.value)}
+                />
+              </Box>
+              
+              <Box sx={{ flex: '1 1 100px', minWidth: '80px' }}>
+                <CompactInput
+                  label="Nivel (AB)"
+                  value={formData.nivel}
+                  onChange={(e) => handleInputChange('nivel', e.target.value)}
+                />
+              </Box>
+              
+              <Box sx={{ flex: '1 1 100px', minWidth: '80px' }}>
+                <CompactInput
+                  label="Pasillo"
+                  value={formData.pasillo}
+                  onChange={(e) => handleInputChange('pasillo', e.target.value)}
+                />
+              </Box>
+              
+              <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                <IconButton
+                  color="primary"
+                  onClick={handleAgregarRegistro}
+                  disabled={!isFormValid(formData)}
+                  sx={{ 
+                    backgroundColor: 'primary.main', 
+                    color: 'white',
+                    height: '28px',
+                    width: '28px',
+                    '&:hover': {
+                      backgroundColor: 'primary.dark'
+                    },
+                    '&:disabled': {
+                      backgroundColor: 'grey.300',
+                      color: 'grey.500'
+                    }
+                  }}
+                >
+                  <AddIcon sx={{ fontSize: '16px' }} />
+                </IconButton>
+              </Box>
+            </Box>
+            </Paper>
+          </LoadingInfo>
 
-          {/* Tabla de registros */}
-          {registros.length > 0 && (
-            <Paper sx={{ p: 3, mb: 3, width: '100%' }}>
+                     {/* Tabla de registros */}
+           {registros.length > 0 && (
+             <Paper sx={{ p: 3, mb: 3, width: '100%', maxWidth: '100%', overflow: 'auto' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6">
                   Registros ({registros.length})
@@ -274,22 +354,22 @@ export const AdicionRapidaPage = () => {
             </Paper>
           )}
 
-          {/* Botón de envío */}
-          {registros.length > 0 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={handleSubmit}
-                sx={{ minWidth: 200 }}
-              >
-                Enviar Registros
-              </Button>
-            </Box>
-          )}
+                     {/* Botón de envío */}
+           {registros.length > 0 && (
+             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+               <Button
+                 variant="contained"
+                 color="primary"
+                 size="large"
+                 onClick={handleSubmit}
+                 disabled={enviando}
+                 sx={{ minWidth: 200 }}
+               >
+                 {enviando ? 'Enviando...' : 'Enviar Registros'}
+               </Button>
+             </Box>
+           )}
         </Box>
-      </Container>
     </AppLayout>
   );
 };
