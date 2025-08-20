@@ -1,14 +1,13 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { offlineSyncService } from '../services/offlineSyncService';
+
 import './ConnectionStatus.css';
 
 const ConnectionStatus = ({ showStats = false }) => {
   const { isOnline, pendingOperations, isSyncing } = useSelector(state => state.notificaciones);
   
-  const stats = offlineSyncService.getSyncStats();
-  const pendingCount = stats.pendingCount;
-  const failedCount = stats.failedCount;
+  const pendingCount = pendingOperations?.length || 0;
+  const failedCount = 0; // Ya no hay operaciones fallidas sin el servicio offline
 
   return (
     <div className="connection-status-indicator">

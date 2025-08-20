@@ -9,7 +9,7 @@ import {
   deleteAllNotificaciones,
   deleteReadNotificaciones
 } from '../model/notificacionesSlice';
-import { offlineSyncService } from '../services/offlineSyncService';
+
 import './NotificacionesPanel.css';
 
 const NotificacionesPanel = () => {
@@ -43,19 +43,7 @@ const NotificacionesPanel = () => {
     dispatch(deleteAllNotificaciones());
   };
 
-  const handleSyncNow = () => {
-    offlineSyncService.syncPendingOperations();
-  };
 
-  const handleClearFailed = () => {
-    offlineSyncService.clearFailedOperations();
-  };
-
-  const getSyncStats = () => {
-    return offlineSyncService.getSyncStats();
-  };
-
-  const syncStats = getSyncStats();
 
   const filteredNotificaciones = notificaciones.filter(notif => {
     if (filter === 'todas') return true;
@@ -153,40 +141,21 @@ const NotificacionesPanel = () => {
           </select>
         </div>
         
-                 <div className="action-controls">
-           {syncStats.pendingCount > 0 && (
-             <button 
-               onClick={handleSyncNow}
-               disabled={!isOnline || isSyncing}
-               className="btn btn-primary"
-             >
-               Sincronizar Ahora
-             </button>
-           )}
-           
-           {syncStats.failedCount > 0 && (
-             <button 
-               onClick={handleClearFailed}
-               className="btn btn-secondary"
-             >
-               Limpiar Fallidas
-             </button>
-           )}
-          
-          <button 
-            onClick={handleLimpiarLeidas}
-            className="btn btn-outline"
-          >
-            Limpiar Leídas
-          </button>
-          
-          <button 
-            onClick={handleLimpiarTodas}
-            className="btn btn-outline"
-          >
-            Limpiar Todas
-          </button>
-        </div>
+                         <div className="action-controls">
+         <button 
+           onClick={handleLimpiarLeidas}
+           className="btn btn-outline"
+         >
+           Limpiar Leídas
+         </button>
+         
+         <button 
+           onClick={handleLimpiarTodas}
+           className="btn btn-outline"
+         >
+           Limpiar Todas
+         </button>
+       </div>
       </div>
 
       {/* Lista de notificaciones */}

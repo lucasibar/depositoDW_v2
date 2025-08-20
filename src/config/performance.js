@@ -38,7 +38,6 @@ export const PERFORMANCE_CONFIG = {
   MOBILE: {
     REDUCE_ANIMATIONS: true,
     OPTIMIZE_FOR_SMALL_SCREENS: true,
-    ENHANCED_OFFLINE_MODE: true,
     TOUCH_OPTIMIZATION: true,
   },
   

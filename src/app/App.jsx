@@ -10,7 +10,7 @@ import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
 import { AdicionRapidaPage } from '../pages/AdicionRapidaPage/AdicionRapidaPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 import PerformanceIndicator from '../components/PerformanceIndicator';
-import { initOfflineSync } from '../features/notificaciones/services/initOfflineSync';
+
 import { useAuthSync } from '../features/auth/hooks/useAuthSync';
 import { setStore } from '../services/authService';
 
@@ -25,11 +25,6 @@ export const App = () => {
     import('../app/providers/store').then(({ store }) => {
       // Configurar el store en authService
       setStore(store);
-      
-      // Inicializar offlineSyncService cuando el usuario esté autenticado
-      if (user) {
-        initOfflineSync(store);
-      }
     });
   }, [user]);
 

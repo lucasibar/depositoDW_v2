@@ -29,7 +29,7 @@ import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { authService } from '../../services/authService';
 import { userService } from '../../services/userService';
 import NotificacionesPanel from '../../features/notificaciones/ui/NotificacionesPanel';
-import { offlineSyncService } from '../../features/notificaciones/services/offlineSyncService';
+
 
 export const AdminPage = () => {
   const [user, setUser] = useState(null);
@@ -43,9 +43,6 @@ export const AdminPage = () => {
   useEffect(() => {
     const currentUser = authService.getUser();
     setUser(currentUser);
-    
-    // Inicializar el servicio de sincronización offline
-    offlineSyncService.init();
   }, []);
 
   const navigate = useNavigate();

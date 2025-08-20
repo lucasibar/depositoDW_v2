@@ -4,11 +4,7 @@ import {
   movimientoInterno, 
   adicionRapida, 
   ajusteStock,
-  correccionItem,
-  moveItemOptimistic,
-  addItemToPosicionOptimistic,
-  removeItemFromPosicionOptimistic,
-  updatePosicionOptimistic
+  correccionItem
 } from '../model/slice';
 import { selectPosiciones } from '../model/selectors';
 import { debugStockOperations } from '../utils/debugUtils';
@@ -81,56 +77,20 @@ export const useOptimizedMovements = () => {
        return { success: false, error: 'Posición de destino no encontrada' };
      }
     
-    // Actualización optimista inmediata
-    dispatch(moveItemOptimistic({
-      fromPosicionId: id,
-      toPosicionId: posicionDestinoId,
-      itemId: selectedItem.itemId,
-      kilos: selectedItem.kilos,
-      unidades: selectedItem.unidades
-    }));
-
     try {
       const result = await dispatch(movimientoInterno(movimientoData)).unwrap();
       return { success: true, data: result };
     } catch (error) {
-      // Revertir cambios optimistas si falla
-      if (originalItem && posicionDestinoId) {
-        dispatch(moveItemOptimistic({
-          fromPosicionId: posicionDestinoId,
-          toPosicionId: id,
-          itemId: selectedItem.itemId,
-          kilos: originalItem.kilos,
-          unidades: originalItem.unidades
-        }));
-      }
-      
       showNotification(error.message || 'Error en movimiento interno', 'error');
       return { success: false, error: error.message };
     }
   }, [dispatch, posiciones, showNotification]);
 
   const executeAdicionRapida = useCallback(async (adicionData) => {
-    const { posicionId, item } = adicionData;
-    
-    // Actualización optimista inmediata
-    dispatch(addItemToPosicionOptimistic({
-      posicionId,
-      item
-    }));
-
     try {
       const result = await dispatch(adicionRapida(adicionData)).unwrap();
       return { success: true, data: result };
     } catch (error) {
-      // Revertir cambios optimistas si falla
-      dispatch(removeItemFromPosicionOptimistic({
-        posicionId,
-        itemId: item.id,
-        kilos: item.kilos,
-        unidades: item.unidades
-      }));
-      
       showNotification(error.message || 'Error en adición rápida', 'error');
       return { success: false, error: error.message };
     }
@@ -153,34 +113,10 @@ export const useOptimizedMovements = () => {
     const originalPosicion = posiciones.find(p => p.id === posicion || p.posicionId === posicion);
     const originalItem = originalPosicion?.items.find(i => i.id === item.itemId);
     
-    // Actualización optimista inmediata - RESTAR de la posición
-    dispatch(removeItemFromPosicionOptimistic({
-      posicionId: posicion,
-      itemId: item.itemId,
-      kilos: ajusteData.kilos,
-      unidades: ajusteData.unidades
-    }));
-
     try {
       const result = await dispatch(ajusteStock(ajusteData)).unwrap();
       return { success: true, data: result };
     } catch (error) {
-      // Revertir cambios optimistas si falla
-      if (originalItem) {
-        dispatch(addItemToPosicionOptimistic({
-          posicionId: posicion,
-          item: {
-            id: item.itemId,
-            kilos: originalItem.kilos,
-            unidades: originalItem.unidades,
-            categoria: item.categoria,
-            descripcion: item.descripcion,
-            proveedor: item.proveedor,
-            partida: item.partida
-          }
-        }));
-      }
-      
       showNotification(error.message || 'Error en ajuste de stock', 'error');
       return { success: false, error: error.message };
     }
