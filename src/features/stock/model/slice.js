@@ -171,16 +171,16 @@ const stockSlice = createSlice({
     moveItemOptimistic: (state, action) => {
       const { fromPosicionId, toPosicionId, itemId, kilos, unidades } = action.payload;
       
-      // Remover de la posición origen
+      // Primero, guardar una copia del item original ANTES de modificarlo
       const fromPosicion = state.posiciones.find(p => p.id === fromPosicionId || p.posicionId === fromPosicionId);
-      if (fromPosicion) {
-        const fromItem = fromPosicion.items.find(i => i.id === itemId);
-        if (fromItem) {
-          fromItem.kilos -= kilos;
-          fromItem.unidades -= unidades;
-          if (fromItem.kilos <= 0 && fromItem.unidades <= 0) {
-            fromPosicion.items = fromPosicion.items.filter(i => i.id !== itemId);
-          }
+      const originalItem = fromPosicion?.items.find(i => i.id === itemId);
+      
+      // Remover de la posición origen
+      if (fromPosicion && originalItem) {
+        originalItem.kilos -= kilos;
+        originalItem.unidades -= unidades;
+        if (originalItem.kilos <= 0 && originalItem.unidades <= 0) {
+          fromPosicion.items = fromPosicion.items.filter(i => i.id !== itemId);
         }
       }
       
@@ -191,16 +191,13 @@ const stockSlice = createSlice({
         if (toItem) {
           toItem.kilos += kilos;
           toItem.unidades += unidades;
-        } else {
-          // Buscar el item original en la posición origen para copiar todos sus campos
-          const originalItem = fromPosicion?.items.find(i => i.id === itemId);
-          if (originalItem) {
-            toPosicion.items.push({
-              ...originalItem,
-              kilos,
-              unidades
-            });
-          }
+        } else if (originalItem) {
+          // Crear una copia completa del item original con los nuevos kilos/unidades
+          toPosicion.items.push({
+            ...originalItem,
+            kilos,
+            unidades
+          });
         }
       }
     },
