@@ -69,3 +69,27 @@ export const buscarMaterialesPorProveedorItem = createAsyncThunk(
     }
   }
 );
+
+export const buscarMaterialesPorItemId = createAsyncThunk(
+  'adicionesRapidas/buscarMaterialesPorItemId',
+  async (params, { dispatch }) => {
+    try {
+      dispatch(setLoading(true));
+      dispatch(setError(null));
+      
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/posiciones/buscar-materiales-por-item`, {
+        params: {
+          itemId: params.itemId
+        }
+      });
+      
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Error al buscar materiales';
+      dispatch(setError(errorMessage));
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
+);

@@ -9,6 +9,7 @@ import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
 import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
 import { AdicionRapidaPage } from '../pages/AdicionRapidaPage/AdicionRapidaPage';
 import { MaterialesPage } from '../pages/MaterialesPage/MaterialesPage';
+import { PosicionesPage } from '../pages/PosicionesPage/PosicionesPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 
 
@@ -105,6 +106,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'usuario', 'admin']}>
               <MaterialesPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Posiciones - Accesible solo para deposito y admin */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/posiciones" 
+          element={
+            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
+              <PosicionesPage />
             </RoleProtectedRoute>
           } 
         />

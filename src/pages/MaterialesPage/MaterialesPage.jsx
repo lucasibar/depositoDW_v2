@@ -21,7 +21,8 @@ import AutocompleteSelect from '../../shared/ui/AutocompleteSelect/AutocompleteS
 import LoadingInfo from '../../shared/ui/LoadingInfo/LoadingInfo';
 import { 
   cargarDatosIniciales,
-  buscarMaterialesPorProveedorItem
+  buscarMaterialesPorProveedorItem,
+  buscarMaterialesPorItemId
 } from '../../features/adicionesRapidas/model/thunks';
 import { 
   selectProveedores, 
@@ -98,15 +99,22 @@ export const MaterialesPage = () => {
 
   // Handlers del formulario
   const handleInputChange = (field, value) => {
+    console.log(`handleInputChange - field: ${field}, value:`, value);
+    
     if (field === 'proveedor') {
       // Para proveedor, guardar solo el nombre como string
+      const proveedorNombre = value?.nombre || value || '';
+      console.log('Proveedor seleccionado:', proveedorNombre);
+      
       setFormData(prev => ({
         ...prev,
-        proveedor: value?.nombre || '',
+        proveedor: proveedorNombre,
         item: null // Limpiar item cuando cambia proveedor
       }));
     } else if (field === 'item') {
       // Para item, guardar el objeto completo
+      console.log('Item seleccionado:', value);
+      
       setFormData(prev => ({
         ...prev,
         item: value
@@ -115,10 +123,20 @@ export const MaterialesPage = () => {
   };
 
   const handleBuscar = async () => {
-    if (!formData.proveedor || !formData.item) {
+    if (!formData.item) {
       setNotification({
         open: true,
-        message: 'Por favor selecciona un proveedor y un item',
+        message: 'Por favor selecciona un item',
+        severity: 'warning'
+      });
+      return;
+    }
+
+    // Validar que el item tenga ID
+    if (!formData.item.id) {
+      setNotification({
+        open: true,
+        message: 'El item seleccionado no tiene ID válido',
         severity: 'warning'
       });
       return;
@@ -126,55 +144,18 @@ export const MaterialesPage = () => {
 
     setBuscando(true);
     try {
-      // Validar que el item sea un objeto con las propiedades necesarias
-      if (typeof formData.item === 'string') {
-        // Si el item es un string, usarlo directamente
-        const itemString = formData.item;
-        console.log('Datos a enviar (item como string):', {
-          proveedor: formData.proveedor,
-          item: formData.item,
-          itemString: itemString
-        });
-        
-        const resultado = await dispatch(buscarMaterialesPorProveedorItem({
-          proveedor: formData.proveedor,
-          item: itemString
-        })).unwrap();
-        
-        setResultados(resultado);
-        setNotification({
-          open: true,
-          message: `Se encontraron ${resultado.length} posiciones con stock`,
-          severity: 'success'
-        });
-      } else if (formData.item && formData.item.categoria && formData.item.descripcion) {
-        // Si el item es un objeto con las propiedades necesarias
-        const itemString = formData.item.categoria + ' - ' + formData.item.descripcion;
-        console.log('Datos a enviar (item como objeto):', {
-          proveedor: formData.proveedor,
-          item: formData.item,
-          itemString: itemString
-        });
-        
-        const resultado = await dispatch(buscarMaterialesPorProveedorItem({
-          proveedor: formData.proveedor,
-          item: itemString
-        })).unwrap();
-        
-        setResultados(resultado);
-        setNotification({
-          open: true,
-          message: `Se encontraron ${resultado.length} posiciones con stock`,
-          severity: 'success'
-        });
-      } else {
-        setNotification({
-          open: true,
-          message: 'El item seleccionado no tiene la información completa',
-          severity: 'warning'
-        });
-        return;
-      }
+      console.log('Buscando item por ID:', formData.item.id);
+      
+      const resultado = await dispatch(buscarMaterialesPorItemId({
+        itemId: formData.item.id
+      })).unwrap();
+      
+      setResultados(resultado);
+      setNotification({
+        open: true,
+        message: `Se encontraron ${resultado.length} posiciones con stock`,
+        severity: 'success'
+      });
     } catch (error) {
       console.error('Error al buscar materiales:', error);
       setNotification({
@@ -216,24 +197,24 @@ export const MaterialesPage = () => {
           >
             Consulta de Materiales
           </Typography>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: 'var(--color-text-secondary)',
-              mb: isMobile ? 1 : 3
-            }}
-          >
-            Busca materiales por proveedor e item para ver el stock disponible
-          </Typography>
+                     <Typography 
+             variant="body2" 
+             sx={{ 
+               color: 'var(--color-text-secondary)',
+               mb: isMobile ? 1 : 3
+             }}
+           >
+             Busca materiales por item para ver las posiciones donde se encuentra el stock disponible
+           </Typography>
         </Box>
 
         {/* Formulario de búsqueda */}
-        <ModernCard
-          title="Búsqueda por Material"
-          subtitle="Selecciona un proveedor y un item para consultar el stock"
-          sx={{ mb: isMobile ? 2 : 4 }}
-          padding={isMobile ? "compact" : "normal"}
-        >
+                 <ModernCard
+           title="Búsqueda por Material"
+           subtitle="Selecciona un item para consultar las posiciones donde se encuentra"
+           sx={{ mb: isMobile ? 2 : 4 }}
+           padding={isMobile ? "compact" : "normal"}
+         >
           <LoadingInfo loading={loading} error={error}>
             <Box sx={{ 
               display: 'flex',
@@ -246,16 +227,23 @@ export const MaterialesPage = () => {
                 flex: '1 1 200px',
                 minWidth: '200px'
               }}>
-                <AutocompleteSelect
-                  label="Proveedor"
-                  placeholder="Selecciona un proveedor..."
-                  options={proveedores}
-                  value={formData.proveedor}
-                  onChange={(value) => handleInputChange('proveedor', value)}
-                  getOptionLabel={(option) => option.nombre}
-                  getOptionKey={(option) => `proveedor-${option.id || option.nombre}`}
-                  filterOptions={filterProveedores}
-                />
+                                 <AutocompleteSelect
+                   label="Proveedor"
+                   placeholder="Selecciona un proveedor..."
+                   options={proveedores}
+                   value={formData.proveedor}
+                   onChange={(value) => handleInputChange('proveedor', value)}
+                   getOptionLabel={(option) => option.nombre}
+                   getOptionKey={(option) => `proveedor-${option.id || option.nombre}`}
+                   filterOptions={filterProveedores}
+                   isOptionEqualToValue={(option, value) => {
+                     if (!value) return false;
+                     if (typeof value === 'string') {
+                       return option.nombre === value;
+                     }
+                     return option.id === value.id;
+                   }}
+                 />
               </Box>
 
               {/* Selector de Item */}
@@ -263,17 +251,21 @@ export const MaterialesPage = () => {
                 flex: '1 1 300px',
                 minWidth: '250px'
               }}>
-                <AutocompleteSelect
-                  label="Item"
-                  placeholder="Selecciona un item..."
-                  options={itemsFiltrados}
-                  value={formData.item}
-                  onChange={(value) => handleInputChange('item', value)}
-                  getOptionLabel={(option) => `${option.categoria} - ${option.descripcion}`}
-                  getOptionKey={(option) => `item-${option.id || option.categoria}-${option.descripcion}`}
-                  filterOptions={filterItems}
-                  disabled={!formData.proveedor}
-                />
+                                 <AutocompleteSelect
+                   label="Item"
+                   placeholder="Selecciona un item..."
+                   options={itemsFiltrados}
+                   value={formData.item}
+                   onChange={(value) => handleInputChange('item', value)}
+                   getOptionLabel={(option) => `${option.categoria} - ${option.descripcion}`}
+                   getOptionKey={(option) => `item-${option.id || option.categoria}-${option.descripcion}`}
+                   filterOptions={filterItems}
+                   disabled={!formData.proveedor}
+                   isOptionEqualToValue={(option, value) => {
+                     if (!value) return false;
+                     return option.id === value.id;
+                   }}
+                 />
               </Box>
 
               {/* Botón de búsqueda */}
@@ -286,7 +278,7 @@ export const MaterialesPage = () => {
                   color="primary"
                   size="large"
                   onClick={handleBuscar}
-                  disabled={buscando || !formData.proveedor || !formData.item}
+                  disabled={buscando || !formData.item}
                   startIcon={buscando ? <CircularProgress size={20} /> : <SearchIcon />}
                   sx={{ 
                     minWidth: 120,
@@ -304,56 +296,75 @@ export const MaterialesPage = () => {
         {resultados.length > 0 && (
           <ModernCard
             title={`Resultados (${resultados.length} posiciones)`}
-            subtitle={`Stock disponible para ${typeof formData.item === 'string' ? formData.item : `${formData.item?.categoria} - ${formData.item?.descripcion}`} del proveedor ${formData.proveedor}`}
+            subtitle={`Stock disponible para ${formData.item?.categoria} - ${formData.item?.descripcion}`}
             padding={isMobile ? "compact" : "normal"}
           >
-            <Box sx={{ mt: 2 }}>
-              <Grid container spacing={isMobile ? 1 : 2}>
-                {resultados.map((resultado, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={index}>
-                    <Box sx={{
-                      p: 2,
-                      border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--border-radius-md)',
-                      backgroundColor: 'var(--color-background)',
-                      '&:hover': {
-                        backgroundColor: 'var(--color-divider)',
-                        transition: 'var(--transition-normal)'
-                      }
-                    }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <InventoryIcon sx={{ 
-                          fontSize: 20, 
-                          color: 'var(--color-primary)', 
-                          mr: 1 
-                        }} />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                          Posición {resultado.posicion}
-                        </Typography>
-                      </Box>
-                      
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Kilos:
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {resultado.kilos} kg
-                        </Typography>
-                      </Box>
-                      
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Unidades:
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {resultado.unidades} un
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
+                         <Box sx={{ mt: 2 }}>
+               <Box sx={{ 
+                 display: 'flex', 
+                 flexDirection: 'row', 
+                 flexWrap: 'wrap', 
+                 gap: isMobile ? 1 : 2,
+                 overflowX: 'auto',
+                 pb: 1
+               }}>
+                 {resultados.map((resultado, index) => (
+                   <Box 
+                     key={index}
+                     sx={{
+                       minWidth: isMobile ? '280px' : '320px',
+                       flex: '0 0 auto',
+                       p: 2,
+                       border: '1px solid var(--color-border)',
+                       borderRadius: 'var(--border-radius-md)',
+                       backgroundColor: 'var(--color-background)',
+                       '&:hover': {
+                         backgroundColor: 'var(--color-divider)',
+                         transition: 'var(--transition-normal)'
+                       }
+                     }}
+                   >
+                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                       <InventoryIcon sx={{ 
+                         fontSize: 20, 
+                         color: 'var(--color-primary)', 
+                         mr: 1 
+                       }} />
+                       <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                         {resultado.posicion}
+                       </Typography>
+                     </Box>
+                   
+                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                       <Typography variant="body2" color="text.secondary">
+                         Partida:
+                       </Typography>
+                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                         {resultado.partida}
+                       </Typography>
+                     </Box>
+                     
+                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                       <Typography variant="body2" color="text.secondary">
+                         Kilos:
+                       </Typography>
+                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                         {resultado.kilos} kg
+                       </Typography>
+                     </Box>
+                     
+                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                       <Typography variant="body2" color="text.secondary">
+                         Unidades:
+                       </Typography>
+                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                         {resultado.unidades} un
+                       </Typography>
+                     </Box>
+                   </Box>
+                 ))}
+               </Box>
+             </Box>
           </ModernCard>
         )}
 

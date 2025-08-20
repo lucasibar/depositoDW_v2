@@ -38,10 +38,10 @@ const AutocompleteSelect = ({
   const handleChange = (event, newValue) => {
     if (newValue) {
       const label = getOptionLabel(newValue);
-      onChange(label);
+      onChange(newValue); // Pasar el objeto completo en lugar del label
       setInputValue(label);
     } else {
-      onChange('');
+      onChange(null);
       setInputValue('');
     }
   };
