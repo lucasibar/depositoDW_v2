@@ -132,7 +132,7 @@ const stockSlice = createSlice({
     // Actualizaciones optimistas para operaciones offline
     updatePosicionOptimistic: (state, action) => {
       const { posicionId, itemId, kilos, unidades } = action.payload;
-      const posicion = state.posiciones.find(p => p.id === posicionId);
+      const posicion = state.posiciones.find(p => p.id === posicionId || p.posicionId === posicionId);
       if (posicion) {
         const item = posicion.items.find(i => i.id === itemId);
         if (item) {
@@ -143,7 +143,7 @@ const stockSlice = createSlice({
     },
     addItemToPosicionOptimistic: (state, action) => {
       const { posicionId, item } = action.payload;
-      const posicion = state.posiciones.find(p => p.id === posicionId);
+      const posicion = state.posiciones.find(p => p.id === posicionId || p.posicionId === posicionId);
       if (posicion) {
         const existingItem = posicion.items.find(i => i.id === item.id);
         if (existingItem) {
@@ -156,7 +156,7 @@ const stockSlice = createSlice({
     },
     removeItemFromPosicionOptimistic: (state, action) => {
       const { posicionId, itemId, kilos, unidades } = action.payload;
-      const posicion = state.posiciones.find(p => p.id === posicionId);
+      const posicion = state.posiciones.find(p => p.id === posicionId || p.posicionId === posicionId);
       if (posicion) {
         const item = posicion.items.find(i => i.id === itemId);
         if (item) {
@@ -172,7 +172,7 @@ const stockSlice = createSlice({
       const { fromPosicionId, toPosicionId, itemId, kilos, unidades } = action.payload;
       
       // Remover de la posición origen
-      const fromPosicion = state.posiciones.find(p => p.id === fromPosicionId);
+      const fromPosicion = state.posiciones.find(p => p.id === fromPosicionId || p.posicionId === fromPosicionId);
       if (fromPosicion) {
         const fromItem = fromPosicion.items.find(i => i.id === itemId);
         if (fromItem) {
@@ -185,19 +185,22 @@ const stockSlice = createSlice({
       }
       
       // Agregar a la posición destino
-      const toPosicion = state.posiciones.find(p => p.id === toPosicionId);
+      const toPosicion = state.posiciones.find(p => p.id === toPosicionId || p.posicionId === toPosicionId);
       if (toPosicion) {
         const toItem = toPosicion.items.find(i => i.id === itemId);
         if (toItem) {
           toItem.kilos += kilos;
           toItem.unidades += unidades;
         } else {
-          toPosicion.items.push({
-            id: itemId,
-            kilos,
-            unidades,
-            // Otros campos necesarios del item
-          });
+          // Buscar el item original en la posición origen para copiar todos sus campos
+          const originalItem = fromPosicion?.items.find(i => i.id === itemId);
+          if (originalItem) {
+            toPosicion.items.push({
+              ...originalItem,
+              kilos,
+              unidades
+            });
+          }
         }
       }
     },

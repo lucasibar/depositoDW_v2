@@ -153,7 +153,7 @@ export const MovimientoInternoForm = ({
   const handleSubmit = () => {
     if (validateForm()) {
       const selectedItem = {
-        itemId: item?.itemId || item?.categoria,
+        itemId: item?.itemId || item?.id || '',
         categoria: item?.categoria || '',
         descripcion: item?.descripcion || '',
         proveedor: item?.proveedor || null,
@@ -173,9 +173,10 @@ export const MovimientoInternoForm = ({
       const submitData = {
         selectedItem,
         data,
-        id: posicionOrigen?.posicionId || posicionOrigen?.rack || posicionOrigen?.pasillo
+        id: posicionOrigen?.posicionId || posicionOrigen?.id || ''
       };
       
+  
       onSubmit(submitData);
       onClose();
     }
