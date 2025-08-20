@@ -8,6 +8,7 @@ import ordenesCompraReducer from '../../features/ordenesCompra/model/slice';
 import presupuestoReducer from '../../features/presupuesto/model/slice';
 import partidasReducer from '../../features/partidas/model/slice';
 import historialReducer from '../../features/salida/model/historialSlice';
+import adicionesRapidasReducer from '../../features/adicionesRapidas/model/slice';
 
 export const store = configureStore({
   reducer: {
@@ -20,5 +21,6 @@ export const store = configureStore({
     presupuesto: presupuestoReducer,
     partidas: partidasReducer,
     historial: historialReducer,
+    adicionesRapidas: adicionesRapidasReducer,
   },
 }); 

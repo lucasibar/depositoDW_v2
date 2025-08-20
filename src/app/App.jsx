@@ -7,6 +7,7 @@ import { ComprasPage } from '../pages/ComprasPage/ComprasPage';
 import { AdminPage } from '../pages/AdminPage/AdminPage';
 import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
 import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
+import { AdicionRapidaPage } from '../pages/AdicionRapidaPage/AdicionRapidaPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 import PerformanceIndicator from '../components/PerformanceIndicator';
 import { initOfflineSync } from '../features/notificaciones/services/initOfflineSync';
@@ -86,6 +87,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['salida', 'admin']}>
               <SalidaPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Adición Rápida - Accesible para deposito, usuario, admin */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/adicion-rapida" 
+          element={
+            <RoleProtectedRoute allowedRoles={['deposito', 'usuario', 'admin']}>
+              <AdicionRapidaPage />
             </RoleProtectedRoute>
           } 
         />
