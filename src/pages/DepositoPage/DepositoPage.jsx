@@ -10,12 +10,14 @@ import {
   useTheme,
   useMediaQuery,
   Snackbar,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { 
   Add as AddIcon,
   Search as SearchIcon,
-  FilterList as FilterIcon
+  FilterList as FilterIcon,
+  Inventory as InventoryIcon
 } from '@mui/icons-material';
 import { SearchBar } from '../../shared/ui/SearchBar/SearchBar';
 import { AdvancedFilters } from '../../shared/ui/AdvancedFilters/AdvancedFilters';
@@ -57,7 +59,7 @@ export const DepositoPage = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   
   // Hooks optimizados
-  const { posiciones, isLoading, error } = usePosicionesCache();
+  const { posiciones, isLoading, error, fetchPosiciones } = usePosicionesCache();
   const { 
     executeMovimientoInterno, 
     executeAjusteStock,
@@ -78,6 +80,11 @@ export const DepositoPage = () => {
     const filtered = applyAllFilters(posiciones, searchTerm, advancedFilters);
     setFilteredPosiciones(filtered);
   }, [posiciones, searchTerm, advancedFilters]);
+
+  // Handler para cargar posiciones manualmente
+  const handleCargarPosiciones = () => {
+    fetchPosiciones();
+  };
 
   // Handlers de navegación
   const handleLogoutClick = () => {
@@ -236,7 +243,7 @@ export const DepositoPage = () => {
           }}>
             {/* Barra de búsqueda */}
             <Box sx={{ 
-              flex: isMobile || isTablet ? '0 0 66.666%' : '1',
+              flex: isMobile || isTablet ? '0 0 50%' : '1',
               minWidth: 0
             }}>
               <SearchBar 
@@ -247,13 +254,33 @@ export const DepositoPage = () => {
             
             {/* Filtros avanzados */}
             <Box sx={{ 
-              flex: isMobile || isTablet ? '0 0 33.333%' : '0 0 auto',
+              flex: isMobile || isTablet ? '0 0 25%' : '0 0 auto',
               minWidth: isMobile ? '120px' : isTablet ? '140px' : '220px'
             }}>
               <AdvancedFilters 
                 filters={advancedFilters}
                 onFilterChange={handleAdvancedFiltersChange}
               />
+            </Box>
+
+            {/* Botón de cargar posiciones */}
+            <Box sx={{ 
+              flex: isMobile || isTablet ? '0 0 25%' : '0 0 auto',
+              minWidth: isMobile ? '120px' : isTablet ? '140px' : '180px'
+            }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleCargarPosiciones}
+                disabled={isLoading}
+                startIcon={isLoading ? <CircularProgress size={20} /> : <InventoryIcon />}
+                sx={{ 
+                  width: '100%',
+                  height: 56
+                }}
+              >
+                {isLoading ? 'Cargando...' : 'Cargar Posiciones'}
+              </Button>
             </Box>
           </Box>
         </ModernCard>

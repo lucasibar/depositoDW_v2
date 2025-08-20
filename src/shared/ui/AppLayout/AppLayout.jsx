@@ -33,7 +33,8 @@ import {
   Home as HomeIcon,
   Store as StoreIcon,
   Assessment as AssessmentIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Category as CategoryIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getRoleColor, getRoleLabel } from '../../../features/stock/utils/userUtils';
@@ -52,6 +53,7 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     const path = location.pathname;
     if (path.includes('/deposito')) return 'Depósito';
     if (path.includes('/adicion-rapida')) return 'Adición Rápida';
+    if (path.includes('/materiales')) return 'Materiales';
     if (path.includes('/compras')) return 'Compras';
     if (path.includes('/calidad')) return 'Calidad';
     if (path.includes('/salida')) return 'Salida';
@@ -92,6 +94,12 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           label: 'Adición Rápida',
           path: '/depositoDW_v2/adicion-rapida',
           icon: <AddIcon />,
+          show: user?.role === 'admin' || user?.role === 'deposito' || user?.role === 'usuario'
+        },
+        {
+          label: 'Materiales',
+          path: '/depositoDW_v2/materiales',
+          icon: <CategoryIcon />,
           show: user?.role === 'admin' || user?.role === 'deposito' || user?.role === 'usuario'
         },
         {

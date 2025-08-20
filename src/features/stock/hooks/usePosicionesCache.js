@@ -11,24 +11,22 @@ export const usePosicionesCache = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState(null);
 
-  // Cargar posiciones solo una vez al inicializar
-  useEffect(() => {
-    if (!isInitialized) {
-      console.log('Cargando posiciones con items...');
-      setError(null);
-      
-      dispatch(fetchPosicionesConItems())
-        .unwrap()
-        .then(() => {
-          setIsInitialized(true);
-          console.log('Posiciones cargadas exitosamente');
-        })
-        .catch((error) => {
-          console.error('Error cargando posiciones:', error);
-          setError(error.message || 'Error al cargar posiciones');
-        });
-    }
-  }, [dispatch, isInitialized]);
+  // Función para cargar posiciones manualmente
+  const fetchPosiciones = useCallback(() => {
+    console.log('Cargando posiciones con items...');
+    setError(null);
+    
+    dispatch(fetchPosicionesConItems())
+      .unwrap()
+      .then(() => {
+        setIsInitialized(true);
+        console.log('Posiciones cargadas exitosamente');
+      })
+      .catch((error) => {
+        console.error('Error cargando posiciones:', error);
+        setError(error.message || 'Error al cargar posiciones');
+      });
+  }, [dispatch]);
 
   // Función para forzar recarga de posiciones (solo si es necesario)
   const forceRefreshPosiciones = useCallback(() => {
@@ -84,6 +82,7 @@ export const usePosicionesCache = () => {
     isInitialized,
     
     // Funciones de control
+    fetchPosiciones,
     forceRefreshPosiciones,
     
     // Funciones de utilidad
