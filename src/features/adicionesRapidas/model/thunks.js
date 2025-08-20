@@ -93,3 +93,25 @@ export const buscarMaterialesPorItemId = createAsyncThunk(
     }
   }
 );
+
+export const buscarItemsPorPosicion = createAsyncThunk(
+  'adicionesRapidas/buscarItemsPorPosicion',
+  async (params, { dispatch }) => {
+    try {
+      dispatch(setLoading(true));
+      dispatch(setError(null));
+      
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/posiciones/buscar-items-por-posicion`, {
+        params: params
+      });
+      
+      return response.data;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Error al buscar items por posición';
+      dispatch(setError(errorMessage));
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
+);

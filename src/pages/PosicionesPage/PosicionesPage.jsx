@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { 
   Box, 
   Typography, 
   Button, 
-  Grid,
   useTheme,
   useMediaQuery,
   Snackbar,
@@ -21,9 +20,9 @@ import {
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
-import LoadingInfo from '../../shared/ui/LoadingInfo/LoadingInfo';
 import { checkAuthentication, handleLogout } from '../../features/stock/utils/navigationUtils';
 import { useNavigate } from 'react-router-dom';
+import { buscarItemsPorPosicion } from '../../features/adicionesRapidas/model/thunks';
 
 export const PosicionesPage = () => {
   const navigate = useNavigate();
@@ -48,12 +47,6 @@ export const PosicionesPage = () => {
   const [buscando, setBuscando] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'info' });
 
-  // Opciones para los selectores
-  const opcionesRack = ['A', 'B', 'C', 'D', 'E', 'F'];
-  const opcionesFila = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-  const opcionesNivel = ['A', 'B'];
-  const opcionesPasillo = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9', 'P10'];
-
   // Inicialización y autenticación
   useEffect(() => {
     const currentUser = checkAuthentication(navigate);
@@ -69,6 +62,8 @@ export const PosicionesPage = () => {
 
   // Handlers del formulario
   const handleInputChange = (field, value) => {
+    console.log(`handleInputChange - field: ${field}, value:`, value);
+    
     setFormData(prev => {
       const newData = { ...prev };
       
@@ -89,14 +84,14 @@ export const PosicionesPage = () => {
   };
 
   const handleBuscar = async () => {
-    // Validar que se haya seleccionado al menos una opción
-    const tieneRack = formData.rack && formData.fila && formData.nivel;
-    const tienePasillo = formData.pasillo;
+    // Validar que se haya seleccionado una posición
+    const tienePasillo = formData.pasillo !== '';
+    const tieneRack = formData.rack !== '' && formData.fila !== '' && formData.nivel !== '';
     
-    if (!tieneRack && !tienePasillo) {
+    if (!tienePasillo && !tieneRack) {
       setNotification({
         open: true,
-        message: 'Por favor selecciona una posición de rack (rack, fila, nivel) o un pasillo',
+        message: 'Por favor selecciona una posición (pasillo O rack/fila/nivel)',
         severity: 'warning'
       });
       return;
@@ -104,29 +99,21 @@ export const PosicionesPage = () => {
 
     setBuscando(true);
     try {
-      console.log('Buscando posición:', formData);
+      console.log('Buscando items por posición:', formData);
       
-      // Aquí iría la llamada a la API para buscar posiciones
-      // Por ahora simulamos una respuesta
-      const resultado = [
-        {
-          posicion: tieneRack ? `${formData.rack}-${formData.fila}-${formData.nivel}` : formData.pasillo,
-          kilos: Math.floor(Math.random() * 1000) + 100,
-          unidades: Math.floor(Math.random() * 50) + 10
-        }
-      ];
+      const resultado = await dispatch(buscarItemsPorPosicion(formData)).unwrap();
       
       setResultados(resultado);
       setNotification({
         open: true,
-        message: `Se encontró 1 posición con stock`,
+        message: `Se encontraron ${resultado.length} items en la posición seleccionada`,
         severity: 'success'
       });
     } catch (error) {
-      console.error('Error al buscar posiciones:', error);
+      console.error('Error al buscar items:', error);
       setNotification({
         open: true,
-        message: 'Error al buscar posiciones. Revisa la consola para más detalles.',
+        message: error.message || 'Error al buscar items en la posición',
         severity: 'error'
       });
     } finally {
@@ -137,6 +124,12 @@ export const PosicionesPage = () => {
   const handleCloseNotification = () => {
     setNotification(prev => ({ ...prev, open: false }));
   };
+
+  // Generar opciones para los selectores
+  const racks = Array.from({ length: 20 }, (_, i) => i + 1);
+  const filas = Array.from({ length: 14 }, (_, i) => i + 1);
+  const niveles = ['A', 'B'];
+  const pasillos = Array.from({ length: 11 }, (_, i) => i + 1);
 
   // Renderizado condicional si no hay usuario
   if (!user) {
@@ -170,14 +163,14 @@ export const PosicionesPage = () => {
               mb: isMobile ? 1 : 3
             }}
           >
-            Busca posiciones por rack, fila, nivel o pasillo para ver el stock disponible
+            Selecciona una posición para ver los items y partidas disponibles
           </Typography>
         </Box>
 
         {/* Formulario de búsqueda */}
         <ModernCard
           title="Búsqueda por Posición"
-          subtitle="Selecciona una posición de rack (rack, fila, nivel) o un pasillo"
+          subtitle="Selecciona pasillo O rack/fila/nivel (son mutuamente excluyentes)"
           sx={{ mb: isMobile ? 2 : 4 }}
           padding={isMobile ? "compact" : "normal"}
         >
@@ -187,22 +180,48 @@ export const PosicionesPage = () => {
             gap: isMobile ? 1 : 2,
             alignItems: 'flex-end'
           }}>
+            {/* Selector de Pasillo */}
+            <Box sx={{ 
+              flex: '1 1 200px',
+              minWidth: '200px'
+            }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Pasillo</InputLabel>
+                <Select
+                  value={formData.pasillo}
+                  onChange={(e) => handleInputChange('pasillo', e.target.value)}
+                  disabled={formData.rack !== '' || formData.fila !== '' || formData.nivel !== ''}
+                >
+                  <MenuItem value="">
+                    <em>Selecciona un pasillo</em>
+                  </MenuItem>
+                  {pasillos.map((pasillo) => (
+                    <MenuItem key={pasillo} value={pasillo}>
+                      Pasillo {pasillo}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
             {/* Selector de Rack */}
             <Box sx={{ 
               flex: '1 1 150px',
-              minWidth: '120px'
+              minWidth: '150px'
             }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Rack</InputLabel>
                 <Select
                   value={formData.rack}
-                  label="Rack"
                   onChange={(e) => handleInputChange('rack', e.target.value)}
-                  disabled={!!formData.pasillo}
+                  disabled={formData.pasillo !== ''}
                 >
-                  {opcionesRack.map((rack) => (
+                  <MenuItem value="">
+                    <em>Selecciona rack</em>
+                  </MenuItem>
+                  {racks.map((rack) => (
                     <MenuItem key={rack} value={rack}>
-                      {rack}
+                      Rack {rack}
                     </MenuItem>
                   ))}
                 </Select>
@@ -212,19 +231,21 @@ export const PosicionesPage = () => {
             {/* Selector de Fila */}
             <Box sx={{ 
               flex: '1 1 150px',
-              minWidth: '120px'
+              minWidth: '150px'
             }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Fila</InputLabel>
                 <Select
                   value={formData.fila}
-                  label="Fila"
                   onChange={(e) => handleInputChange('fila', e.target.value)}
-                  disabled={!!formData.pasillo}
+                  disabled={formData.pasillo !== ''}
                 >
-                  {opcionesFila.map((fila) => (
+                  <MenuItem value="">
+                    <em>Selecciona fila</em>
+                  </MenuItem>
+                  {filas.map((fila) => (
                     <MenuItem key={fila} value={fila}>
-                      {fila}
+                      Fila {fila}
                     </MenuItem>
                   ))}
                 </Select>
@@ -234,41 +255,21 @@ export const PosicionesPage = () => {
             {/* Selector de Nivel */}
             <Box sx={{ 
               flex: '1 1 150px',
-              minWidth: '120px'
+              minWidth: '150px'
             }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Nivel</InputLabel>
                 <Select
                   value={formData.nivel}
-                  label="Nivel"
                   onChange={(e) => handleInputChange('nivel', e.target.value)}
-                  disabled={!!formData.pasillo}
+                  disabled={formData.pasillo !== ''}
                 >
-                  {opcionesNivel.map((nivel) => (
+                  <MenuItem value="">
+                    <em>Selecciona nivel</em>
+                  </MenuItem>
+                  {niveles.map((nivel) => (
                     <MenuItem key={nivel} value={nivel}>
-                      {nivel}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-
-            {/* Selector de Pasillo */}
-            <Box sx={{ 
-              flex: '1 1 150px',
-              minWidth: '120px'
-            }}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Pasillo</InputLabel>
-                <Select
-                  value={formData.pasillo}
-                  label="Pasillo"
-                  onChange={(e) => handleInputChange('pasillo', e.target.value)}
-                  disabled={!!(formData.rack || formData.fila || formData.nivel)}
-                >
-                  {opcionesPasillo.map((pasillo) => (
-                    <MenuItem key={pasillo} value={pasillo}>
-                      {pasillo}
+                      Nivel {nivel}
                     </MenuItem>
                   ))}
                 </Select>
@@ -285,7 +286,7 @@ export const PosicionesPage = () => {
                 color="primary"
                 size="large"
                 onClick={handleBuscar}
-                disabled={buscando}
+                disabled={buscando || (formData.pasillo === '' && (formData.rack === '' || formData.fila === '' || formData.nivel === ''))}
                 startIcon={buscando ? <CircularProgress size={20} /> : <SearchIcon />}
                 sx={{ 
                   minWidth: 120,
@@ -301,15 +302,20 @@ export const PosicionesPage = () => {
         {/* Resultados */}
         {resultados.length > 0 && (
           <ModernCard
-            title={`Resultados (${resultados.length} posiciones)`}
-            subtitle={`Stock disponible para la posición seleccionada`}
+            title={`Resultados (${resultados.length} items)`}
+            subtitle={`Items disponibles en la posición seleccionada`}
             padding={isMobile ? "compact" : "normal"}
           >
             <Box sx={{ mt: 2 }}>
-              <Grid container spacing={isMobile ? 1 : 2}>
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: isMobile ? 1 : 2
+              }}>
                 {resultados.map((resultado, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={index}>
-                    <Box sx={{
+                  <Box 
+                    key={index}
+                    sx={{
                       p: 2,
                       border: '1px solid var(--color-border)',
                       borderRadius: 'var(--border-radius-md)',
@@ -318,39 +324,57 @@ export const PosicionesPage = () => {
                         backgroundColor: 'var(--color-divider)',
                         transition: 'var(--transition-normal)'
                       }
-                    }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <InventoryIcon sx={{ 
-                          fontSize: 20, 
-                          color: 'var(--color-primary)', 
-                          mr: 1 
-                        }} />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                          Posición {resultado.posicion}
-                        </Typography>
-                      </Box>
-                      
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Kilos:
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {resultado.kilos} kg
-                        </Typography>
-                      </Box>
-                      
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Unidades:
-                        </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {resultado.unidades} un
-                        </Typography>
-                      </Box>
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <InventoryIcon sx={{ 
+                        fontSize: 20, 
+                        color: 'var(--color-primary)', 
+                        mr: 1 
+                      }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        {resultado.item?.categoria} - {resultado.item?.descripcion}
+                      </Typography>
                     </Box>
-                  </Grid>
+                  
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Proveedor:
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {resultado.item?.proveedor?.nombre}
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Partida:
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {resultado.partida}
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Kilos:
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {resultado.kilos} kg
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Unidades:
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {resultado.unidades} un
+                      </Typography>
+                    </Box>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             </Box>
           </ModernCard>
         )}
