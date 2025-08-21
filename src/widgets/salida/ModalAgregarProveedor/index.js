@@ -1,0 +1,1 @@
+export { ModalAgregarProveedor } from './ModalAgregarProveedor';

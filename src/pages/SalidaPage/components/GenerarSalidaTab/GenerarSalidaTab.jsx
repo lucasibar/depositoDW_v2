@@ -16,19 +16,22 @@ import {
   useTheme,
   useMediaQuery
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { agregarRegistro, limpiarRegistros, eliminarRegistro } from '../../../../features/adicionesRapidas/model/slice';
+import { Add as AddIcon, Delete as DeleteIcon, PersonAdd as PersonAddIcon } from '@mui/icons-material';
+import { agregarRegistroSalida, limpiarRegistrosSalida, eliminarRegistroSalida } from '../../../../features/salida/model/salidaSlice';
 import { 
-  selectAdicionesRapidas, 
-  selectProveedores, 
-  selectItems, 
-  selectAdicionesRapidasLoading, 
-  selectAdicionesRapidasError 
-} from '../../../../features/adicionesRapidas/model/selectors';
-import { cargarDatosIniciales } from '../../../../features/adicionesRapidas/model/thunks';
-import { useAdicionRapida } from '../../../../features/adicionesRapidas/hooks/useAdicionRapida';
+  selectSalidaRegistros, 
+  selectSalidaProveedores, 
+  selectSalidaClientes,
+  selectSalidaItems, 
+  selectSalidaLoading, 
+  selectSalidaError 
+} from '../../../../features/salida/model/selectors';
+import { cargarDatosSalida, enviarRegistrosSalida } from '../../../../features/salida/model/thunks';
+import { useSalida } from '../../../../features/salida/hooks/useSalida';
 import AutocompleteSelect from '../../../../shared/ui/AutocompleteSelect';
 import LoadingInfo from '../../../../shared/ui/LoadingInfo';
+import { ModalAgregarCliente } from '../../../../widgets/salida/ModalAgregarCliente';
+import { ModalAgregarProveedor } from '../../../../widgets/salida/ModalAgregarProveedor';
 
 // Componente de input compacto
 const CompactInput = ({ label, value, onChange, type = "text" }) => (
@@ -59,13 +62,23 @@ export const GenerarSalidaTab = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  const registros = useSelector(selectAdicionesRapidas);
-  const proveedores = useSelector(selectProveedores);
-  const items = useSelector(selectItems);
-  const loading = useSelector(selectAdicionesRapidasLoading);
-  const error = useSelector(selectAdicionesRapidasError);
+  const registros = useSelector(selectSalidaRegistros);
+  const proveedores = useSelector(selectSalidaProveedores);
+  const clientes = useSelector(selectSalidaClientes);
+  const items = useSelector(selectSalidaItems);
+  const loading = useSelector(selectSalidaLoading);
+  const error = useSelector(selectSalidaError);
+
+  // Debug: mostrar datos en consola
+  console.log('Estado actual en componente:');
+  console.log('Clientes:', clientes);
+  console.log('Proveedores:', proveedores);
+  console.log('Items:', items);
+  console.log('Loading:', loading);
+  console.log('Error:', error);
   
   const [formData, setFormData] = useState({
+    cliente: '',
     proveedor: '',
     item: '',
     partida: '',
@@ -78,45 +91,96 @@ export const GenerarSalidaTab = () => {
   });
 
   const [enviando, setEnviando] = useState(false);
+  const [modalClienteOpen, setModalClienteOpen] = useState(false);
+  const [modalProveedorOpen, setModalProveedorOpen] = useState(false);
 
-  // Usar el hook personalizado
-  const { itemsFiltrados, filterProveedores, filterItems, isFormValid } = useAdicionRapida(
+  // Usar el hook personalizado para salida
+  console.log('🔄 Llamando useSalida con:', {
+    proveedores: proveedores.length,
+    items: items.length,
+    clientes: clientes.length,
+    proveedorSeleccionado: formData.proveedor,
+    clienteSeleccionado: formData.cliente
+  });
+  
+  const { itemsFiltrados, filterProveedores, filterClientes, filterItems, isFormValid } = useSalida(
     proveedores, 
     items, 
-    formData.proveedor
+    clientes,
+    formData.proveedor,
+    formData.cliente
   );
 
   // Cargar datos al montar el componente
   useEffect(() => {
-    dispatch(cargarDatosIniciales());
+    dispatch(cargarDatosSalida());
   }, [dispatch]);
 
   const handleInputChange = (field, value) => {
+    console.log(`🔄 handleInputChange - field: ${field}, value:`, value);
+    
     setFormData(prev => {
       const newData = {
         ...prev,
         [field]: value
       };
       
-      // Si cambia el proveedor, limpiar el item
+      // Si cambia el proveedor, limpiar el item (porque los items dependen del proveedor)
       if (field === 'proveedor') {
+        console.log('🔄 Cambió proveedor, limpiando item');
         newData.item = '';
       }
       
+      // Si se selecciona una posición rack (rack, fila, nivel), limpiar pasillo
+      if (field === 'rack' || field === 'fila' || field === 'nivel') {
+        newData.pasillo = '';
+      }
+      
+      // Si se selecciona pasillo, limpiar posición rack
+      if (field === 'pasillo') {
+        newData.rack = '';
+        newData.fila = '';
+        newData.nivel = '';
+      }
+      
+      console.log('🔄 Nuevo formData:', newData);
       return newData;
     });
   };
 
   const handleAgregarRegistro = () => {
+    console.log('=== INTENTANDO AGREGAR REGISTRO ===');
+    console.log('FormData completo:', formData);
+    console.log('FormData cliente:', formData.cliente);
+    console.log('FormData proveedor:', formData.proveedor);
+    console.log('FormData item:', formData.item);
+    console.log('FormData partida:', formData.partida);
+    console.log('FormData kilos:', formData.kilos);
+    console.log('FormData unidades:', formData.unidades);
+    console.log('FormData rack:', formData.rack);
+    console.log('FormData fila:', formData.fila);
+    console.log('FormData nivel:', formData.nivel);
+    console.log('FormData pasillo:', formData.pasillo);
+    
+    const esValido = isFormValid(formData);
+    console.log('¿Formulario válido?', esValido);
+    
+    if (!esValido) {
+      console.log('❌ Formulario no válido, no se puede agregar');
+      return;
+    }
+    
     const nuevoRegistro = {
       id: Date.now(),
       ...formData
     };
     
-    dispatch(agregarRegistro(nuevoRegistro));
+    console.log('Nuevo registro a agregar:', nuevoRegistro);
+    dispatch(agregarRegistroSalida(nuevoRegistro));
     
     // Limpiar el formulario
     setFormData({
+      cliente: '',
       proveedor: '',
       item: '',
       partida: '',
@@ -130,7 +194,7 @@ export const GenerarSalidaTab = () => {
   };
 
   const handleEliminarRegistro = (index) => {
-    dispatch(eliminarRegistro(index));
+    dispatch(eliminarRegistroSalida(index));
   };
 
   const handleSubmit = async () => {
@@ -138,13 +202,16 @@ export const GenerarSalidaTab = () => {
     
     setEnviando(true);
     try {
-      // Aquí iría la lógica para enviar las salidas
-      // Por ahora solo simulamos el envío
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Usar el thunk para enviar registros
+      const result = await dispatch(enviarRegistrosSalida(registros)).unwrap();
       
-      alert(`¡Éxito! Se procesaron ${registros.length} registros de salida correctamente.`);
+      const mensaje = result.success 
+        ? `¡Éxito! Se procesaron ${result.registrosProcesados || registros.length} registros de salida correctamente.\n\nSe generaron los movimientos de remitoSalida y consultaRapida correspondientes.`
+        : `Procesamiento completado: ${result.message}`;
+      
+      alert(mensaje);
       // Limpiar los registros después del envío exitoso
-      dispatch(limpiarRegistros());
+      dispatch(limpiarRegistrosSalida());
     } catch (error) {
       console.error('Error al enviar registros de salida:', error);
       alert('Error al enviar los registros de salida. Revisa la consola para más detalles.');
@@ -154,14 +221,26 @@ export const GenerarSalidaTab = () => {
   };
 
   const handleLimpiarTodo = () => {
-    dispatch(limpiarRegistros());
+    dispatch(limpiarRegistrosSalida());
+  };
+
+  const handleClienteCreado = (nuevoCliente) => {
+    // El cliente ya se agregó automáticamente al estado
+    // Solo necesitamos cerrar el modal
+    setModalClienteOpen(false);
+  };
+
+  const handleProveedorCreado = (nuevoProveedor) => {
+    // El proveedor ya se agregó automáticamente al estado
+    // Solo necesitamos cerrar el modal
+    setModalProveedorOpen(false);
   };
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
-        Generar Salida de Materiales
-      </Typography>
+             <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
+         Generar Salida de Materiales
+       </Typography>
       
       {/* Formulario de entrada */}
       <LoadingInfo loading={loading} error={error}>
@@ -171,33 +250,86 @@ export const GenerarSalidaTab = () => {
           </Typography>
           
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'flex-end' }}>
-            <Box sx={{ flex: '1 1 200px', minWidth: '180px' }}>
-              <AutocompleteSelect
-                label="Proveedor"
-                value={formData.proveedor}
-                onChange={(value) => handleInputChange('proveedor', value)}
-                options={proveedores}
-                getOptionLabel={(option) => option.nombre || ''}
-                getOptionKey={(option) => `proveedor-${option.id || option.nombre}`}
-                filterOptions={filterProveedores}
-                loading={loading}
-              />
-            </Box>
+                         <Box sx={{ flex: '1 1 200px', minWidth: '180px', position: 'relative' }}>
+               <AutocompleteSelect
+                 label="Cliente"
+                 value={formData.cliente}
+                 onChange={(value) => handleInputChange('cliente', value)}
+                 options={clientes}
+                 getOptionLabel={(option) => option.nombre || ''}
+                 getOptionKey={(option) => `cliente-${option.id || option.nombre}`}
+                 filterOptions={filterClientes}
+                 loading={loading}
+                 noOptionsText="No hay clientes disponibles"
+               />
+               <IconButton
+                 size="small"
+                 onClick={() => setModalClienteOpen(true)}
+                 sx={{
+                   position: 'absolute',
+                   right: 8,
+                   top: '50%',
+                   transform: 'translateY(-50%)',
+                   backgroundColor: 'primary.main',
+                   color: 'white',
+                   height: '24px',
+                   width: '24px',
+                   '&:hover': {
+                     backgroundColor: 'primary.dark'
+                   }
+                 }}
+               >
+                 <PersonAddIcon sx={{ fontSize: '14px' }} />
+               </IconButton>
+             </Box>
+             
+             <Box sx={{ flex: '1 1 200px', minWidth: '180px', position: 'relative' }}>
+               <AutocompleteSelect
+                 label="Proveedor"
+                 value={formData.proveedor}
+                 onChange={(value) => handleInputChange('proveedor', value)}
+                 options={proveedores}
+                 getOptionLabel={(option) => option.nombre || ''}
+                 getOptionKey={(option) => `proveedor-${option.id || option.nombre}`}
+                 filterOptions={filterProveedores}
+                 loading={loading}
+                 noOptionsText="No hay proveedores disponibles"
+               />
+               <IconButton
+                 size="small"
+                 onClick={() => setModalProveedorOpen(true)}
+                 sx={{
+                   position: 'absolute',
+                   right: 8,
+                   top: '50%',
+                   transform: 'translateY(-50%)',
+                   backgroundColor: 'secondary.main',
+                   color: 'white',
+                   height: '24px',
+                   width: '24px',
+                   '&:hover': {
+                     backgroundColor: 'secondary.dark'
+                   }
+                 }}
+               >
+                 <PersonAddIcon sx={{ fontSize: '14px' }} />
+               </IconButton>
+             </Box>
             
-            <Box sx={{ flex: '1 1 250px', minWidth: '200px' }}>
-              <AutocompleteSelect
-                label="Item"
-                value={formData.item}
-                onChange={(value) => handleInputChange('item', value)}
-                options={itemsFiltrados}
-                getOptionLabel={(option) => `${option.categoria} - ${option.descripcion}` || ''}
-                getOptionKey={(option) => `item-${option.id || `${option.categoria}-${option.descripcion}`}`}
-                filterOptions={filterItems}
-                loading={loading}
-                disabled={!formData.proveedor}
-                noOptionsText={formData.proveedor && itemsFiltrados.length === 0 ? "No hay items para este proveedor" : "No hay opciones"}
-              />
-            </Box>
+                         <Box sx={{ flex: '1 1 250px', minWidth: '200px' }}>
+               <AutocompleteSelect
+                 label="Item"
+                 value={formData.item}
+                 onChange={(value) => handleInputChange('item', value)}
+                 options={itemsFiltrados}
+                 getOptionLabel={(option) => `${option.categoria} - ${option.descripcion}` || ''}
+                 getOptionKey={(option) => `item-${option.id || `${option.categoria}-${option.descripcion}`}`}
+                 filterOptions={filterItems}
+                 loading={loading}
+                 disabled={!formData.proveedor}
+                 noOptionsText={formData.proveedor && itemsFiltrados.length === 0 ? "No hay items disponibles para este proveedor" : "Seleccione un proveedor primero"}
+               />
+             </Box>
            
             <Box sx={{ flex: '1 1 120px', minWidth: '100px' }}>
               <CompactInput
@@ -301,44 +433,46 @@ export const GenerarSalidaTab = () => {
           
           <TableContainer>
             <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Proveedor</TableCell>
-                  <TableCell>Item</TableCell>
-                  <TableCell>Partida</TableCell>
-                  <TableCell>Kilos</TableCell>
-                  <TableCell>Unidades</TableCell>
-                  <TableCell>Rack</TableCell>
-                  <TableCell>Fila</TableCell>
-                  <TableCell>Nivel</TableCell>
-                  <TableCell>Pasillo</TableCell>
-                  <TableCell>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {registros.map((registro, index) => (
-                  <TableRow key={registro.id}>
-                    <TableCell>{registro.proveedor}</TableCell>
-                    <TableCell>{registro.item}</TableCell>
-                    <TableCell>{registro.partida}</TableCell>
-                    <TableCell>{registro.kilos}</TableCell>
-                    <TableCell>{registro.unidades}</TableCell>
-                    <TableCell>{registro.rack}</TableCell>
-                    <TableCell>{registro.fila}</TableCell>
-                    <TableCell>{registro.nivel}</TableCell>
-                    <TableCell>{registro.pasillo}</TableCell>
-                    <TableCell>
-                      <IconButton
-                        color="error"
-                        size="small"
-                        onClick={() => handleEliminarRegistro(index)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+                             <TableHead>
+                 <TableRow>
+                   <TableCell>Cliente</TableCell>
+                   <TableCell>Proveedor</TableCell>
+                   <TableCell>Item</TableCell>
+                   <TableCell>Partida</TableCell>
+                   <TableCell>Kilos</TableCell>
+                   <TableCell>Unidades</TableCell>
+                   <TableCell>Rack</TableCell>
+                   <TableCell>Fila</TableCell>
+                   <TableCell>Nivel</TableCell>
+                   <TableCell>Pasillo</TableCell>
+                   <TableCell>Acciones</TableCell>
+                 </TableRow>
+               </TableHead>
+               <TableBody>
+                                   {registros.map((registro, index) => (
+                    <TableRow key={registro.id}>
+                      <TableCell>{registro.cliente ? registro.cliente.nombre : ''}</TableCell>
+                      <TableCell>{registro.proveedor ? registro.proveedor.nombre : ''}</TableCell>
+                      <TableCell>{registro.item ? registro.item.descripcion : ''}</TableCell>
+                      <TableCell>{registro.partida}</TableCell>
+                      <TableCell>{registro.kilos}</TableCell>
+                      <TableCell>{registro.unidades}</TableCell>
+                      <TableCell>{registro.rack || '-'}</TableCell>
+                      <TableCell>{registro.fila || '-'}</TableCell>
+                      <TableCell>{registro.nivel || '-'}</TableCell>
+                      <TableCell>{registro.pasillo || '-'}</TableCell>
+                      <TableCell>
+                        <IconButton
+                          color="error"
+                          size="small"
+                          onClick={() => handleEliminarRegistro(index)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+               </TableBody>
             </Table>
           </TableContainer>
         </Paper>
@@ -359,6 +493,20 @@ export const GenerarSalidaTab = () => {
           </Button>
         </Box>
       )}
+
+      {/* Modal para agregar cliente */}
+      <ModalAgregarCliente
+        open={modalClienteOpen}
+        onClose={() => setModalClienteOpen(false)}
+        onClienteCreado={handleClienteCreado}
+      />
+
+      {/* Modal para agregar proveedor */}
+      <ModalAgregarProveedor
+        open={modalProveedorOpen}
+        onClose={() => setModalProveedorOpen(false)}
+        onProveedorCreado={handleProveedorCreado}
+      />
     </Box>
   );
 };
