@@ -22,12 +22,25 @@ const AutocompleteSelect = ({
   const [inputValue, setInputValue] = useState('');
   const [open, setOpen] = useState(false);
 
+  // Función para encontrar la opción correcta basada en el valor
+  const findOptionByValue = (value) => {
+    if (!value) return null;
+    
+    // Si value es un objeto, buscar por el objeto completo
+    if (typeof value === 'object' && value !== null) {
+      return options.find(option => option.id === value.id) || null;
+    }
+    
+    // Si value es un string, buscar por el label
+    return options.find(option => getOptionLabel(option) === value) || null;
+  };
+
   useEffect(() => {
-    if (value) {
-      const option = options.find(opt => getOptionLabel(opt) === value);
-      if (option) {
-        setInputValue(getOptionLabel(option));
-      }
+    const option = findOptionByValue(value);
+    if (option) {
+      setInputValue(getOptionLabel(option));
+    } else {
+      setInputValue('');
     }
   }, [value, options, getOptionLabel]);
 
@@ -38,7 +51,7 @@ const AutocompleteSelect = ({
   const handleChange = (event, newValue) => {
     if (newValue) {
       const label = getOptionLabel(newValue);
-      onChange(newValue); // Pasar el objeto completo en lugar del label
+      onChange(newValue); // Pasar el objeto completo
       setInputValue(label);
     } else {
       onChange(null);
@@ -51,7 +64,7 @@ const AutocompleteSelect = ({
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
-      value={value ? options.find(option => getOptionLabel(option) === value) || null : null}
+      value={findOptionByValue(value)}
       onChange={handleChange}
       inputValue={inputValue}
       onInputChange={handleInputChange}

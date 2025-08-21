@@ -119,9 +119,15 @@ export const AdicionRapidaPage = () => {
   };
 
   const handleAgregarRegistro = () => {
+    // Obtener los nombres/descripciones para mostrar en la tabla
+    const proveedorNombre = typeof formData.proveedor === 'object' ? formData.proveedor.nombre : formData.proveedor;
+    const itemDescripcion = typeof formData.item === 'object' ? `${formData.item.categoria} - ${formData.item.descripcion}` : formData.item;
+    
     const nuevoRegistro = {
       id: Date.now(),
-      ...formData
+      ...formData,
+      proveedor: proveedorNombre, // Guardar solo el nombre para la tabla
+      item: itemDescripcion // Guardar solo la descripción para la tabla
     };
     
     dispatch(agregarRegistro(nuevoRegistro));
@@ -149,7 +155,21 @@ export const AdicionRapidaPage = () => {
     
     setEnviando(true);
     try {
-      const resultado = await dispatch(enviarAdicionRapida(registros)).unwrap();
+      // Preparar los registros con los IDs correctos para el backend
+      const registrosParaEnviar = registros.map(registro => {
+        // Buscar el proveedor original por nombre
+        const proveedorOriginal = proveedores.find(p => p.nombre === registro.proveedor);
+        // Buscar el item original por descripción
+        const itemOriginal = items.find(i => `${i.categoria} - ${i.descripcion}` === registro.item);
+        
+        return {
+          ...registro,
+          proveedorId: proveedorOriginal?.id || null,
+          itemId: itemOriginal?.id || null
+        };
+      });
+      
+      const resultado = await dispatch(enviarAdicionRapida(registrosParaEnviar)).unwrap();
       
       if (resultado.totalErrores === 0) {
         alert(`¡Éxito! Se procesaron ${resultado.totalExitosos} registros correctamente.`);

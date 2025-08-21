@@ -6,6 +6,12 @@ export const useAdicionRapida = (proveedores, items, selectedProveedor) => {
     if (!selectedProveedor) return [];
     
     return items.filter(item => {
+      // Si selectedProveedor es un objeto, comparar por ID
+      if (typeof selectedProveedor === 'object' && selectedProveedor !== null) {
+        return item.proveedor?.id === selectedProveedor.id;
+      }
+      
+      // Si selectedProveedor es un string, comparar por nombre
       return item.proveedor?.nombre === selectedProveedor;
     });
   }, [items, selectedProveedor]);
@@ -36,10 +42,13 @@ export const useAdicionRapida = (proveedores, items, selectedProveedor) => {
 
   // Validar si el formulario está completo
   const isFormValid = (formData) => {
-    const hasBasicData = formData.proveedor && 
-                        formData.item && 
-                        formData.partida && 
-                        (formData.kilos || formData.unidades);
+    // Verificar que proveedor e item estén seleccionados (pueden ser objetos o strings)
+    const hasProveedor = formData.proveedor && (typeof formData.proveedor === 'object' ? formData.proveedor.id : formData.proveedor);
+    const hasItem = formData.item && (typeof formData.item === 'object' ? formData.item.id : formData.item);
+    const hasPartida = formData.partida && formData.partida.trim() !== '';
+    const hasCantidad = (formData.kilos && formData.kilos > 0) || (formData.unidades && formData.unidades > 0);
+    
+    const hasBasicData = hasProveedor && hasItem && hasPartida && hasCantidad;
     
     // Debe tener posición de rack (rack, fila, nivel) O posición de pasillo
     const hasRackPosition = formData.rack && formData.fila && formData.nivel;
