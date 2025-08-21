@@ -81,6 +81,7 @@ export const AdicionRapidaPage = () => {
 
   const [enviando, setEnviando] = useState(false);
   const [user, setUser] = useState(null);
+  const [validationError, setValidationError] = useState('');
 
   // Usar el hook personalizado
   const { itemsFiltrados, filterProveedores, filterItems, isFormValid } = useAdicionRapida(
@@ -103,6 +104,11 @@ export const AdicionRapidaPage = () => {
   }, []);
 
   const handleInputChange = (field, value) => {
+    // Limpiar error de validación cuando el usuario comience a completar campos
+    if (validationError) {
+      setValidationError('');
+    }
+    
     setFormData(prev => {
       const newData = {
         ...prev,
@@ -114,11 +120,35 @@ export const AdicionRapidaPage = () => {
         newData.item = '';
       }
       
+      // Si se ingresa un pasillo, limpiar rack, fila y nivel
+      if (field === 'pasillo' && value && value.trim() !== '') {
+        newData.rack = '';
+        newData.fila = '';
+        newData.nivel = '';
+      }
+      
+      // Si se ingresa rack, fila o nivel, limpiar pasillo
+      if ((field === 'rack' || field === 'fila' || field === 'nivel') && value && value.trim() !== '') {
+        newData.pasillo = '';
+      }
+      
       return newData;
     });
   };
 
   const handleAgregarRegistro = () => {
+    // Limpiar error anterior
+    setValidationError('');
+    
+    // Validar antes de agregar
+    if (!isFormValid(formData)) {
+      setValidationError('Completa todos los campos obligatorios antes de agregar');
+      return;
+    }
+    
+    console.log('Agregando registro:', formData);
+    console.log('Registros actuales:', registros);
+    
     // Obtener los nombres/descripciones para mostrar en la tabla
     const proveedorNombre = typeof formData.proveedor === 'object' ? formData.proveedor.nombre : formData.proveedor;
     const itemDescripcion = typeof formData.item === 'object' ? `${formData.item.categoria} - ${formData.item.descripcion}` : formData.item;
@@ -129,6 +159,8 @@ export const AdicionRapidaPage = () => {
       proveedor: proveedorNombre, // Guardar solo el nombre para la tabla
       item: itemDescripcion // Guardar solo la descripción para la tabla
     };
+    
+    console.log('Nuevo registro a agregar:', nuevoRegistro);
     
     dispatch(agregarRegistro(nuevoRegistro));
     
@@ -144,6 +176,8 @@ export const AdicionRapidaPage = () => {
       nivel: '',
       pasillo: ''
     });
+    
+    console.log('Formulario limpiado');
   };
 
   const handleEliminarRegistro = (index) => {
@@ -164,6 +198,9 @@ export const AdicionRapidaPage = () => {
         
         return {
           ...registro,
+          // Convertir kilos y unidades a números
+          kilos: parseFloat(registro.kilos) || 0,
+          unidades: parseInt(registro.unidades) || 0,
           proveedorId: proveedorOriginal?.id || null,
           itemId: itemOriginal?.id || null
         };
@@ -178,6 +215,19 @@ export const AdicionRapidaPage = () => {
       } else {
         alert(`Se procesaron ${resultado.totalExitosos} registros exitosamente, pero hubo ${resultado.totalErrores} errores. Revisa la consola para más detalles.`);
         console.log('Errores:', resultado.errores);
+        
+        // Verificar si hay errores de posición no encontrada
+        const erroresPosicion = resultado.errores.filter(error => 
+          error.error.includes('Posición de rack no encontrada') || 
+          error.error.includes('Posición de pasillo no encontrada')
+        );
+        
+        if (erroresPosicion.length > 0) {
+          console.log('⚠️ Posibles soluciones:');
+          console.log('1. Verificar que las posiciones estén generadas en la base de datos');
+          console.log('2. Ejecutar POST /posiciones/generate para generar las posiciones');
+          console.log('3. Verificar que los niveles sean A o B (mayúsculas)');
+        }
       }
     } catch (error) {
       console.error('Error al enviar registros:', error);
@@ -223,7 +273,14 @@ export const AdicionRapidaPage = () => {
               Nuevo Registro
             </Typography>
             
-                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'flex-end' }}>
+            {/* Mini cartel de error */}
+            {validationError && (
+              <Alert severity="error" sx={{ mb: 2, fontSize: '12px' }}>
+                {validationError}
+              </Alert>
+            )}
+            
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'flex-end' }}>
                <Box sx={{ flex: '1 1 200px', minWidth: '180px' }}>
                  <AutocompleteSelect
                    label="Proveedor"
@@ -314,7 +371,6 @@ export const AdicionRapidaPage = () => {
                 <IconButton
                   color="primary"
                   onClick={handleAgregarRegistro}
-                  disabled={!isFormValid(formData)}
                   sx={{ 
                     backgroundColor: 'primary.main', 
                     color: 'white',
@@ -322,10 +378,6 @@ export const AdicionRapidaPage = () => {
                     width: '28px',
                     '&:hover': {
                       backgroundColor: 'primary.dark'
-                    },
-                    '&:disabled': {
-                      backgroundColor: 'grey.300',
-                      color: 'grey.500'
                     }
                   }}
                 >

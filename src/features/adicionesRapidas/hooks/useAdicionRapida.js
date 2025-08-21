@@ -46,15 +46,23 @@ export const useAdicionRapida = (proveedores, items, selectedProveedor) => {
     const hasProveedor = formData.proveedor && (typeof formData.proveedor === 'object' ? formData.proveedor.id : formData.proveedor);
     const hasItem = formData.item && (typeof formData.item === 'object' ? formData.item.id : formData.item);
     const hasPartida = formData.partida && formData.partida.trim() !== '';
-    const hasCantidad = (formData.kilos && formData.kilos > 0) || (formData.unidades && formData.unidades > 0);
+    const hasCantidad = (formData.kilos && parseFloat(formData.kilos) > 0) || (formData.unidades && parseInt(formData.unidades) > 0);
     
+    // Verificar datos básicos
     const hasBasicData = hasProveedor && hasItem && hasPartida && hasCantidad;
     
-    // Debe tener posición de rack (rack, fila, nivel) O posición de pasillo
-    const hasRackPosition = formData.rack && formData.fila && formData.nivel;
+    if (!hasBasicData) {
+      return false;
+    }
+    
+    // Verificar posición - debe tener O rack/fila/nivel O pasillo, pero no ambos
+    const hasRackPosition = formData.rack && formData.rack.trim() !== '' && 
+                           formData.fila && formData.fila.trim() !== '' && 
+                           formData.nivel && formData.nivel.trim() !== '';
     const hasPasilloPosition = formData.pasillo && formData.pasillo.trim() !== '';
     
-    return hasBasicData && (hasRackPosition || hasPasilloPosition);
+    // Debe tener exactamente uno de los dos tipos de posición
+    return (hasRackPosition && !hasPasilloPosition) || (hasPasilloPosition && !hasRackPosition);
   };
 
   return {
