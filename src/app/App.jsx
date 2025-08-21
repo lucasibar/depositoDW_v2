@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Route, Routes, Navigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
 import Login from '../pages/Login/Login';
-import { DepositoPage } from '../pages/DepositoPage/DepositoPage';
+
 import { ComprasPage } from '../pages/ComprasPage/ComprasPage';
 import { AdminPage } from '../pages/AdminPage/AdminPage';
 import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
@@ -10,6 +10,7 @@ import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
 import { AdicionRapidaPage } from '../pages/AdicionRapidaPage/AdicionRapidaPage';
 import { MaterialesPage } from '../pages/MaterialesPage/MaterialesPage';
 import { PosicionesPage } from '../pages/PosicionesPage/PosicionesPage';
+import { StockPage } from '../pages/StockPage/StockPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 
 
@@ -33,16 +34,7 @@ export const App = () => {
   return (
     <div className="App">
       <Routes>
-        {/* Ruta de Depósito - Accesible para deposito, usuario, admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/deposito" 
-          element={
-            <RoleProtectedRoute allowedRoles={['deposito', 'usuario', 'admin']}>
-              <DepositoPage />
-            </RoleProtectedRoute>
-          } 
-        />
+
         
         {/* Ruta de Compras - Accesible solo para compras y admin */}
         <Route 
@@ -117,6 +109,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <PosicionesPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Stock - Accesible para compras, admin y deposito */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/stock" 
+          element={
+            <RoleProtectedRoute allowedRoles={['compras', 'admin', 'deposito']}>
+              <StockPage />
             </RoleProtectedRoute>
           } 
         />

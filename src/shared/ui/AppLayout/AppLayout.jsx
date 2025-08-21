@@ -52,10 +52,10 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     if (pageTitle) return pageTitle;
     
     const path = location.pathname;
-    if (path.includes('/deposito')) return 'Depósito';
     if (path.includes('/posiciones')) return 'Posiciones';
     if (path.includes('/adicion-rapida')) return 'Adición Rápida';
     if (path.includes('/materiales')) return 'Materiales';
+    if (path.includes('/stock')) return 'Stock';
     if (path.includes('/compras')) return 'Compras';
     if (path.includes('/calidad')) return 'Calidad';
     if (path.includes('/salida')) return 'Salida';
@@ -87,12 +87,6 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
       section: 'Operaciones',
       items: [
         {
-          label: 'Depósito',
-          path: '/depositoDW_v2/deposito',
-          icon: <InventoryIcon />,
-          show: true
-        },
-        {
           label: 'Adición Rápida',
           path: '/depositoDW_v2/adicion-rapida',
           icon: <AddIcon />,
@@ -109,6 +103,12 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           path: '/depositoDW_v2/posiciones',
           icon: <LocationIcon />,
           show: user?.role === 'admin' || user?.role === 'deposito'
+        },
+        {
+          label: 'Stock',
+          path: '/depositoDW_v2/stock',
+          icon: <InventoryIcon />,
+          show: user?.role === 'admin' || user?.role === 'compras' || user?.role === 'deposito'
         },
         {
           label: 'Compras',

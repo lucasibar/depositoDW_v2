@@ -22,7 +22,6 @@ import { authService } from '../../services/authService';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { RemitosTab } from './components/RemitosTab/RemitosTab';
-import { StockTab } from './components/StockTab/StockTab';
 import { OrdenesCompraTab } from './components/OrdenesCompraTab/OrdenesCompraTab';
 import { PresupuestoTab } from './components/PresupuestoTab/PresupuestoTab';
 import { RemitosListTab } from './components/RemitosListTab/RemitosListTab';
@@ -42,13 +41,6 @@ const TABS = [
     icon: <ListIcon />,
     component: RemitosListTab,
     color: 'info'
-  },
-  { 
-    id: 'stock', 
-    label: 'Stock', 
-    icon: <InventoryIcon />,
-    component: StockTab,
-    color: 'success'
   },
   { 
     id: 'ordenes', 
@@ -79,7 +71,6 @@ export const ComprasPage = () => {
   const [tabCounts, setTabCounts] = useState({
     remitos: 0,
     'listado-remitos': 0,
-    stock: 0,
     ordenes: 0,
     presupuesto: 0
   });

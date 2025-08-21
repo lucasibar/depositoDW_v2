@@ -31,6 +31,8 @@ import { useAdicionRapida } from '../../features/adicionesRapidas/hooks/useAdici
 import AutocompleteSelect from '../../shared/ui/AutocompleteSelect';
 import LoadingInfo from '../../shared/ui/LoadingInfo';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import { authService } from '../../services/authService';
+import { useNavigate } from 'react-router-dom';
 
 // Componente de input compacto
 const CompactInput = ({ label, value, onChange, type = "text" }) => (
@@ -58,6 +60,7 @@ const CompactInput = ({ label, value, onChange, type = "text" }) => (
 
 export const AdicionRapidaPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const registros = useSelector(selectAdicionesRapidas);
   const proveedores = useSelector(selectProveedores);
   const items = useSelector(selectItems);
@@ -77,6 +80,7 @@ export const AdicionRapidaPage = () => {
   });
 
   const [enviando, setEnviando] = useState(false);
+  const [user, setUser] = useState(null);
 
   // Usar el hook personalizado
   const { itemsFiltrados, filterProveedores, filterItems, isFormValid } = useAdicionRapida(
@@ -89,6 +93,14 @@ export const AdicionRapidaPage = () => {
   useEffect(() => {
     dispatch(cargarDatosIniciales());
   }, [dispatch]);
+
+  // Inicialización y autenticación
+  useEffect(() => {
+    const currentUser = authService.getUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => {
@@ -159,8 +171,19 @@ export const AdicionRapidaPage = () => {
     dispatch(limpiarRegistros());
   };
 
+  // Handlers de navegación
+  const handleLogoutClick = () => {
+    authService.logout();
+    window.location.href = '/depositoDW_v2/login';
+  };
+
+  // Renderizado condicional si no hay usuario
+  if (!user) {
+    return null;
+  }
+
   return (
-    <AppLayout>
+    <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Adición Rápida">
       <Box sx={{ 
         width: '100%', 
         maxWidth: '100%', 
