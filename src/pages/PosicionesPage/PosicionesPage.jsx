@@ -12,17 +12,21 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Chip
 } from '@mui/material';
 import { 
   Search as SearchIcon,
-  Inventory as InventoryIcon
+  Inventory as InventoryIcon,
+  SwapHoriz as SwapIcon
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { checkAuthentication, handleLogout } from '../../features/stock/utils/navigationUtils';
 import { useNavigate } from 'react-router-dom';
 import { buscarItemsPorPosicion } from '../../features/adicionesRapidas/model/thunks';
+import MovimientoInterno from '../../components/MovimientoInterno/MovimientoInterno';
+import { apiClient } from '../../config/api';
 
 export const PosicionesPage = () => {
   const navigate = useNavigate();
@@ -46,6 +50,11 @@ export const PosicionesPage = () => {
   const [resultados, setResultados] = useState([]);
   const [buscando, setBuscando] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'info' });
+  
+  // Estados para movimiento interno
+  const [movimientoInternoOpen, setMovimientoInternoOpen] = useState(false);
+  const [itemSeleccionado, setItemSeleccionado] = useState(null);
+  const [posicionActual, setPosicionActual] = useState(null);
 
   // Inicialización y autenticación
   useEffect(() => {
@@ -101,6 +110,17 @@ export const PosicionesPage = () => {
     try {
       console.log('Buscando items por posición:', formData);
       
+      // Obtener la posición actual para usar en el movimiento interno
+      let posicionActual = null;
+      if (tienePasillo) {
+        const response = await apiClient.get(`/posiciones?numeroPasillo=${formData.pasillo}`);
+        posicionActual = response.data[0];
+      } else {
+        const response = await apiClient.get(`/posiciones?rack=${formData.rack}&fila=${formData.fila}&AB=${formData.nivel}`);
+        posicionActual = response.data[0];
+      }
+      setPosicionActual(posicionActual);
+      
       const resultado = await dispatch(buscarItemsPorPosicion(formData)).unwrap();
       
       setResultados(resultado);
@@ -123,6 +143,31 @@ export const PosicionesPage = () => {
 
   const handleCloseNotification = () => {
     setNotification(prev => ({ ...prev, open: false }));
+  };
+
+  const handleMovimientoInterno = (item) => {
+    console.log('PosicionesPage - handleMovimientoInterno llamado con:', item);
+    console.log('PosicionesPage - posicionActual:', posicionActual);
+    
+    if (!posicionActual) {
+      console.log('PosicionesPage - No hay posicionActual');
+      setNotification({
+        open: true,
+        message: 'Error: No se pudo obtener la información de la posición',
+        severity: 'error'
+      });
+      return;
+    }
+    
+    console.log('PosicionesPage - Configurando modal con item:', item);
+    setItemSeleccionado(item);
+    setMovimientoInternoOpen(true);
+    console.log('PosicionesPage - Modal abierto');
+  };
+
+  const handleMovimientoCompletado = () => {
+    // Recargar los resultados después del movimiento
+    handleBuscar();
   };
 
   // Generar opciones para los selectores
@@ -326,32 +371,44 @@ export const PosicionesPage = () => {
                       }
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <InventoryIcon sx={{ 
-                        fontSize: 20, 
-                        color: 'var(--color-primary)', 
-                        mr: 1 
-                      }} />
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                        {resultado.item?.categoria} - {resultado.item?.descripcion}
-                      </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <InventoryIcon sx={{ 
+                          fontSize: 20, 
+                          color: 'var(--color-primary)', 
+                          mr: 1 
+                        }} />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          {resultado.item?.categoria || 'N/A'} - {resultado.item?.descripcion || 'N/A'}
+                        </Typography>
+                      </Box>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<SwapIcon />}
+                        onClick={() => handleMovimientoInterno(resultado)}
+                        disabled={!posicionActual}
+                        sx={{ ml: 1 }}
+                      >
+                        Mover
+                      </Button>
                     </Box>
                   
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Proveedor:
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {resultado.item?.proveedor?.nombre}
-                      </Typography>
-                    </Box>
+                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                       <Typography variant="body2" color="text.secondary">
+                         Proveedor:
+                       </Typography>
+                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                         {resultado.proveedor?.nombre || 'N/A'}
+                       </Typography>
+                     </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2" color="text.secondary">
                         Partida:
                       </Typography>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {resultado.partida}
+                        {resultado.partida?.numeroPartida || 'N/A'}
                       </Typography>
                     </Box>
                     
@@ -360,7 +417,7 @@ export const PosicionesPage = () => {
                         Kilos:
                       </Typography>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {resultado.kilos} kg
+                        {resultado.totalKilos || 0} kg
                       </Typography>
                     </Box>
                     
@@ -369,7 +426,7 @@ export const PosicionesPage = () => {
                         Unidades:
                       </Typography>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {resultado.unidades} un
+                        {resultado.totalUnidades || 0} un
                       </Typography>
                     </Box>
                   </Box>
@@ -394,6 +451,20 @@ export const PosicionesPage = () => {
             {notification.message}
           </Alert>
         </Snackbar>
+
+        {/* Modal de Movimiento Interno */}
+        {console.log('PosicionesPage - Renderizando modal con:', { 
+          movimientoInternoOpen, 
+          itemSeleccionado, 
+          posicionActual 
+        })}
+        <MovimientoInterno
+          open={movimientoInternoOpen}
+          onClose={() => setMovimientoInternoOpen(false)}
+          itemSeleccionado={itemSeleccionado}
+          posicionOrigen={posicionActual}
+          onMovimientoCompletado={handleMovimientoCompletado}
+        />
       </Box>
     </AppLayout>
   );

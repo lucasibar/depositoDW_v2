@@ -101,7 +101,8 @@ export const buscarItemsPorPosicion = createAsyncThunk(
       dispatch(setLoading(true));
       dispatch(setError(null));
       
-      const response = await axios.get(`${API_CONFIG.BASE_URL}/posiciones/buscar-items-por-posicion`, {
+      // Usar el nuevo endpoint que devuelve movimientos agrupados por partida
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/movimientos/consulta-posicion`, {
         params: params
       });
       
