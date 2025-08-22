@@ -223,6 +223,7 @@ export const GenerarSalidaTab = () => {
         
         // Eliminar registros que se procesaron exitosamente
         if (resultado.exitosos && resultado.exitosos.length > 0) {
+          console.log('🎯 DATOS EXITOSOS DEL BACKEND:', resultado.exitosos);
           dispatch(eliminarRegistrosExitosos({ exitosos: resultado.exitosos }));
         }
         
