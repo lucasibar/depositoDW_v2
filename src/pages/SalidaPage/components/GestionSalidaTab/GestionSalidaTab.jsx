@@ -16,7 +16,7 @@ import { useAuth } from '../../../../hooks/useAuth';
 import { SearchBar } from '../../../../shared/ui/SearchBar/SearchBar';
 import { AdvancedFilters } from '../../../../shared/ui/AdvancedFilters/AdvancedFilters';
 import ModernCard from '../../../../shared/ui/ModernCard/ModernCard';
-import { SalidaTabs, SalidaCard, EmptyState, SalidaForm, StockCard, RemitosSalidaList, RemitoSalidaModal } from '../../../../features/salida/ui';
+import { SalidaTabs, SalidaCard, EmptyState, SalidaForm, StockCard, RemitosSalidaList, RemitoSalidaModal, MovimientosUltimaSemana } from '../../../../features/salida/ui';
 import { useSalidaActions } from '../../../../features/salida/hooks';
 import { EMPTY_STATE_MESSAGES } from '../../../../features/salida/constants/salidaConstants';
 import { generatePosicionTitle } from '../../../../features/stock/utils/posicionUtils';
@@ -113,6 +113,7 @@ export const GestionSalidaTab = () => {
   const [selectedPosicion, setSelectedPosicion] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [remitoModalOpen, setRemitoModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
   
   const posiciones = useSelector(selectPosiciones);
   const isLoading = useSelector(selectStockLoading);
@@ -137,7 +138,7 @@ export const GestionSalidaTab = () => {
   }, [posiciones, searchTerm, advancedFilters]);
 
   const handleTabChange = (event, newValue) => {
-    // Implementar lógica de cambio de tab si es necesario
+    setActiveTab(newValue);
   };
 
   const handleSearch = (term) => {
@@ -272,34 +273,69 @@ export const GestionSalidaTab = () => {
         padding={isMobile ? "compact" : "normal"}
       >
         <SalidaTabs 
-          tabValue={0}
+          tabValue={activeTab}
           onTabChange={handleTabChange}
           posicionesCount={filteredPosiciones.length}
           historialCount={historialSalida.length}
+          movimientosCount={0}
         />
         
-        {/* Tab de Stock */}
+        {/* Contenido de las pestañas */}
         <Box sx={{ mt: 2 }}>
-          {filteredPosiciones.length === 0 ? (
-            <EmptyState 
-              icon={ExitToAppIcon}
-              {...EMPTY_STATE_MESSAGES.STOCK}
-              searchTerm={searchTerm}
-            />
-          ) : (
-            <Grid container spacing={2}>
-              {filteredPosiciones.map((posicion) => (
-                <Grid item xs={12} sm={6} md={4} key={posicion.id}>
-                  <StockCard
-                    posicion={posicion}
-                    onPosicionClick={handlePosicionClick}
-                    onMovimientoInterno={handleMovimientoInterno}
-                    onCorreccion={handleCorreccion}
-                    searchTerm={searchTerm}
-                  />
+          {activeTab === 0 && (
+            // Tab de Stock
+            <>
+              {filteredPosiciones.length === 0 ? (
+                <EmptyState 
+                  icon={ExitToAppIcon}
+                  {...EMPTY_STATE_MESSAGES.STOCK}
+                  searchTerm={searchTerm}
+                />
+              ) : (
+                <Grid container spacing={2}>
+                  {filteredPosiciones.map((posicion) => (
+                    <Grid item xs={12} sm={6} md={4} key={posicion.id}>
+                      <StockCard
+                        posicion={posicion}
+                        onPosicionClick={handlePosicionClick}
+                        onMovimientoInterno={handleMovimientoInterno}
+                        onCorreccion={handleCorreccion}
+                        searchTerm={searchTerm}
+                      />
+                    </Grid>
+                  ))}
                 </Grid>
-              ))}
-            </Grid>
+              )}
+            </>
+          )}
+          
+          {activeTab === 1 && (
+            // Tab de Salidas Pendientes
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Salidas Pendientes
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                Funcionalidad en desarrollo...
+              </Typography>
+            </Box>
+          )}
+          
+          {activeTab === 2 && (
+            // Tab de Historial
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Historial de Salidas
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
+                Funcionalidad en desarrollo...
+              </Typography>
+            </Box>
+          )}
+          
+          {activeTab === 3 && (
+            // Tab de Movimientos por Período
+            <MovimientosUltimaSemana />
           )}
         </Box>
       </ModernCard>

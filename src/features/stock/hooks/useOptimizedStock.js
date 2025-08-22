@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchStockConsolidado, fetchPosicionesConItems } from "../model/slice";
 import { selectStock, selectStockLoading, selectStockError } from "../model/selectors";
 import { filterMaterialsBySearch } from "../utils/searchUtils";
-import { cacheService } from "../../../services/cacheService";
+
 import { useDebounce } from "../../../hooks/useDebounce";
 
 export const useOptimizedStock = () => {
@@ -55,7 +55,6 @@ export const useOptimizedStock = () => {
   // Función de reintento optimizada
   const handleRetry = useCallback(() => {
     console.log('Reintentando carga de datos...');
-    cacheService.clear(); // Limpiar caché antes de reintentar
     dispatch(fetchStockConsolidado());
     setLastFetchTime(Date.now());
   }, [dispatch]);
@@ -63,7 +62,6 @@ export const useOptimizedStock = () => {
   // Función para forzar recarga
   const forceRefresh = useCallback(() => {
     console.log('Forzando recarga de datos...');
-    cacheService.clear();
     dispatch(fetchStockConsolidado());
     setLastFetchTime(Date.now());
   }, [dispatch]);
@@ -87,7 +85,6 @@ export const useOptimizedStock = () => {
     // Estadísticas de rendimiento
     performanceStats: {
       lastFetch: lastFetchTime,
-      cacheStats: cacheService.getStats(),
       shouldRefetch
     }
   };

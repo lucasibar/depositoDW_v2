@@ -3,13 +3,15 @@ import { Tabs, Tab, Badge } from '@mui/material';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import HistoryIcon from '@mui/icons-material/History';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 
 const SalidaTabs = ({
   tabValue,
   onTabChange,
   salidasPendientesCount = 0,
   salidasAprobadasCount = 0,
-  remitosCount = 0
+  remitosCount = 0,
+  movimientosCount = 0
 }) => {
   const handleChange = (event, newValue) => {
     onTabChange(event, newValue);
@@ -66,6 +68,18 @@ const SalidaTabs = ({
         }
         id="salida-tab-2"
         aria-controls="salida-tabpanel-2"
+      />
+      <Tab
+        label={
+          <Badge badgeContent={movimientosCount} color="primary">
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CalendarTodayIcon fontSize="small" />
+              Movimientos por Período
+            </span>
+          </Badge>
+        }
+        id="salida-tab-3"
+        aria-controls="salida-tabpanel-3"
       />
     </Tabs>
   );

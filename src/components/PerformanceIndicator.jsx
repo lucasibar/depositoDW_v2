@@ -1,33 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { cacheService } from '../services/cacheService';
-import { optimizedApiClient } from '../services/optimizedApiClient';
 import { useSelector } from 'react-redux';
 
 const PerformanceIndicator = () => {
   const notificacionesState = useSelector(state => state.notificaciones);
   
   const [stats, setStats] = useState({
-    cache: { size: 0, memoryUsage: 0 },
     connectivity: true,
     lastUpdate: Date.now()
   });
 
   useEffect(() => {
     const updateStats = () => {
-      try {
-        setStats({
-          cache: cacheService.getStats(),
-          connectivity: notificacionesState?.isOnline ?? navigator.onLine ?? true,
-          lastUpdate: Date.now()
-        });
-      } catch (error) {
-        console.warn('Error actualizando estadísticas:', error);
-        setStats({
-          cache: { size: 0, memoryUsage: 0, maxSize: 50 * 1024 * 1024 },
-          connectivity: navigator.onLine ?? true,
-          lastUpdate: Date.now()
-        });
-      }
+      setStats({
+        connectivity: notificacionesState?.isOnline ?? navigator.onLine ?? true,
+        lastUpdate: Date.now()
+      });
     };
 
     // Actualizar estadísticas cada 10 segundos
@@ -37,24 +24,13 @@ const PerformanceIndicator = () => {
     return () => clearInterval(interval);
   }, [notificacionesState]);
 
-  const formatBytes = (bytes) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+
 
   const getConnectionColor = () => {
     return stats.connectivity ? '#4CAF50' : '#F44336';
   };
 
-  const getCacheColor = () => {
-    const percentage = (stats.cache.memoryUsage / stats.cache.maxSize) * 100;
-    if (percentage < 50) return '#4CAF50';
-    if (percentage < 80) return '#FF9800';
-    return '#F44336';
-  };
+
 
   return (
     <div style={{
@@ -81,19 +57,7 @@ const PerformanceIndicator = () => {
         </span>
       </div>
       
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2px' }}>
-        <span style={{ marginRight: '8px' }}>💾</span>
-        <span style={{ color: getCacheColor() }}>
-          Caché: {formatBytes(stats.cache.memoryUsage)}
-        </span>
-      </div>
-      
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2px' }}>
-        <span style={{ marginRight: '8px' }}>📦</span>
-        <span>
-          Items: {stats.cache.size}
-        </span>
-      </div>
+
       
       <div style={{ 
         fontSize: '10px', 

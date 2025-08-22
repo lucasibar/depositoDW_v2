@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 // Configuración de la API optimizada para móviles
 export const API_CONFIG = {
   // URL base del servidor de producción
@@ -39,4 +41,13 @@ export const axiosConfig = {
   // Configuración para mejorar rendimiento en móviles
   maxContentLength: 10 * 1024 * 1024, // 10MB máximo
   maxBodyLength: 10 * 1024 * 1024, // 10MB máximo
-}; 
+};
+
+// Cliente axios simple
+export const apiClient = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+  timeout: API_CONFIG.TIMEOUT,
+  headers: API_CONFIG.DEFAULT_HEADERS,
+  maxContentLength: 10 * 1024 * 1024,
+  maxBodyLength: 10 * 1024 * 1024,
+}); 
