@@ -13,7 +13,8 @@ import {
 } from '@mui/material';
 import { 
   Search as SearchIcon,
-  Inventory as InventoryIcon
+  Inventory as InventoryIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
@@ -21,9 +22,9 @@ import AutocompleteSelect from '../../shared/ui/AutocompleteSelect/AutocompleteS
 import LoadingInfo from '../../shared/ui/LoadingInfo/LoadingInfo';
 import { 
   cargarDatosIniciales,
-  buscarMaterialesPorProveedorItem,
-  buscarMaterialesPorItemId
+  buscarMaterialesPorProveedorItem
 } from '../../features/adicionesRapidas/model/thunks';
+import { stockApi } from '../../features/stock/api/stockApi';
 import { 
   selectProveedores, 
   selectItems, 
@@ -33,6 +34,7 @@ import {
 import { useAdicionRapida } from '../../features/adicionesRapidas/hooks/useAdicionRapida';
 import { checkAuthentication, handleLogout } from '../../features/stock/utils/navigationUtils';
 import { useNavigate } from 'react-router-dom';
+import AjusteMaterialModal from '../../features/stock/ui/AjusteMaterialModal';
 
 export const MaterialesPage = () => {
   const navigate = useNavigate();
@@ -54,6 +56,10 @@ export const MaterialesPage = () => {
   const [resultados, setResultados] = useState([]);
   const [buscando, setBuscando] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'info' });
+  
+  // Estados del modal de ajuste
+  const [modalAjusteOpen, setModalAjusteOpen] = useState(false);
+  const [materialSeleccionado, setMaterialSeleccionado] = useState(null);
 
   // Redux state
   const proveedores = useSelector(selectProveedores);
@@ -68,13 +74,11 @@ export const MaterialesPage = () => {
     formData.proveedor
   );
 
-  // Debug logs
-  console.log('Debug MaterialesPage:', {
-    proveedores: proveedores?.length,
-    items: items?.length,
-    formDataProveedor: formData.proveedor,
-    itemsFiltrados: itemsFiltrados?.length,
-    formDataItem: formData.item
+  // Debug logs para ajuste de materiales
+  console.log('MaterialesPage - Estado actual:', {
+    itemSeleccionado: formData.item?.id,
+    resultados: resultados.length,
+    modalAjusteOpen: modalAjusteOpen
   });
 
   // Inicialización y autenticación
@@ -99,12 +103,9 @@ export const MaterialesPage = () => {
 
   // Handlers del formulario
   const handleInputChange = (field, value) => {
-    console.log(`handleInputChange - field: ${field}, value:`, value);
-    
     if (field === 'proveedor') {
       // Para proveedor, guardar solo el nombre como string
       const proveedorNombre = value?.nombre || value || '';
-      console.log('Proveedor seleccionado:', proveedorNombre);
       
       setFormData(prev => ({
         ...prev,
@@ -113,8 +114,6 @@ export const MaterialesPage = () => {
       }));
     } else if (field === 'item') {
       // Para item, guardar el objeto completo
-      console.log('Item seleccionado:', value);
-      
       setFormData(prev => ({
         ...prev,
         item: value
@@ -144,11 +143,10 @@ export const MaterialesPage = () => {
 
     setBuscando(true);
     try {
-      console.log('Buscando item por ID:', formData.item.id);
+      console.log('Buscando materiales para item ID:', formData.item.id);
       
-      const resultado = await dispatch(buscarMaterialesPorItemId({
-        itemId: formData.item.id
-      })).unwrap();
+      const resultado = await stockApi.buscarMaterialesPorItemId(formData.item.id);
+      console.log('Resultados de búsqueda:', resultado);
       
       setResultados(resultado);
       setNotification({
@@ -170,6 +168,31 @@ export const MaterialesPage = () => {
 
   const handleCloseNotification = () => {
     setNotification(prev => ({ ...prev, open: false }));
+  };
+
+  // Handlers del modal de ajuste
+  const handleAbrirModalAjuste = (material) => {
+    console.log('Abriendo modal de ajuste para material:', material);
+    setMaterialSeleccionado(material);
+    setModalAjusteOpen(true);
+  };
+
+  const handleCerrarModalAjuste = () => {
+    setModalAjusteOpen(false);
+    setMaterialSeleccionado(null);
+  };
+
+  const handleAjusteExitoso = () => {
+    console.log('Ajuste realizado exitosamente, recargando resultados...');
+    setNotification({
+      open: true,
+      message: 'Ajuste realizado correctamente',
+      severity: 'success'
+    });
+    // Recargar los resultados para mostrar el stock actualizado
+    if (formData.item) {
+      handleBuscar();
+    }
   };
 
   // Renderizado condicional si no hay usuario
@@ -331,7 +354,9 @@ export const MaterialesPage = () => {
                          mr: 1 
                        }} />
                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                         {resultado.posicion}
+                         {resultado.posicion?.rack && resultado.posicion?.fila && resultado.posicion?.AB 
+                           ? `${resultado.posicion.rack}-${resultado.posicion.fila}-${resultado.posicion.AB}` 
+                           : `Pasillo ${resultado.posicion?.numeroPasillo || 'N/A'}`}
                        </Typography>
                      </Box>
                    
@@ -361,6 +386,26 @@ export const MaterialesPage = () => {
                          {resultado.unidades} un
                        </Typography>
                      </Box>
+                     
+                     {/* Botón de ajuste */}
+                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                       <Button
+                         variant="outlined"
+                         size="small"
+                         startIcon={<EditIcon />}
+                         onClick={() => handleAbrirModalAjuste(resultado)}
+                         sx={{
+                           borderColor: 'var(--color-primary)',
+                           color: 'var(--color-primary)',
+                           '&:hover': {
+                             borderColor: 'var(--color-primary-dark)',
+                             backgroundColor: 'var(--color-primary-light)'
+                           }
+                         }}
+                       >
+                         Ajustar Stock
+                       </Button>
+                     </Box>
                    </Box>
                  ))}
                </Box>
@@ -383,6 +428,14 @@ export const MaterialesPage = () => {
             {notification.message}
           </Alert>
         </Snackbar>
+
+        {/* Modal de ajuste de material */}
+        <AjusteMaterialModal
+          open={modalAjusteOpen}
+          onClose={handleCerrarModalAjuste}
+          material={materialSeleccionado}
+          onAjusteExitoso={handleAjusteExitoso}
+        />
       </Box>
     </AppLayout>
   );
