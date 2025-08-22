@@ -29,8 +29,8 @@ const salidaSlice = createSlice({
       const { itemId, partidaId, posicionId, error } = action.payload;
       const registro = state.registros.find(r => 
         r.item.id === itemId && 
-        r.partida.id === partidaId && 
-        r.posicion.id === posicionId
+        r.partida === partidaId && 
+        `${r.rack}${r.fila}${r.nivel}${r.pasillo}` === posicionId
       );
       if (registro) {
         registro.error = error;
@@ -41,6 +41,59 @@ const salidaSlice = createSlice({
       state.registros.forEach(registro => {
         delete registro.error;
         delete registro.tieneError;
+      });
+    },
+    eliminarRegistrosExitosos: (state, action) => {
+      const { exitosos } = action.payload;
+      console.log('Eliminando registros exitosos:', exitosos);
+      
+      // Eliminar registros que se procesaron exitosamente
+      state.registros = state.registros.filter(registro => {
+        const esExitoso = exitosos.some(exitoso => 
+          exitoso.itemId === registro.item.id &&
+          exitoso.partidaId === registro.partida &&
+          // Comparar posición usando los campos individuales
+          ((exitoso.posicionId && registro.posicionId && exitoso.posicionId === registro.posicionId) ||
+           (exitoso.posicionInfo && 
+            exitoso.posicionInfo.rack === registro.rack &&
+            exitoso.posicionInfo.fila === registro.fila &&
+            exitoso.posicionInfo.nivel === registro.nivel &&
+            exitoso.posicionInfo.pasillo === registro.pasillo))
+        );
+        
+        if (esExitoso) {
+          console.log('Eliminando registro exitoso:', registro);
+        }
+        
+        return !esExitoso; // Mantener solo los que NO fueron exitosos
+      });
+      
+      console.log('Registros restantes después de eliminar exitosos:', state.registros.length);
+    },
+    marcarRegistrosConErrores: (state, action) => {
+      const { errores } = action.payload;
+      console.log('Marcando registros con errores:', errores);
+      
+      // Marcar registros que fallaron con sus errores específicos
+      errores.forEach(error => {
+        const registro = state.registros.find(r => 
+          r.item.id === error.itemId &&
+          r.partida === error.partidaId &&
+          r.rack === error.posicionInfo?.rack &&
+          r.fila === error.posicionInfo?.fila &&
+          r.nivel === error.posicionInfo?.nivel &&
+          r.pasillo === error.posicionInfo?.pasillo
+        );
+        
+        if (registro) {
+          console.log('Marcando registro con error:', registro);
+          registro.error = error.error;
+          registro.tieneError = true;
+          registro.stockDisponible = error.stockDisponible;
+          registro.stockSolicitado = error.stockSolicitado;
+        } else {
+          console.log('No se encontró registro para marcar error:', error);
+        }
       });
     },
     setProveedoresSalida: (state, action) => {
@@ -72,6 +125,8 @@ export const {
   eliminarRegistroSalida, 
   marcarRegistroConError,
   limpiarErroresRegistros,
+  eliminarRegistrosExitosos,
+  marcarRegistrosConErrores,
   setProveedoresSalida, 
   setClientesSalida,
   setItemsSalida, 

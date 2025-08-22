@@ -17,7 +17,7 @@ import {
   useMediaQuery
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, PersonAdd as PersonAddIcon, Error as ErrorIcon } from '@mui/icons-material';
-import { agregarRegistroSalida, limpiarRegistrosSalida, eliminarRegistroSalida, marcarRegistroConError } from '../../../../features/salida/model/salidaSlice';
+import { agregarRegistroSalida, limpiarRegistrosSalida, eliminarRegistroSalida, marcarRegistroConError, eliminarRegistrosExitosos, marcarRegistrosConErrores, limpiarErroresRegistros } from '../../../../features/salida/model/salidaSlice';
 import { 
   selectSalidaRegistros, 
   selectSalidaProveedores, 
@@ -216,35 +216,28 @@ export const GenerarSalidaTab = () => {
         // Limpiar los registros después del envío exitoso
         dispatch(limpiarRegistrosSalida());
       } else {
-        alert(`Se procesaron ${resultado.totalExitosos} registros exitosamente, pero hubo ${resultado.totalErrores} errores. Revisa la consola para más detalles.`);
+        // Procesar resultados mixtos (algunos exitosos, algunos con errores)
         console.log('=== DETALLE DE ERRORES ===');
         console.log('Resultado completo:', resultado);
         console.log('Errores:', resultado.errores);
-        if (resultado.errores && resultado.errores.length > 0) {
-          resultado.errores.forEach((error, index) => {
-            console.log(`Error ${index + 1}:`, error);
-          });
+        
+        // Eliminar registros que se procesaron exitosamente
+        if (resultado.exitosos && resultado.exitosos.length > 0) {
+          dispatch(eliminarRegistrosExitosos({ exitosos: resultado.exitosos }));
         }
         
-        // Verificar si hay errores de stock insuficiente
-        const erroresStock = resultado.errores.filter(error => 
-          error.error.includes('Stock insuficiente')
-        );
-        
-        if (erroresStock.length > 0) {
-          console.log('⚠️ Errores de stock insuficiente detectados');
-          console.log('Verificar que haya suficiente stock en las posiciones especificadas');
-        }
-        
-        // Verificar si hay errores de posición no encontrada
-        const erroresPosicion = resultado.errores.filter(error => 
-          error.error.includes('no encontrado')
-        );
-        
-        if (erroresPosicion.length > 0) {
-          console.log('⚠️ Errores de entidades no encontradas');
-          console.log('Verificar que los items, partidas, posiciones y proveedores existan en la base de datos');
-        }
+                 // Marcar registros que fallaron con sus errores específicos
+         if (resultado.errores && resultado.errores.length > 0) {
+           dispatch(marcarRegistrosConErrores({ errores: resultado.errores }));
+           
+           // Mostrar mensaje informativo más detallado
+           let mensaje = `✅ Se procesaron ${resultado.totalExitosos} registros exitosamente.\n\n`;
+           mensaje += `❌ ${resultado.totalErrores} registros fallaron y permanecen en la lista.\n\n`;
+           mensaje += `📋 Los registros con errores muestran detalles específicos del problema.\n`;
+           mensaje += `🔧 Puede corregir los datos y reintentar el envío.`;
+           
+           alert(mensaje);
+         }
       }
     } catch (error) {
       console.error('Error al enviar registros de salida:', error);
@@ -457,13 +450,23 @@ export const GenerarSalidaTab = () => {
             <Typography variant="h6">
               Registros de Salida ({registros.length})
             </Typography>
-            <Button 
-              variant="outlined" 
-              color="error" 
-              onClick={handleLimpiarTodo}
-            >
-              Limpiar Todo
-            </Button>
+                         <Box sx={{ display: 'flex', gap: 1 }}>
+               <Button 
+                 variant="outlined" 
+                 color="warning" 
+                 onClick={() => dispatch(limpiarErroresRegistros())}
+                 disabled={!registros.some(r => r.tieneError)}
+               >
+                 Limpiar Errores
+               </Button>
+               <Button 
+                 variant="outlined" 
+                 color="error" 
+                 onClick={handleLimpiarTodo}
+               >
+                 Limpiar Todo
+               </Button>
+             </Box>
           </Box>
           
           <TableContainer>
@@ -485,51 +488,80 @@ export const GenerarSalidaTab = () => {
                  </TableRow>
                </TableHead>
                <TableBody>
-                                   {registros.map((registro, index) => (
-                    <TableRow 
-                      key={registro.id}
-                      sx={{
-                        backgroundColor: registro.tieneError ? 'error.light' : 'inherit',
-                        '&:hover': {
-                          backgroundColor: registro.tieneError ? 'error.light' : 'action.hover'
-                        }
-                      }}
-                    >
-                      <TableCell>
-                        {registro.tieneError ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <ErrorIcon color="error" sx={{ fontSize: '16px' }} />
-                            <Typography variant="caption" color="error">
-                              Error
+                 {registros.map((registro, index) => (
+                   <React.Fragment key={registro.id}>
+                     <TableRow 
+                       sx={{
+                         backgroundColor: registro.tieneError ? 'error.light' : 'inherit',
+                         '&:hover': {
+                           backgroundColor: registro.tieneError ? 'error.light' : 'action.hover'
+                         }
+                       }}
+                     >
+                       <TableCell>
+                         {registro.tieneError ? (
+                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                             <ErrorIcon color="error" sx={{ fontSize: '16px' }} />
+                             <Typography variant="caption" color="error">
+                               Error
+                             </Typography>
+                           </Box>
+                         ) : (
+                           <Typography variant="caption" color="success.main">
+                             ✓ OK
+                           </Typography>
+                         )}
+                       </TableCell>
+                       <TableCell>{registro.cliente ? registro.cliente.nombre : ''}</TableCell>
+                       <TableCell>{registro.proveedor ? registro.proveedor.nombre : ''}</TableCell>
+                       <TableCell>{registro.item ? registro.item.descripcion : ''}</TableCell>
+                       <TableCell>{registro.partida}</TableCell>
+                       <TableCell>{registro.kilos}</TableCell>
+                       <TableCell>{registro.unidades}</TableCell>
+                       <TableCell>{registro.rack || '-'}</TableCell>
+                       <TableCell>{registro.fila || '-'}</TableCell>
+                       <TableCell>{registro.nivel || '-'}</TableCell>
+                       <TableCell>{registro.pasillo || '-'}</TableCell>
+                       <TableCell>
+                         <IconButton
+                           color="error"
+                           size="small"
+                           onClick={() => handleEliminarRegistro(index)}
+                         >
+                           <DeleteIcon />
+                         </IconButton>
+                       </TableCell>
+                     </TableRow>
+                     {registro.tieneError && (
+                       <TableRow>
+                         <TableCell colSpan={12}>
+                           <Box sx={{ 
+                             backgroundColor: 'error.light', 
+                             p: 1, 
+                             borderRadius: 1,
+                             border: '1px solid',
+                             borderColor: 'error.main',
+                             mx: 1
+                           }}>
+                                                         <Typography variant="caption" color="error" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
+                              ❌ {registro.error}
                             </Typography>
-                          </Box>
-                        ) : (
-                          <Typography variant="caption" color="success.main">
-                            ✓ OK
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>{registro.cliente ? registro.cliente.nombre : ''}</TableCell>
-                      <TableCell>{registro.proveedor ? registro.proveedor.nombre : ''}</TableCell>
-                      <TableCell>{registro.item ? registro.item.descripcion : ''}</TableCell>
-                      <TableCell>{registro.partida}</TableCell>
-                      <TableCell>{registro.kilos}</TableCell>
-                      <TableCell>{registro.unidades}</TableCell>
-                      <TableCell>{registro.rack || '-'}</TableCell>
-                      <TableCell>{registro.fila || '-'}</TableCell>
-                      <TableCell>{registro.nivel || '-'}</TableCell>
-                      <TableCell>{registro.pasillo || '-'}</TableCell>
-                      <TableCell>
-                        <IconButton
-                          color="error"
-                          size="small"
-                          onClick={() => handleEliminarRegistro(index)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                             {registro.stockDisponible && (
+                               <Typography variant="caption" display="block" color="error" sx={{ mb: 0.5 }}>
+                                 📊 Stock disponible: {registro.stockDisponible.kilos} kilos, {registro.stockDisponible.unidades} unidades
+                               </Typography>
+                             )}
+                             {registro.stockSolicitado && (
+                               <Typography variant="caption" display="block" color="error" sx={{ mb: 0.5 }}>
+                                 📋 Stock solicitado: {registro.stockSolicitado.kilos} kilos, {registro.stockSolicitado.unidades} unidades
+                               </Typography>
+                             )}
+                           </Box>
+                         </TableCell>
+                       </TableRow>
+                     )}
+                   </React.Fragment>
+                 ))}
                </TableBody>
             </Table>
           </TableContainer>
