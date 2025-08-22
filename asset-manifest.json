@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/depositoDW_v2/static/css/main.1ea38e58.css",
-    "main.js": "/depositoDW_v2/static/js/main.b122dd30.js",
+    "main.js": "/depositoDW_v2/static/js/main.ab054c3e.js",
     "index.html": "/depositoDW_v2/index.html",
     "main.1ea38e58.css.map": "/depositoDW_v2/static/css/main.1ea38e58.css.map",
-    "main.b122dd30.js.map": "/depositoDW_v2/static/js/main.b122dd30.js.map"
+    "main.ab054c3e.js.map": "/depositoDW_v2/static/js/main.ab054c3e.js.map"
   },
   "entrypoints": [
     "static/css/main.1ea38e58.css",
-    "static/js/main.b122dd30.js"
+    "static/js/main.ab054c3e.js"
   ]
 }
