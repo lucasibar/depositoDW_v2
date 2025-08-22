@@ -25,6 +25,24 @@ const salidaSlice = createSlice({
     eliminarRegistroSalida: (state, action) => {
       state.registros = state.registros.filter((_, index) => index !== action.payload);
     },
+    marcarRegistroConError: (state, action) => {
+      const { itemId, partidaId, posicionId, error } = action.payload;
+      const registro = state.registros.find(r => 
+        r.item.id === itemId && 
+        r.partida.id === partidaId && 
+        r.posicion.id === posicionId
+      );
+      if (registro) {
+        registro.error = error;
+        registro.tieneError = true;
+      }
+    },
+    limpiarErroresRegistros: (state) => {
+      state.registros.forEach(registro => {
+        delete registro.error;
+        delete registro.tieneError;
+      });
+    },
     setProveedoresSalida: (state, action) => {
       console.log('Slice: Guardando proveedores:', action.payload);
       state.proveedores = action.payload;
@@ -52,6 +70,8 @@ export const {
   agregarRegistroSalida, 
   limpiarRegistrosSalida, 
   eliminarRegistroSalida, 
+  marcarRegistroConError,
+  limpiarErroresRegistros,
   setProveedoresSalida, 
   setClientesSalida,
   setItemsSalida, 

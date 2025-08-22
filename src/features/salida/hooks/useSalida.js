@@ -5,45 +5,36 @@ export const useSalida = (proveedores, items, clientes, proveedorSeleccionado, c
   const itemsFiltrados = useMemo(() => {
     console.log('=== FILTRANDO ITEMS ===');
     console.log('proveedorSeleccionado:', proveedorSeleccionado);
-    console.log('proveedorSeleccionado.id:', proveedorSeleccionado?.id);
-    console.log('proveedorSeleccionado.nombre:', proveedorSeleccionado?.nombre);
     console.log('items disponibles:', items);
-    console.log('items.length:', items.length);
     
+    // Si no hay proveedor seleccionado, no mostrar items
     if (!proveedorSeleccionado) {
       console.log('❌ No hay proveedor seleccionado');
       return [];
     }
     
-    if (!items.length) {
+    // Si no hay items, no mostrar nada
+    if (!items || !items.length) {
       console.log('❌ No hay items disponibles');
       return [];
     }
     
-    const proveedorId = proveedorSeleccionado.id || proveedorSeleccionado;
-    console.log('🔍 Proveedor ID para filtrar:', proveedorId);
-    console.log('🔍 Tipo de proveedorId:', typeof proveedorId);
-    
+    // Filtrar items usando la misma lógica que adición rápida
     const itemsFiltrados = items.filter(item => {
-      console.log(`\n--- Analizando item: ${item.descripcion} ---`);
-      console.log('item.proveedorId:', item.proveedorId);
-      console.log('Tipo de item.proveedorId:', typeof item.proveedorId);
-      
-      // Si el item tiene un proveedorId, filtrar por ese
-      if (item.proveedorId !== undefined && item.proveedorId !== null) {
-        const coincide = item.proveedorId === proveedorId;
-        console.log(`✅ Item ${item.descripcion} - proveedorId: ${item.proveedorId}, coincide: ${coincide}`);
+      // Si selectedProveedor es un objeto, comparar por ID
+      if (typeof proveedorSeleccionado === 'object' && proveedorSeleccionado !== null) {
+        const coincide = item.proveedor?.id === proveedorSeleccionado.id;
+        console.log(`Item: ${item.descripcion} - item.proveedor.id: ${item.proveedor?.id} - selected: ${proveedorSeleccionado.id} - coincide: ${coincide}`);
         return coincide;
       }
       
-      // Si no tiene proveedorId, mostrar todos los items
-      console.log(`⚠️ Item ${item.descripcion} - sin proveedorId, incluyendo`);
-      return true;
+      // Si selectedProveedor es un string, comparar por nombre
+      const coincide = item.proveedor?.nombre === proveedorSeleccionado;
+      console.log(`Item: ${item.descripcion} - item.proveedor.nombre: ${item.proveedor?.nombre} - selected: ${proveedorSeleccionado} - coincide: ${coincide}`);
+      return coincide;
     });
     
-    console.log('\n=== RESULTADO FILTRADO ===');
-    console.log('Items filtrados resultantes:', itemsFiltrados);
-    console.log('Cantidad de items filtrados:', itemsFiltrados.length);
+    console.log('✅ Items filtrados:', itemsFiltrados.length);
     return itemsFiltrados;
   }, [items, proveedorSeleccionado]);
 

@@ -16,8 +16,8 @@ import {
   useTheme,
   useMediaQuery
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, PersonAdd as PersonAddIcon } from '@mui/icons-material';
-import { agregarRegistroSalida, limpiarRegistrosSalida, eliminarRegistroSalida } from '../../../../features/salida/model/salidaSlice';
+import { Add as AddIcon, Delete as DeleteIcon, PersonAdd as PersonAddIcon, Error as ErrorIcon } from '@mui/icons-material';
+import { agregarRegistroSalida, limpiarRegistrosSalida, eliminarRegistroSalida, marcarRegistroConError } from '../../../../features/salida/model/salidaSlice';
 import { 
   selectSalidaRegistros, 
   selectSalidaProveedores, 
@@ -76,6 +76,13 @@ export const GenerarSalidaTab = () => {
   console.log('Items:', items);
   console.log('Loading:', loading);
   console.log('Error:', error);
+  
+  // Debug adicional: verificar si los datos están cargados
+  console.log('=== VERIFICACIÓN DE DATOS ===');
+  console.log('¿Hay clientes?', clientes.length > 0);
+  console.log('¿Hay proveedores?', proveedores.length > 0);
+  console.log('¿Hay items?', items.length > 0);
+  console.log('¿Está cargando?', loading);
   
   const [formData, setFormData] = useState({
     cliente: '',
@@ -178,10 +185,9 @@ export const GenerarSalidaTab = () => {
     console.log('Nuevo registro a agregar:', nuevoRegistro);
     dispatch(agregarRegistroSalida(nuevoRegistro));
     
-    // Limpiar el formulario
-    setFormData({
-      cliente: '',
-      proveedor: '',
+    // Limpiar solo los campos específicos del item, mantener cliente y proveedor
+    setFormData(prevData => ({
+      ...prevData,
       item: '',
       partida: '',
       kilos: '',
@@ -190,7 +196,7 @@ export const GenerarSalidaTab = () => {
       fila: '',
       nivel: '',
       pasillo: ''
-    });
+    }));
   };
 
   const handleEliminarRegistro = (index) => {
@@ -203,15 +209,43 @@ export const GenerarSalidaTab = () => {
     setEnviando(true);
     try {
       // Usar el thunk para enviar registros
-      const result = await dispatch(enviarRegistrosSalida(registros)).unwrap();
+      const resultado = await dispatch(enviarRegistrosSalida(registros)).unwrap();
       
-      const mensaje = result.success 
-        ? `¡Éxito! Se procesaron ${result.registrosProcesados || registros.length} registros de salida correctamente.\n\nSe generaron los movimientos de remitoSalida y consultaRapida correspondientes.`
-        : `Procesamiento completado: ${result.message}`;
-      
-      alert(mensaje);
-      // Limpiar los registros después del envío exitoso
-      dispatch(limpiarRegistrosSalida());
+      if (resultado.totalErrores === 0) {
+        alert(`¡Éxito! Se procesaron ${resultado.totalExitosos} registros de salida correctamente.`);
+        // Limpiar los registros después del envío exitoso
+        dispatch(limpiarRegistrosSalida());
+      } else {
+        alert(`Se procesaron ${resultado.totalExitosos} registros exitosamente, pero hubo ${resultado.totalErrores} errores. Revisa la consola para más detalles.`);
+        console.log('=== DETALLE DE ERRORES ===');
+        console.log('Resultado completo:', resultado);
+        console.log('Errores:', resultado.errores);
+        if (resultado.errores && resultado.errores.length > 0) {
+          resultado.errores.forEach((error, index) => {
+            console.log(`Error ${index + 1}:`, error);
+          });
+        }
+        
+        // Verificar si hay errores de stock insuficiente
+        const erroresStock = resultado.errores.filter(error => 
+          error.error.includes('Stock insuficiente')
+        );
+        
+        if (erroresStock.length > 0) {
+          console.log('⚠️ Errores de stock insuficiente detectados');
+          console.log('Verificar que haya suficiente stock en las posiciones especificadas');
+        }
+        
+        // Verificar si hay errores de posición no encontrada
+        const erroresPosicion = resultado.errores.filter(error => 
+          error.error.includes('no encontrado')
+        );
+        
+        if (erroresPosicion.length > 0) {
+          console.log('⚠️ Errores de entidades no encontradas');
+          console.log('Verificar que los items, partidas, posiciones y proveedores existan en la base de datos');
+        }
+      }
     } catch (error) {
       console.error('Error al enviar registros de salida:', error);
       alert('Error al enviar los registros de salida. Revisa la consola para más detalles.');
@@ -328,6 +362,7 @@ export const GenerarSalidaTab = () => {
                  loading={loading}
                  disabled={!formData.proveedor}
                  noOptionsText={formData.proveedor && itemsFiltrados.length === 0 ? "No hay items disponibles para este proveedor" : "Seleccione un proveedor primero"}
+                 placeholder={!formData.proveedor ? "Seleccione un proveedor primero" : "Seleccione un item"}
                />
              </Box>
            
@@ -435,6 +470,7 @@ export const GenerarSalidaTab = () => {
             <Table size="small">
                              <TableHead>
                  <TableRow>
+                   <TableCell>Estado</TableCell>
                    <TableCell>Cliente</TableCell>
                    <TableCell>Proveedor</TableCell>
                    <TableCell>Item</TableCell>
@@ -450,7 +486,29 @@ export const GenerarSalidaTab = () => {
                </TableHead>
                <TableBody>
                                    {registros.map((registro, index) => (
-                    <TableRow key={registro.id}>
+                    <TableRow 
+                      key={registro.id}
+                      sx={{
+                        backgroundColor: registro.tieneError ? 'error.light' : 'inherit',
+                        '&:hover': {
+                          backgroundColor: registro.tieneError ? 'error.light' : 'action.hover'
+                        }
+                      }}
+                    >
+                      <TableCell>
+                        {registro.tieneError ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <ErrorIcon color="error" sx={{ fontSize: '16px' }} />
+                            <Typography variant="caption" color="error">
+                              Error
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Typography variant="caption" color="success.main">
+                            ✓ OK
+                          </Typography>
+                        )}
+                      </TableCell>
                       <TableCell>{registro.cliente ? registro.cliente.nombre : ''}</TableCell>
                       <TableCell>{registro.proveedor ? registro.proveedor.nombre : ''}</TableCell>
                       <TableCell>{registro.item ? registro.item.descripcion : ''}</TableCell>

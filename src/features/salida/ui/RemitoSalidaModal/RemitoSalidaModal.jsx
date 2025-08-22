@@ -28,7 +28,7 @@ export default function RemitoSalidaModal({ open, onClose, item, posicionId, onS
   const [proveedor, setProveedor] = useState("");
   const [kilos, setKilos] = useState(0);
   const [unidades, setUnidades] = useState(0);
-  const [fecha, setFecha] = useState("");
+  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     if (item) {
