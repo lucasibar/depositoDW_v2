@@ -43,7 +43,8 @@ export const fetchStockConsolidado = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await stockApi.getStockConsolidado();
-      return response.data;
+      console.log('🔍 fetchStockConsolidado thunk: response recibida:', response);
+      return response; // La API ya devuelve los datos directamente
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Error al cargar stock consolidado');
     }
@@ -174,14 +175,18 @@ const stockSlice = createSlice({
       })
       // Fetch stock consolidado
       .addCase(fetchStockConsolidado.pending, (state) => {
+        console.log('🔄 fetchStockConsolidado: Pending');
         state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchStockConsolidado.fulfilled, (state, action) => {
+        console.log('✅ fetchStockConsolidado: Fulfilled', action.payload);
+        console.log('✅ fetchStockConsolidado: Payload length:', action.payload?.length);
         state.isLoading = false;
         state.stock = action.payload;
       })
       .addCase(fetchStockConsolidado.rejected, (state, action) => {
+        console.log('❌ fetchStockConsolidado: Rejected', action.payload);
         state.isLoading = false;
         state.error = action.payload;
       })

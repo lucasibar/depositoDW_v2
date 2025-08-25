@@ -6,11 +6,22 @@ export const stockApi = {
   // Obtener stock consolidado
   getStockConsolidado: async () => {
     try {
+      console.log('🌐 stockApi: Haciendo petición a:', `${API_BASE_URL}/movimientos/stock-consolidado`);
       const response = await fetch(`${API_BASE_URL}/movimientos/stock-consolidado`);
-      if (!response.ok) throw new Error('Error al obtener stock consolidado');
-      return response.json();
+      console.log('📡 stockApi: Respuesta del servidor:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ stockApi: Error del servidor:', errorText);
+        throw new Error(`Error al obtener stock consolidado: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ stockApi: Datos recibidos:', data);
+      console.log('✅ stockApi: Cantidad de elementos:', data?.length);
+      return data;
     } catch (error) {
-      console.error('Error al obtener stock consolidado:', error);
+      console.error('❌ stockApi: Error al obtener stock consolidado:', error);
       throw error;
     }
   },

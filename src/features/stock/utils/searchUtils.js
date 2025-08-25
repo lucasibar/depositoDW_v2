@@ -5,6 +5,10 @@
  * @returns {Array} - Materiales filtrados
  */
 export const filterMaterialsBySearch = (materials, searchTerm) => {
+  if (!materials || !Array.isArray(materials)) {
+    return [];
+  }
+  
   if (!searchTerm.trim()) {
     return materials;
   }

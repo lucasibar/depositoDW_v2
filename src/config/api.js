@@ -33,6 +33,13 @@ export const API_CONFIG = {
   }
 };
 
+// Log para debugging
+console.log('🔧 API_CONFIG:', {
+  NODE_ENV: process.env.NODE_ENV,
+  REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+  BASE_URL: API_CONFIG.BASE_URL
+});
+
 // Configuración de axios optimizada
 export const axiosConfig = {
   baseURL: API_CONFIG.BASE_URL,

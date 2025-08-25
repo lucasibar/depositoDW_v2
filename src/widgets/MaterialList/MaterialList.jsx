@@ -7,7 +7,7 @@ export const MaterialList = ({
   variant = "stock",
   onMaterialClick 
 }) => {
-  if (materials.length === 0) {
+  if (!materials || !Array.isArray(materials) || materials.length === 0) {
     return (
       <div className={styles.emptyState}>
         <p>No se encontraron materiales</p>

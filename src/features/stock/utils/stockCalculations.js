@@ -4,6 +4,9 @@
  * @returns {number} - Total de kilos
  */
 export const calculateTotalKilos = (materials) => {
+  if (!materials || !Array.isArray(materials)) {
+    return 0;
+  }
   return materials.reduce((sum, material) => sum + (material.kilos || 0), 0);
 };
 
@@ -13,6 +16,9 @@ export const calculateTotalKilos = (materials) => {
  * @returns {number} - Total de unidades
  */
 export const calculateTotalUnidades = (materials) => {
+  if (!materials || !Array.isArray(materials)) {
+    return 0;
+  }
   return materials.reduce((sum, material) => sum + (material.unidades || 0), 0);
 };
 
@@ -22,6 +28,9 @@ export const calculateTotalUnidades = (materials) => {
  * @returns {number} - Cantidad de materiales únicos
  */
 export const countUniqueMaterials = (materials) => {
+  if (!materials || !Array.isArray(materials)) {
+    return 0;
+  }
   const uniqueMaterials = new Set();
   materials.forEach(material => {
     if (material.item?.id) {

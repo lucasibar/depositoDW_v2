@@ -11,6 +11,7 @@ export const StockSummary = ({ materials }) => {
   const totalKilos = calculateTotalKilos(materials);
   const totalUnidades = calculateTotalUnidades(materials);
   const uniqueMaterialsCount = countUniqueMaterials(materials);
+  const materialsLength = materials?.length || 0;
 
   return (
     <div className={styles.summary}>
@@ -28,7 +29,7 @@ export const StockSummary = ({ materials }) => {
       </div>
       <div className={styles.summaryItem}>
         <span>{SUMMARY_LABELS.PARTIDAS}</span>
-        <strong>{materials.length}</strong>
+        <strong>{materialsLength}</strong>
       </div>
     </div>
   );

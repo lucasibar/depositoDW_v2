@@ -12,15 +12,18 @@ export const useStockData = () => {
   const [filteredMaterials, setFilteredMaterials] = useState([]);
 
   useEffect(() => {
+    console.log('🔄 useStockData: Iniciando fetchStockConsolidado');
     dispatch(fetchStockConsolidado());
   }, [dispatch]);
 
   useEffect(() => {
-    setFilteredMaterials(stock);
+    console.log('📊 useStockData: Stock actualizado:', stock);
+    console.log('📊 useStockData: Stock length:', stock?.length);
+    setFilteredMaterials(stock || []);
   }, [stock]);
 
   const handleSearch = (searchTerm) => {
-    const filtered = filterMaterialsBySearch(stock, searchTerm);
+    const filtered = filterMaterialsBySearch(stock || [], searchTerm);
     setFilteredMaterials(filtered);
   };
 
