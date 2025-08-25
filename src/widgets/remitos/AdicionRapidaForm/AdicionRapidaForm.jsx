@@ -17,6 +17,7 @@ import {
   Autocomplete
 } from '@mui/material';
 import { dataProveedoresItems } from '../../../features/remitos/model/slice';
+import { ModalAgregarItem } from '../ModalAgregarItem/ModalAgregarItem';
 import axios from 'axios';
 import styles from './AdicionRapidaForm.module.css';
 
@@ -81,76 +82,6 @@ const ModalNuevoProveedor = ({ open, onClose, onProveedorCreado }) => {
           color="primary"
           disabled={loading}
         >
-          Guardar
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
-// Modal para crear nuevo item
-const ModalNuevoItem = ({ open, onClose, proveedor, onItemCreado }) => {
-  const [nuevoItem, setNuevoItem] = useState({
-    descripcion: "",
-    categoria: ""
-  });
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!nuevoItem.descripcion || !nuevoItem.categoria) {
-      alert('Por favor complete todos los campos');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await axios.post(`${URL}/items`, {
-        descripcion: nuevoItem.descripcion,
-        categoria: nuevoItem.categoria,
-        proveedor: proveedor
-      });
-
-      onItemCreado(response.data);
-      setNuevoItem({ descripcion: "", categoria: "" });
-      onClose();
-    } catch (error) {
-      alert('Error al crear el item');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Agregar Nuevo Item</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-          <FormControl fullWidth>
-            <InputLabel>Categoría</InputLabel>
-            <Select
-              value={nuevoItem.categoria}
-              label="Categoría"
-              onChange={(e) => setNuevoItem({...nuevoItem, categoria: e.target.value})}
-            >
-              {CATEGORIAS.map((cat) => (
-                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          <TextField
-            label="Descripción"
-            value={nuevoItem.descripcion}
-            onChange={(e) => setNuevoItem({...nuevoItem, descripcion: e.target.value})}
-            fullWidth
-            required
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={handleSubmit} disabled={loading}>
           Guardar
         </Button>
       </DialogActions>
@@ -448,10 +379,10 @@ export const AdicionRapidaForm = ({ open, onClose, posicion, onSubmit }) => {
         onProveedorCreado={handleProveedorCreado}
       />
 
-      <ModalNuevoItem 
+      <ModalAgregarItem 
         open={openNuevoItem}
         onClose={() => setOpenNuevoItem(false)}
-        proveedor={formData.proveedor}
+        proveedorSeleccionado={formData.proveedor}
         onItemCreado={handleItemCreado}
       />
     </>

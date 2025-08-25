@@ -15,7 +15,15 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Alert
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { agregarRegistro, limpiarRegistros, eliminarRegistro } from '../../features/adicionesRapidas/model/slice';
@@ -33,6 +41,14 @@ import LoadingInfo from '../../shared/ui/LoadingInfo';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import { authService } from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
+import { API_CONFIG } from '../../config/api';
+
+// Categorías disponibles para nuevos items
+const CATEGORIAS = [
+  "costura", "algodon", "algodon-color", "nylon", "nylon REC", "nylon-color", "lycra", "lycra REC", 
+  "goma", "tarugo", "etiqueta", "bolsa", "percha", "ribbon", "caja", 
+  "cinta", "plantilla", "film", "consumibes(aceite y parafina)", "faja", "caballete"
+];
 
 // Componente de input compacto
 const CompactInput = ({ label, value, onChange, type = "text" }) => (
@@ -82,6 +98,15 @@ export const AdicionRapidaPage = () => {
   const [enviando, setEnviando] = useState(false);
   const [user, setUser] = useState(null);
   const [validationError, setValidationError] = useState('');
+  
+  // Estados para el modal de nuevo item
+  const [openNuevoItem, setOpenNuevoItem] = useState(false);
+  const [nuevoItem, setNuevoItem] = useState({
+    descripcion: '',
+    categoria: ''
+  });
+  const [creandoItem, setCreandoItem] = useState(false);
+  const [errorItem, setErrorItem] = useState('');
 
   // Usar el hook personalizado
   const { itemsFiltrados, filterProveedores, filterItems, isFormValid } = useAdicionRapida(
@@ -241,6 +266,66 @@ export const AdicionRapidaPage = () => {
     dispatch(limpiarRegistros());
   };
 
+  // Función para crear nuevo item
+  const handleCrearItem = async () => {
+    if (!nuevoItem.descripcion.trim() || !nuevoItem.categoria) {
+      setErrorItem('Por favor complete todos los campos');
+      return;
+    }
+
+    if (!formData.proveedor) {
+      setErrorItem('Debe seleccionar un proveedor primero');
+      return;
+    }
+
+    setCreandoItem(true);
+    setErrorItem('');
+    
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          descripcion: nuevoItem.descripcion,
+          categoria: nuevoItem.categoria,
+          proveedor: formData.proveedor
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al crear el item');
+      }
+
+      const itemCreado = await response.json();
+      
+      // Recargar los datos de items y proveedores
+      dispatch(cargarDatosIniciales());
+      
+      // Seleccionar automáticamente el item creado
+      setFormData(prev => ({
+        ...prev,
+        item: itemCreado
+      }));
+      
+      // Limpiar el formulario del modal
+      setNuevoItem({ descripcion: '', categoria: '' });
+      setOpenNuevoItem(false);
+    } catch (error) {
+      setErrorItem('Error al crear el item. Por favor intente nuevamente.');
+      console.error(error);
+    } finally {
+      setCreandoItem(false);
+    }
+  };
+
+  const handleCloseModalItem = () => {
+    setNuevoItem({ descripcion: '', categoria: '' });
+    setErrorItem('');
+    setOpenNuevoItem(false);
+  };
+
   // Handlers de navegación
   const handleLogoutClick = () => {
     authService.logout();
@@ -294,20 +379,47 @@ export const AdicionRapidaPage = () => {
                  />
                </Box>
                
-               <Box sx={{ flex: '1 1 250px', minWidth: '200px' }}>
-                 <AutocompleteSelect
-                   label="Item"
-                   value={formData.item}
-                   onChange={(value) => handleInputChange('item', value)}
-                   options={itemsFiltrados}
-                   getOptionLabel={(option) => `${option.categoria} - ${option.descripcion}` || ''}
-                   getOptionKey={(option) => `item-${option.id || `${option.categoria}-${option.descripcion}`}`}
-                   filterOptions={filterItems}
-                   loading={loading}
-                   disabled={!formData.proveedor}
-                   noOptionsText={formData.proveedor && itemsFiltrados.length === 0 ? "No hay items para este proveedor" : "No hay opciones"}
-                 />
-               </Box>
+                               <Box sx={{ flex: '1 1 250px', minWidth: '200px' }}>
+                  <AutocompleteSelect
+                    label="Item"
+                    value={formData.item}
+                    onChange={(value) => {
+                      // Si se selecciona la opción de agregar nuevo item
+                      if (value === 'add-new-item') {
+                        setOpenNuevoItem(true);
+                        return;
+                      }
+                      handleInputChange('item', value);
+                    }}
+                    options={itemsFiltrados}
+                    getOptionLabel={(option) => `${option.categoria} - ${option.descripcion}` || ''}
+                    getOptionKey={(option) => `item-${option.id || `${option.categoria}-${option.descripcion}`}`}
+                    filterOptions={filterItems}
+                    loading={loading}
+                    disabled={!formData.proveedor}
+                    noOptionsText={formData.proveedor && itemsFiltrados.length === 0 ? "No hay items para este proveedor" : "No hay opciones"}
+                                         extraOption={formData.proveedor ? (
+                       <Box 
+                         sx={{ 
+                           display: 'flex', 
+                           alignItems: 'center', 
+                           gap: 1, 
+                           color: '#000000',
+                           cursor: 'pointer',
+                           px: 1,
+                           py: 0.5,
+                           '&:hover': {
+                             backgroundColor: '#f0f0f0'
+                           }
+                         }}
+                         onClick={() => setOpenNuevoItem(true)}
+                       >
+                         <span style={{ fontSize: '14px' }}>+</span>
+                         <span style={{ fontSize: '12px' }}>Agregar nuevo item</span>
+                       </Box>
+                     ) : null}
+                  />
+                </Box>
               
               <Box sx={{ flex: '1 1 120px', minWidth: '100px' }}>
                 <CompactInput
@@ -465,6 +577,64 @@ export const AdicionRapidaPage = () => {
              </Box>
            )}
         </Box>
+
+        {/* Modal para crear nuevo item */}
+        <Dialog open={openNuevoItem} onClose={handleCloseModalItem} maxWidth="sm" fullWidth>
+          <DialogTitle>Agregar Nuevo Item</DialogTitle>
+          <DialogContent>
+            <Box sx={{ mt: 1 }}>
+              {errorItem && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {errorItem}
+                </Alert>
+              )}
+              
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Categoría</InputLabel>
+                <Select
+                  value={nuevoItem.categoria}
+                  label="Categoría"
+                  onChange={(e) => setNuevoItem({...nuevoItem, categoria: e.target.value})}
+                  disabled={creandoItem}
+                >
+                  {CATEGORIAS.map((cat) => (
+                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              
+              <TextField
+                autoFocus
+                margin="dense"
+                label="Descripción del Item"
+                type="text"
+                fullWidth
+                value={nuevoItem.descripcion}
+                onChange={(e) => setNuevoItem({...nuevoItem, descripcion: e.target.value})}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCrearItem();
+                  }
+                }}
+                disabled={creandoItem}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseModalItem} color="primary" disabled={creandoItem}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleCrearItem} 
+              color="primary"
+              disabled={creandoItem || !nuevoItem.descripcion.trim() || !nuevoItem.categoria}
+              variant="contained"
+            >
+              {creandoItem ? 'Guardando...' : 'Guardar'}
+            </Button>
+          </DialogActions>
+        </Dialog>
     </AppLayout>
   );
 };

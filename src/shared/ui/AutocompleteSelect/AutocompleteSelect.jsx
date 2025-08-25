@@ -17,6 +17,7 @@ const AutocompleteSelect = ({
   loading = false,
   size = "small",
   sx = {},
+  extraOption = null, // Nueva prop para opción adicional
   ...props
 }) => {
   const [inputValue, setInputValue] = useState('');
@@ -68,8 +69,13 @@ const AutocompleteSelect = ({
       onChange={handleChange}
       inputValue={inputValue}
       onInputChange={handleInputChange}
-      options={options}
-      getOptionLabel={getOptionLabel}
+      options={extraOption ? [extraOption, ...options] : options}
+      getOptionLabel={(option) => {
+        if (extraOption && option === extraOption) {
+          return ''; // La opción adicional se renderiza personalmente
+        }
+        return getOptionLabel(option);
+      }}
       getOptionKey={getOptionKey}
       filterOptions={filterOptions}
       loading={loading}
@@ -128,6 +134,26 @@ const AutocompleteSelect = ({
       )}
       renderOption={(props, option) => {
         const { key, ...otherProps } = props;
+        
+                 // Si es la opción adicional, renderizar el componente personalizado
+         if (extraOption && option === extraOption) {
+           return (
+             <Box 
+               component="li" 
+               key="extra-option"
+               {...otherProps} 
+               sx={{ 
+                 fontSize: '12px', 
+                 py: 0.5,
+                 borderBottom: '1px solid #e0e0e0',
+                 backgroundColor: '#f5f5f5'
+               }}
+             >
+               {extraOption}
+             </Box>
+           );
+         }
+        
         return (
           <Box 
             component="li" 
