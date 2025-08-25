@@ -18,7 +18,8 @@ import {
 import { 
   Search as SearchIcon,
   Inventory as InventoryIcon,
-  SwapHoriz as SwapIcon
+  SwapHoriz as SwapIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
@@ -26,6 +27,7 @@ import { checkAuthentication, handleLogout } from '../../features/stock/utils/na
 import { useNavigate } from 'react-router-dom';
 import { buscarItemsPorPosicion } from '../../features/adicionesRapidas/model/thunks';
 import MovimientoInterno from '../../components/MovimientoInterno/MovimientoInterno';
+import AjustePosicionModal from '../../features/stock/ui/AjustePosicionModal';
 import { apiClient } from '../../config/api';
 
 export const PosicionesPage = () => {
@@ -55,6 +57,10 @@ export const PosicionesPage = () => {
   const [movimientoInternoOpen, setMovimientoInternoOpen] = useState(false);
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const [posicionActual, setPosicionActual] = useState(null);
+  
+  // Estados para ajuste de stock
+  const [modalAjusteOpen, setModalAjusteOpen] = useState(false);
+  const [materialSeleccionado, setMaterialSeleccionado] = useState(null);
 
   // Inicialización y autenticación
   useEffect(() => {
@@ -167,6 +173,46 @@ export const PosicionesPage = () => {
 
   const handleMovimientoCompletado = () => {
     // Recargar los resultados después del movimiento
+    handleBuscar();
+  };
+
+  // Handlers para ajuste de stock
+  const handleAbrirModalAjuste = (material) => {
+    console.log('Abriendo modal de ajuste para material:', material);
+    console.log('Posición actual:', posicionActual);
+    
+    if (!posicionActual) {
+      setNotification({
+        open: true,
+        message: 'Error: No se pudo obtener la información de la posición',
+        severity: 'error'
+      });
+      return;
+    }
+    
+    // Agregar la información de la posición al material
+    const materialConPosicion = {
+      ...material,
+      posicion: posicionActual
+    };
+    
+    setMaterialSeleccionado(materialConPosicion);
+    setModalAjusteOpen(true);
+  };
+
+  const handleCerrarModalAjuste = () => {
+    setModalAjusteOpen(false);
+    setMaterialSeleccionado(null);
+  };
+
+  const handleAjusteExitoso = () => {
+    console.log('Ajuste realizado exitosamente, recargando resultados...');
+    setNotification({
+      open: true,
+      message: 'Ajuste realizado correctamente',
+      severity: 'success'
+    });
+    // Recargar los resultados para mostrar el stock actualizado
     handleBuscar();
   };
 
@@ -382,26 +428,43 @@ export const PosicionesPage = () => {
                           {resultado.item?.categoria || 'N/A'} - {resultado.item?.descripcion || 'N/A'}
                         </Typography>
                       </Box>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<SwapIcon />}
-                        onClick={() => handleMovimientoInterno(resultado)}
-                        disabled={!posicionActual}
-                        sx={{ ml: 1 }}
-                      >
-                        Mover
-                      </Button>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<EditIcon />}
+                          onClick={() => handleAbrirModalAjuste(resultado)}
+                          sx={{
+                            borderColor: 'var(--color-primary)',
+                            color: 'var(--color-primary)',
+                            '&:hover': {
+                              borderColor: 'var(--color-primary-dark)',
+                              backgroundColor: 'var(--color-primary-light)'
+                            }
+                          }}
+                        >
+                          Ajustar
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<SwapIcon />}
+                          onClick={() => handleMovimientoInterno(resultado)}
+                          disabled={!posicionActual}
+                        >
+                          Mover
+                        </Button>
+                      </Box>
                     </Box>
-                  
-                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                       <Typography variant="body2" color="text.secondary">
-                         Proveedor:
-                       </Typography>
-                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                         {resultado.proveedor?.nombre || 'N/A'}
-                       </Typography>
-                     </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Proveedor:
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {resultado.proveedor?.nombre || 'N/A'}
+                      </Typography>
+                    </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2" color="text.secondary">
@@ -464,6 +527,14 @@ export const PosicionesPage = () => {
           itemSeleccionado={itemSeleccionado}
           posicionOrigen={posicionActual}
           onMovimientoCompletado={handleMovimientoCompletado}
+        />
+
+        {/* Modal de Ajuste de Stock desde Posiciones */}
+        <AjustePosicionModal
+          open={modalAjusteOpen}
+          onClose={handleCerrarModalAjuste}
+          material={materialSeleccionado}
+          onAjusteExitoso={handleAjusteExitoso}
         />
       </Box>
     </AppLayout>
