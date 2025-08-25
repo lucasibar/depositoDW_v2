@@ -147,6 +147,58 @@ export const PosicionesPage = () => {
     }
   };
 
+  const handleBuscarEntrada = async () => {
+    setBuscando(true);
+    try {
+      console.log('Buscando items en posición de entrada');
+      
+      // Buscar la posición de entrada (entrada: true, sin rack, fila, AB, pasillo)
+      const response = await apiClient.get('/posiciones?entrada=true');
+      const posicionEntrada = response.data.find(pos => 
+        pos.entrada === true && 
+        !pos.rack && 
+        !pos.fila && 
+        !pos.AB && 
+        !pos.numeroPasillo
+      );
+      
+      if (!posicionEntrada) {
+        setNotification({
+          open: true,
+          message: 'No se encontró la posición de entrada',
+          severity: 'error'
+        });
+        return;
+      }
+      
+      setPosicionActual(posicionEntrada);
+      
+      // Crear un objeto con la estructura esperada por buscarItemsPorPosicion
+      const datosEntrada = {
+        entrada: true,
+        posicionId: posicionEntrada.id
+      };
+      
+      const resultado = await dispatch(buscarItemsPorPosicion(datosEntrada)).unwrap();
+      
+      setResultados(resultado);
+      setNotification({
+        open: true,
+        message: `Se encontraron ${resultado.length} items en la posición de entrada`,
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error al buscar items en entrada:', error);
+      setNotification({
+        open: true,
+        message: error.message || 'Error al buscar items en la posición de entrada',
+        severity: 'error'
+      });
+    } finally {
+      setBuscando(false);
+    }
+  };
+
   const handleCloseNotification = () => {
     setNotification(prev => ({ ...prev, open: false }));
   };
@@ -385,6 +437,33 @@ export const PosicionesPage = () => {
                 }}
               >
                 {buscando ? 'Buscando...' : 'Buscar'}
+              </Button>
+            </Box>
+
+            {/* Botón de búsqueda en entrada */}
+            <Box sx={{ 
+              flex: '0 0 auto',
+              minWidth: '140px'
+            }}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="large"
+                onClick={handleBuscarEntrada}
+                disabled={buscando}
+                startIcon={buscando ? <CircularProgress size={20} /> : <InventoryIcon />}
+                sx={{ 
+                  minWidth: 140,
+                  height: 56,
+                  borderColor: 'var(--color-secondary)',
+                  color: 'var(--color-secondary)',
+                  '&:hover': {
+                    borderColor: 'var(--color-secondary-dark)',
+                    backgroundColor: 'var(--color-secondary-light)'
+                  }
+                }}
+              >
+                {buscando ? 'Buscando...' : 'Entrada'}
               </Button>
             </Box>
           </Box>
