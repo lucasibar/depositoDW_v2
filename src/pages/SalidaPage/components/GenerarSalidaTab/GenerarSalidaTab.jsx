@@ -69,20 +69,7 @@ export const GenerarSalidaTab = () => {
   const loading = useSelector(selectSalidaLoading);
   const error = useSelector(selectSalidaError);
 
-  // Debug: mostrar datos en consola
-  console.log('Estado actual en componente:');
-  console.log('Clientes:', clientes);
-  console.log('Proveedores:', proveedores);
-  console.log('Items:', items);
-  console.log('Loading:', loading);
-  console.log('Error:', error);
-  
-  // Debug adicional: verificar si los datos están cargados
-  console.log('=== VERIFICACIÓN DE DATOS ===');
-  console.log('¿Hay clientes?', clientes.length > 0);
-  console.log('¿Hay proveedores?', proveedores.length > 0);
-  console.log('¿Hay items?', items.length > 0);
-  console.log('¿Está cargando?', loading);
+
   
   const [formData, setFormData] = useState({
     cliente: '',
@@ -103,13 +90,6 @@ export const GenerarSalidaTab = () => {
   const [modalProveedorOpen, setModalProveedorOpen] = useState(false);
 
   // Usar el hook personalizado para salida
-  console.log('🔄 Llamando useSalida con:', {
-    proveedores: proveedores.length,
-    items: items.length,
-    clientes: clientes.length,
-    proveedorSeleccionado: formData.proveedor,
-    clienteSeleccionado: formData.cliente
-  });
   
   const { itemsFiltrados, filterProveedores, filterClientes, filterItems, isFormValid } = useSalida(
     proveedores, 
@@ -125,8 +105,6 @@ export const GenerarSalidaTab = () => {
   }, [dispatch]);
 
   const handleInputChange = (field, value) => {
-    console.log(`🔄 handleInputChange - field: ${field}, value:`, value);
-    
     setFormData(prev => {
       const newData = {
         ...prev,
@@ -135,7 +113,6 @@ export const GenerarSalidaTab = () => {
       
       // Si cambia el proveedor, limpiar el item (porque los items dependen del proveedor)
       if (field === 'proveedor') {
-        console.log('🔄 Cambió proveedor, limpiando item');
         newData.item = '';
       }
       
@@ -151,31 +128,14 @@ export const GenerarSalidaTab = () => {
         newData.nivel = '';
       }
       
-      console.log('🔄 Nuevo formData:', newData);
       return newData;
     });
   };
 
   const handleAgregarRegistro = () => {
-    console.log('=== INTENTANDO AGREGAR REGISTRO ===');
-    console.log('FormData completo:', formData);
-    console.log('FormData cliente:', formData.cliente);
-    console.log('FormData proveedor:', formData.proveedor);
-    console.log('FormData item:', formData.item);
-    console.log('FormData partida:', formData.partida);
-    console.log('FormData kilos:', formData.kilos);
-    console.log('FormData unidades:', formData.unidades);
-    console.log('FormData rack:', formData.rack);
-    console.log('FormData fila:', formData.fila);
-    console.log('FormData nivel:', formData.nivel);
-    console.log('FormData pasillo:', formData.pasillo);
-    console.log('FormData fecha:', formData.fecha);
-    
     const esValido = isFormValid(formData);
-    console.log('¿Formulario válido?', esValido);
     
     if (!esValido) {
-      console.log('❌ Formulario no válido, no se puede agregar');
       return;
     }
     
@@ -184,7 +144,6 @@ export const GenerarSalidaTab = () => {
       ...formData
     };
     
-    console.log('Nuevo registro a agregar:', nuevoRegistro);
     dispatch(agregarRegistroSalida(nuevoRegistro));
     
     // Limpiar solo los campos específicos del item, mantener cliente y proveedor
@@ -218,16 +177,12 @@ export const GenerarSalidaTab = () => {
         // Limpiar los registros después del envío exitoso
         dispatch(limpiarRegistrosSalida());
       } else {
-        // Procesar resultados mixtos (algunos exitosos, algunos con errores)
-        console.log('=== DETALLE DE ERRORES ===');
-        console.log('Resultado completo:', resultado);
-        console.log('Errores:', resultado.errores);
-        
-        // Eliminar registros que se procesaron exitosamente
-        if (resultado.exitosos && resultado.exitosos.length > 0) {
-          console.log('🎯 DATOS EXITOSOS DEL BACKEND:', resultado.exitosos);
-          dispatch(eliminarRegistrosExitosos({ exitosos: resultado.exitosos }));
-        }
+                 // Procesar resultados mixtos (algunos exitosos, algunos con errores)
+         
+         // Eliminar registros que se procesaron exitosamente
+         if (resultado.exitosos && resultado.exitosos.length > 0) {
+           dispatch(eliminarRegistrosExitosos({ exitosos: resultado.exitosos }));
+         }
         
                  // Marcar registros que fallaron con sus errores específicos
          if (resultado.errores && resultado.errores.length > 0) {
@@ -242,10 +197,9 @@ export const GenerarSalidaTab = () => {
            alert(mensaje);
          }
       }
-    } catch (error) {
-      console.error('Error al enviar registros de salida:', error);
-      alert('Error al enviar los registros de salida. Revisa la consola para más detalles.');
-    } finally {
+         } catch (error) {
+       alert('Error al enviar los registros de salida. Por favor intente nuevamente.');
+     } finally {
       setEnviando(false);
     }
   };

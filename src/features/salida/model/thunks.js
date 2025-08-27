@@ -19,9 +19,6 @@ export const cargarDatosSalida = createAsyncThunk(
       
       const response = await axios.get(`${API_CONFIG.BASE_URL}/remitos/dataload-remito-recepcion`);
       
-      // Debug: mostrar todos los proveedores
-      console.log('Todos los proveedores cargados:', response.data.proveedores);
-
       // Función helper para verificar si es cliente
       const esCliente = (proveedor) => {
         if (!proveedor.categoria) return false;
@@ -32,9 +29,6 @@ export const cargarDatosSalida = createAsyncThunk(
       // Filtrar clientes (proveedores con categoría "clientes")
       const clientes = response.data.proveedores.filter(proveedor => {
         const esClienteResult = esCliente(proveedor);
-        if (esClienteResult) {
-          console.log('Cliente encontrado:', proveedor);
-        }
         return esClienteResult;
       });
 
@@ -42,14 +36,6 @@ export const cargarDatosSalida = createAsyncThunk(
       const proveedoresFiltrados = response.data.proveedores.filter(proveedor => {
         return !esCliente(proveedor);
       });
-
-      console.log('Clientes filtrados:', clientes);
-      console.log('Proveedores filtrados:', proveedoresFiltrados);
-
-      console.log('=== DATOS FINALES PARA EL ESTADO ===');
-      console.log('Proveedores filtrados (sin clientes):', proveedoresFiltrados);
-      console.log('Clientes filtrados:', clientes);
-      console.log('Items cargados:', response.data.items);
       
       dispatch(setProveedoresSalida(proveedoresFiltrados));
       dispatch(setClientesSalida(clientes));
@@ -57,7 +43,6 @@ export const cargarDatosSalida = createAsyncThunk(
       
       return { proveedores: response.data.proveedores, clientes, items: response.data.items };
     } catch (error) {
-      console.error('Error en cargarDatosSalida:', error);
       const errorMessage = error.response?.data?.message || 'Error desconocido al cargar datos';
       dispatch(setErrorSalida(errorMessage));
       throw error;
@@ -80,6 +65,7 @@ export const enviarRegistrosSalida = createAsyncThunk(
       
       // Preparar los datos para el backend usando la estructura específica de generar remito salida
       const datosParaEnviar = {
+        fecha: registros[0]?.fecha || new Date().toISOString().split('T')[0], // Usar fecha del primer registro o fecha actual
         items: registros.map(registro => ({
           itemId: registro.item.id,
           partidaId: registro.partida,
@@ -90,28 +76,19 @@ export const enviarRegistrosSalida = createAsyncThunk(
           pasillo: registro.pasillo ? parseInt(registro.pasillo) : undefined,
           clienteId: registro.cliente.id, // ID del cliente seleccionado
           proveedorId: registro.proveedor.id, // ID del proveedor del item (para filtrado)
-          fecha: registro.fecha || new Date().toISOString().split('T')[0], // Usar fecha del formulario o fecha actual
           numeroRemito: numeroRemitoUnico, // Mismo número de remito para todos los registros del lote
           kilos: parseFloat(registro.kilos) || 0,
           unidades: parseInt(registro.unidades) || 0
         }))
       };
 
-      console.log('Enviando datos al backend para salida:', datosParaEnviar);
-      console.log('Número de remito único:', numeroRemitoUnico);
-      console.log('Clientes y proveedores:', datosParaEnviar.items.map(item => ({
-        clienteId: item.clienteId,
-        proveedorId: item.proveedorId
-      })));
-      console.log('Fechas de los registros:', datosParaEnviar.items.map(item => item.fecha));
+      console.log('📅 Fecha que se envía al backend:', datosParaEnviar.fecha);
+      console.log('📦 Datos completos que se envían:', JSON.stringify(datosParaEnviar, null, 2));
 
       const response = await axios.post(`${API_CONFIG.BASE_URL}/movimientos/generar-remito-salida`, datosParaEnviar);
 
-      console.log('Respuesta del backend:', response.data);
-
       return response.data;
     } catch (error) {
-      console.error('Error en enviarRegistrosSalida:', error);
       const errorMessage = error.response?.data?.message || 'Error al enviar los registros';
       dispatch(setErrorSalida(errorMessage));
       throw error;

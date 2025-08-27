@@ -3,19 +3,13 @@ import { useMemo } from 'react';
 export const useSalida = (proveedores, items, clientes, proveedorSeleccionado, clienteSeleccionado) => {
   // Filtrar items por proveedor seleccionado (el proveedor determina los items disponibles)
   const itemsFiltrados = useMemo(() => {
-    console.log('=== FILTRANDO ITEMS ===');
-    console.log('proveedorSeleccionado:', proveedorSeleccionado);
-    console.log('items disponibles:', items);
-    
     // Si no hay proveedor seleccionado, no mostrar items
     if (!proveedorSeleccionado) {
-      console.log('❌ No hay proveedor seleccionado');
       return [];
     }
     
     // Si no hay items, no mostrar nada
     if (!items || !items.length) {
-      console.log('❌ No hay items disponibles');
       return [];
     }
     
@@ -24,17 +18,14 @@ export const useSalida = (proveedores, items, clientes, proveedorSeleccionado, c
       // Si selectedProveedor es un objeto, comparar por ID
       if (typeof proveedorSeleccionado === 'object' && proveedorSeleccionado !== null) {
         const coincide = item.proveedor?.id === proveedorSeleccionado.id;
-        console.log(`Item: ${item.descripcion} - item.proveedor.id: ${item.proveedor?.id} - selected: ${proveedorSeleccionado.id} - coincide: ${coincide}`);
         return coincide;
       }
       
       // Si selectedProveedor es un string, comparar por nombre
       const coincide = item.proveedor?.nombre === proveedorSeleccionado;
-      console.log(`Item: ${item.descripcion} - item.proveedor.nombre: ${item.proveedor?.nombre} - selected: ${proveedorSeleccionado} - coincide: ${coincide}`);
       return coincide;
     });
     
-    console.log('✅ Items filtrados:', itemsFiltrados.length);
     return itemsFiltrados;
   }, [items, proveedorSeleccionado]);
 
@@ -74,8 +65,6 @@ export const useSalida = (proveedores, items, clientes, proveedorSeleccionado, c
 
   // Validación del formulario
   const isFormValid = (formData) => {
-    console.log('Validando formulario:', formData);
-    
     const validaciones = {
       cliente: !!formData.cliente,
       proveedor: !!formData.proveedor,
@@ -88,16 +77,10 @@ export const useSalida = (proveedores, items, clientes, proveedorSeleccionado, c
       posicionPasillo: !!formData.pasillo
     };
     
-    console.log('Validaciones:', validaciones);
-    
     // Verificar que tenga posición rack+fila+nivel O pasillo, pero no ambos
     const tienePosicionRack = validaciones.posicionRack;
     const tienePosicionPasillo = validaciones.posicionPasillo;
     const posicionValida = (tienePosicionRack && !tienePosicionPasillo) || (!tienePosicionRack && tienePosicionPasillo);
-    
-    console.log('Posición rack+fila+nivel:', tienePosicionRack);
-    console.log('Posición pasillo:', tienePosicionPasillo);
-    console.log('Posición válida (mutuamente excluyente):', posicionValida);
     
     const esValido = (
       validaciones.cliente &&
@@ -109,7 +92,6 @@ export const useSalida = (proveedores, items, clientes, proveedorSeleccionado, c
       posicionValida
     );
     
-    console.log('Formulario válido:', esValido);
     return esValido;
   };
 
