@@ -11,7 +11,7 @@ export const GestionSalidaTab = () => {
   return (
     <Box sx={{ width: '100%' }}>
       <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
-        Gestión de Salidas - Movimientos por Período
+        Salida Histórico - Movimientos por Período
       </Typography>
       
       <MovimientosUltimaSemana />

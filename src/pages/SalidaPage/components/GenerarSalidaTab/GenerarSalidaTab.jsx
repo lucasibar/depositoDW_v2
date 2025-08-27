@@ -94,7 +94,8 @@ export const GenerarSalidaTab = () => {
     rack: '',
     fila: '',
     nivel: '',
-    pasillo: ''
+    pasillo: '',
+    fecha: new Date().toISOString().split('T')[0] // Fecha actual por defecto
   });
 
   const [enviando, setEnviando] = useState(false);
@@ -168,6 +169,7 @@ export const GenerarSalidaTab = () => {
     console.log('FormData fila:', formData.fila);
     console.log('FormData nivel:', formData.nivel);
     console.log('FormData pasillo:', formData.pasillo);
+    console.log('FormData fecha:', formData.fecha);
     
     const esValido = isFormValid(formData);
     console.log('¿Formulario válido?', esValido);
@@ -418,6 +420,15 @@ export const GenerarSalidaTab = () => {
               />
             </Box>
             
+            <Box sx={{ flex: '1 1 120px', minWidth: '100px' }}>
+              <CompactInput
+                label="Fecha"
+                type="date"
+                value={formData.fecha}
+                onChange={(e) => handleInputChange('fecha', e.target.value)}
+              />
+            </Box>
+            
             <Box sx={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
               <IconButton
                 color="primary"
@@ -485,6 +496,7 @@ export const GenerarSalidaTab = () => {
                    <TableCell>Fila</TableCell>
                    <TableCell>Nivel</TableCell>
                    <TableCell>Pasillo</TableCell>
+                   <TableCell>Fecha</TableCell>
                    <TableCell>Acciones</TableCell>
                  </TableRow>
                </TableHead>
@@ -523,6 +535,7 @@ export const GenerarSalidaTab = () => {
                        <TableCell>{registro.fila || '-'}</TableCell>
                        <TableCell>{registro.nivel || '-'}</TableCell>
                        <TableCell>{registro.pasillo || '-'}</TableCell>
+                       <TableCell>{registro.fecha || '-'}</TableCell>
                        <TableCell>
                          <IconButton
                            color="error"
@@ -535,7 +548,7 @@ export const GenerarSalidaTab = () => {
                      </TableRow>
                      {registro.tieneError && (
                        <TableRow>
-                         <TableCell colSpan={12}>
+                         <TableCell colSpan={13}>
                            <Box sx={{ 
                              backgroundColor: 'error.light', 
                              p: 1, 

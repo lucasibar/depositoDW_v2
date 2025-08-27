@@ -75,6 +75,9 @@ export const enviarRegistrosSalida = createAsyncThunk(
       dispatch(setLoadingSalida(true));
       dispatch(setErrorSalida(null));
 
+      // Generar un solo número de remito para todo el lote
+      const numeroRemitoUnico = `RS-${Date.now()}`;
+      
       // Preparar los datos para el backend usando la estructura específica de generar remito salida
       const datosParaEnviar = {
         items: registros.map(registro => ({
@@ -85,15 +88,22 @@ export const enviarRegistrosSalida = createAsyncThunk(
           fila: registro.fila ? parseInt(registro.fila) : undefined,
           nivel: registro.nivel || undefined,
           pasillo: registro.pasillo ? parseInt(registro.pasillo) : undefined,
-          proveedorId: registro.proveedor.id,
-          fecha: new Date().toISOString().split('T')[0], // Fecha actual
-          numeroRemito: `RS-${Date.now()}`, // Número de remito generado automáticamente
+          clienteId: registro.cliente.id, // ID del cliente seleccionado
+          proveedorId: registro.proveedor.id, // ID del proveedor del item (para filtrado)
+          fecha: registro.fecha || new Date().toISOString().split('T')[0], // Usar fecha del formulario o fecha actual
+          numeroRemito: numeroRemitoUnico, // Mismo número de remito para todos los registros del lote
           kilos: parseFloat(registro.kilos) || 0,
           unidades: parseInt(registro.unidades) || 0
         }))
       };
 
       console.log('Enviando datos al backend para salida:', datosParaEnviar);
+      console.log('Número de remito único:', numeroRemitoUnico);
+      console.log('Clientes y proveedores:', datosParaEnviar.items.map(item => ({
+        clienteId: item.clienteId,
+        proveedorId: item.proveedorId
+      })));
+      console.log('Fechas de los registros:', datosParaEnviar.items.map(item => item.fecha));
 
       const response = await axios.post(`${API_CONFIG.BASE_URL}/movimientos/generar-remito-salida`, datosParaEnviar);
 

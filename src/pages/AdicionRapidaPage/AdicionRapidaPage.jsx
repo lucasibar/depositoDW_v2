@@ -178,11 +178,14 @@ export const AdicionRapidaPage = () => {
     const proveedorNombre = typeof formData.proveedor === 'object' ? formData.proveedor.nombre : formData.proveedor;
     const itemDescripcion = typeof formData.item === 'object' ? `${formData.item.categoria} - ${formData.item.descripcion}` : formData.item;
     
+    // Guardar tanto el objeto completo como el nombre/descripción para el backend
     const nuevoRegistro = {
       id: Date.now(),
       ...formData,
-      proveedor: proveedorNombre, // Guardar solo el nombre para la tabla
-      item: itemDescripcion // Guardar solo la descripción para la tabla
+      proveedor: proveedorNombre, // Guardar el nombre para la tabla
+      item: itemDescripcion, // Guardar la descripción para la tabla
+      proveedorOriginal: typeof formData.proveedor === 'object' ? formData.proveedor : null, // Guardar el objeto completo
+      itemOriginal: typeof formData.item === 'object' ? formData.item : null // Guardar el objeto completo
     };
     
     console.log('Nuevo registro a agregar:', nuevoRegistro);
@@ -216,10 +219,9 @@ export const AdicionRapidaPage = () => {
     try {
       // Preparar los registros con los IDs correctos para el backend
       const registrosParaEnviar = registros.map(registro => {
-        // Buscar el proveedor original por nombre
-        const proveedorOriginal = proveedores.find(p => p.nombre === registro.proveedor);
-        // Buscar el item original por descripción
-        const itemOriginal = items.find(i => `${i.categoria} - ${i.descripcion}` === registro.item);
+        // Usar los objetos originales si están disponibles, sino buscar por nombre/descripción
+        const proveedorOriginal = registro.proveedorOriginal || proveedores.find(p => p.nombre === registro.proveedor);
+        const itemOriginal = registro.itemOriginal || items.find(i => `${i.categoria} - ${i.descripcion}` === registro.item);
         
         return {
           ...registro,
@@ -282,6 +284,15 @@ export const AdicionRapidaPage = () => {
     setErrorItem('');
     
     try {
+      // Asegurar que se envíe el proveedor correcto
+      const proveedorParaEnviar = typeof formData.proveedor === 'object' ? formData.proveedor : null;
+      
+      if (!proveedorParaEnviar || !proveedorParaEnviar.id) {
+        throw new Error('Proveedor no válido');
+      }
+
+      console.log('🔄 Creando item con proveedor:', proveedorParaEnviar);
+
       const response = await fetch(`${API_CONFIG.BASE_URL}/items`, {
         method: 'POST',
         headers: {
@@ -290,15 +301,17 @@ export const AdicionRapidaPage = () => {
         body: JSON.stringify({
           descripcion: nuevoItem.descripcion,
           categoria: nuevoItem.categoria,
-          proveedor: formData.proveedor
+          proveedor: proveedorParaEnviar
         })
       });
 
       if (!response.ok) {
-        throw new Error('Error al crear el item');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error al crear el item');
       }
 
       const itemCreado = await response.json();
+      console.log('✅ Item creado exitosamente:', itemCreado);
       
       // Recargar los datos de items y proveedores
       dispatch(cargarDatosIniciales());
@@ -313,8 +326,8 @@ export const AdicionRapidaPage = () => {
       setNuevoItem({ descripcion: '', categoria: '' });
       setOpenNuevoItem(false);
     } catch (error) {
-      setErrorItem('Error al crear el item. Por favor intente nuevamente.');
-      console.error(error);
+      setErrorItem(`Error al crear el item: ${error.message}`);
+      console.error('Error al crear item:', error);
     } finally {
       setCreandoItem(false);
     }

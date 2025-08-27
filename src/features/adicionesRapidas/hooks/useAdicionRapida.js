@@ -43,8 +43,16 @@ export const useAdicionRapida = (proveedores, items, selectedProveedor) => {
   // Validar si el formulario está completo
   const isFormValid = (formData) => {
     // Verificar que proveedor e item estén seleccionados (pueden ser objetos o strings)
-    const hasProveedor = formData.proveedor && (typeof formData.proveedor === 'object' ? formData.proveedor.id : formData.proveedor);
-    const hasItem = formData.item && (typeof formData.item === 'object' ? formData.item.id : formData.item);
+    const hasProveedor = formData.proveedor && (
+      typeof formData.proveedor === 'object' ? 
+        formData.proveedor.id && formData.proveedor.nombre : 
+        formData.proveedor.trim() !== ''
+    );
+    const hasItem = formData.item && (
+      typeof formData.item === 'object' ? 
+        formData.item.id && formData.item.descripcion : 
+        formData.item.trim() !== ''
+    );
     const hasPartida = formData.partida && formData.partida.trim() !== '';
     const hasCantidad = (formData.kilos && parseFloat(formData.kilos) > 0) || (formData.unidades && parseInt(formData.unidades) > 0);
     

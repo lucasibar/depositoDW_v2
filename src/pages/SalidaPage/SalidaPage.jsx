@@ -33,8 +33,8 @@ const TABS = [
   },
   { 
     id: 'gestion-salida', 
-    label: 'Gestión de Salidas', 
-    icon: <ExitToAppIcon />,
+    label: 'Salida Histórico', 
+    icon: <HistoryIcon />,
     component: GestionSalidaTab,
     color: 'success'
   }

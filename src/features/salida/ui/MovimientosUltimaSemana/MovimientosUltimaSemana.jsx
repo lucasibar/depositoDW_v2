@@ -14,7 +14,14 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
-  Alert
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -34,23 +41,41 @@ export const MovimientosUltimaSemana = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
 
-  // Calcular fecha por defecto (una semana atrás)
+  // Calcular fecha por defecto (una semana atrás) y cargar datos iniciales
   useEffect(() => {
     const fechaUnaSemanaAtras = new Date();
     fechaUnaSemanaAtras.setDate(fechaUnaSemanaAtras.getDate() - 7);
     const fechaFormateada = fechaUnaSemanaAtras.toISOString().split('T')[0];
     setFechaDesde(fechaFormateada);
+    
+    // Fecha actual como fecha hasta por defecto
+    const fechaActual = new Date().toISOString().split('T')[0];
+    setFechaHasta(fechaActual);
+    
+    // Cargar datos iniciales con las fechas por defecto
+    fetchMovimientos(fechaFormateada, fechaActual);
   }, []);
 
-  const fetchMovimientos = async (fecha = null) => {
+  const fetchMovimientos = async (fechaDesde = null, fechaHasta = null) => {
     setLoading(true);
     setError(null);
     
     try {
-      const url = fecha 
-        ? `/movimientos/salida-ultima-semana?fechaDesde=${fecha}`
-        : '/movimientos/salida-ultima-semana';
+      let url = '/movimientos/salida-ultima-semana';
+      const params = new URLSearchParams();
+      
+      if (fechaDesde) {
+        params.append('fechaDesde', fechaDesde);
+      }
+      if (fechaHasta) {
+        params.append('fechaHasta', fechaHasta);
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
       
       const response = await apiClient.get(url);
       setMovimientos(response.data);
@@ -62,18 +87,34 @@ export const MovimientosUltimaSemana = () => {
     }
   };
 
-  useEffect(() => {
-    if (fechaDesde) {
-      fetchMovimientos(fechaDesde);
-    }
-  }, [fechaDesde]);
+  // Remover el useEffect que se ejecuta automáticamente al cambiar fechas
+  // useEffect(() => {
+  //   if (fechaDesde && fechaHasta) {
+  //     fetchMovimientos(fechaDesde, fechaHasta);
+  //   }
+  // }, [fechaDesde, fechaHasta]);
 
-  const handleFechaChange = (event) => {
+  const handleFechaDesdeChange = (event) => {
     setFechaDesde(event.target.value);
   };
 
+  const handleFechaHastaChange = (event) => {
+    setFechaHasta(event.target.value);
+  };
+
   const handleBuscar = () => {
-    fetchMovimientos(fechaDesde);
+    if (!fechaDesde || !fechaHasta) {
+      setError('Por favor, complete ambas fechas antes de buscar');
+      return;
+    }
+    
+    if (new Date(fechaDesde) > new Date(fechaHasta)) {
+      setError('La fecha "desde" no puede ser mayor que la fecha "hasta"');
+      return;
+    }
+    
+    setError(null);
+    fetchMovimientos(fechaDesde, fechaHasta);
   };
 
   const calcularTotalKilos = (remitos) => {
@@ -115,44 +156,65 @@ export const MovimientosUltimaSemana = () => {
             Movimientos de Salida por Período
           </Typography>
           
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={6} md={4}>
-              <TextField
-                fullWidth
-                type="date"
-                label="Fecha desde"
-                value={fechaDesde}
-                onChange={handleFechaChange}
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: 'var(--color-background-primary)',
-                    '& fieldset': {
-                      borderColor: 'var(--color-divider)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'var(--color-primary)',
-                    },
-                  },
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Button
-                variant="contained"
-                onClick={handleBuscar}
-                startIcon={<CalendarIcon />}
-                sx={{ 
-                  backgroundColor: 'var(--color-primary)',
-                  '&:hover': {
-                    backgroundColor: 'var(--color-primary-dark)',
-                  }
-                }}
-              >
-                Buscar
-              </Button>
-            </Grid>
-          </Grid>
+                     <Grid container spacing={2} alignItems="center">
+             <Grid item xs={12} sm={6} md={3}>
+               <TextField
+                 fullWidth
+                 type="date"
+                 label="Fecha desde"
+                 value={fechaDesde}
+                 onChange={handleFechaDesdeChange}
+                 InputLabelProps={{ shrink: true }}
+                 sx={{
+                   '& .MuiOutlinedInput-root': {
+                     backgroundColor: 'var(--color-background-primary)',
+                     '& fieldset': {
+                       borderColor: 'var(--color-divider)',
+                     },
+                     '&:hover fieldset': {
+                       borderColor: 'var(--color-primary)',
+                     },
+                   },
+                 }}
+               />
+             </Grid>
+             <Grid item xs={12} sm={6} md={3}>
+               <TextField
+                 fullWidth
+                 type="date"
+                 label="Fecha hasta"
+                 value={fechaHasta}
+                 onChange={handleFechaHastaChange}
+                 InputLabelProps={{ shrink: true }}
+                 sx={{
+                   '& .MuiOutlinedInput-root': {
+                     backgroundColor: 'var(--color-background-primary)',
+                     '& fieldset': {
+                       borderColor: 'var(--color-divider)',
+                     },
+                     '&:hover fieldset': {
+                       borderColor: 'var(--color-primary)',
+                     },
+                   },
+                 }}
+               />
+             </Grid>
+             <Grid item xs={12} sm={6} md={3}>
+               <Button
+                 variant="contained"
+                 onClick={handleBuscar}
+                 startIcon={<CalendarIcon />}
+                 sx={{ 
+                   backgroundColor: 'var(--color-primary)',
+                   '&:hover': {
+                     backgroundColor: 'var(--color-primary-dark)',
+                   }
+                 }}
+               >
+                 Buscar
+               </Button>
+             </Grid>
+           </Grid>
         </CardContent>
       </Card>
 
@@ -177,7 +239,7 @@ export const MovimientosUltimaSemana = () => {
           {movimientos.map((grupo, index) => (
             <Card key={index} sx={{ mb: 2, backgroundColor: 'var(--color-background-primary)' }}>
               <CardContent>
-                <Accordion defaultExpanded>
+                <Accordion defaultExpanded={false}>
                   <AccordionSummary
                     expandIcon={<ExpandMoreIcon />}
                     sx={{
@@ -199,6 +261,12 @@ export const MovimientosUltimaSemana = () => {
                         color="secondary"
                         variant="outlined"
                       />
+                      <Chip
+                        icon={<ReceiptIcon />}
+                        label={`Remito #${grupo.remitos[0]?.numeroRemito || 'N/A'}`}
+                        color="info"
+                        variant="outlined"
+                      />
                       <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)' }}>
                         {grupo.remitos.length} remito{grupo.remitos.length !== 1 ? 's' : ''}
                       </Typography>
@@ -210,55 +278,32 @@ export const MovimientosUltimaSemana = () => {
                   
                   <AccordionDetails>
                     <Box>
-                      {grupo.remitos.map((remito, remitoIndex) => (
-                        <Card key={remitoIndex} sx={{ mb: 2, backgroundColor: 'var(--color-background-secondary)' }}>
-                          <CardContent>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                              <ReceiptIcon color="primary" />
-                              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                Remito #{remito.numeroRemito}
-                              </Typography>
-                            </Box>
-                            
-                            <Grid container spacing={2}>
-                              {remito.items.map((item, itemIndex) => (
-                                <Grid item xs={12} sm={6} md={4} key={itemIndex}>
-                                  <Card variant="outlined" sx={{ backgroundColor: 'var(--color-background-primary)' }}>
-                                    <CardContent sx={{ p: 2 }}>
-                                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                                        {item.descripcion}
-                                      </Typography>
-                                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                        <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
-                                          <InventoryIcon sx={{ fontSize: '0.8rem', mr: 0.5 }} />
-                                          Partida: {item.partida}
-                                        </Typography>
-                                        <Typography variant="caption" sx={{ color: 'var(--color-text-secondary)' }}>
-                                          Categoría: {item.categoria}
-                                        </Typography>
-                                        <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                                          <Chip
-                                            label={`${item.kilos} kg`}
-                                            size="small"
-                                            color="primary"
-                                            variant="outlined"
-                                          />
-                                          <Chip
-                                            label={`${item.unidades} unid.`}
-                                            size="small"
-                                            color="secondary"
-                                            variant="outlined"
-                                          />
-                                        </Box>
-                                      </Box>
-                                    </CardContent>
-                                  </Card>
-                                </Grid>
-                              ))}
-                            </Grid>
-                          </CardContent>
-                        </Card>
-                      ))}
+                      <TableContainer component={Paper} sx={{ backgroundColor: 'var(--color-background-secondary)' }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell sx={{ fontWeight: 600 }}>Descripción</TableCell>
+                              <TableCell sx={{ fontWeight: 600 }}>Categoría</TableCell>
+                              <TableCell sx={{ fontWeight: 600 }}>Partida</TableCell>
+                              <TableCell sx={{ fontWeight: 600 }}>Kilos</TableCell>
+                              <TableCell sx={{ fontWeight: 600 }}>Unidades</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {grupo.remitos.flatMap((remito, remitoIndex) => 
+                              remito.items.map((item, itemIndex) => (
+                                <TableRow key={`${remitoIndex}-${itemIndex}`}>
+                                  <TableCell>{item.descripcion}</TableCell>
+                                  <TableCell>{item.categoria}</TableCell>
+                                  <TableCell>{item.partida}</TableCell>
+                                  <TableCell>{item.kilos}</TableCell>
+                                  <TableCell>{item.unidades}</TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
                     </Box>
                   </AccordionDetails>
                 </Accordion>

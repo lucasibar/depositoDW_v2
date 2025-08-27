@@ -82,6 +82,7 @@ export const useSalida = (proveedores, items, clientes, proveedorSeleccionado, c
       item: !!formData.item,
       partida: !!formData.partida,
       cantidad: !!(formData.kilos || formData.unidades),
+      fecha: !!formData.fecha,
       // Posición: debe tener rack+fila+nivel O pasillo, pero no ambos
       posicionRack: !!(formData.rack && formData.fila && formData.nivel),
       posicionPasillo: !!formData.pasillo
@@ -104,6 +105,7 @@ export const useSalida = (proveedores, items, clientes, proveedorSeleccionado, c
       validaciones.item &&
       validaciones.partida &&
       validaciones.cantidad &&
+      validaciones.fecha &&
       posicionValida
     );
     
