@@ -70,9 +70,12 @@ export const AdminPage = () => {
   };
 
   const renderDashboardTab = () => (
-    <Box>
+    <Box sx={{ maxWidth: '100%', overflow: 'hidden' }}>
       {/* Estadísticas */}
-      <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: isMobile ? 3 : 4 }}>
+      <Grid container spacing={isMobile ? 2 : 3} sx={{ 
+        mb: isMobile ? 3 : 4,
+        maxWidth: '100%'
+      }}>
         <Grid item xs={6} sm={6} md={3}>
           <ModernCard
             title="Usuarios"
@@ -275,7 +278,13 @@ export const AdminPage = () => {
 
   return (
     <AppLayout user={user} onLogout={handleLogout}>
-      <Box sx={{ p: isMobile ? 2 : 4 }}>
+      <Box sx={{ 
+        p: isMobile ? 2 : 4,
+        width: '100%',
+        maxWidth: '100%',
+        overflow: 'hidden',
+        boxSizing: 'border-box'
+      }}>
         {/* Header compacto */}
         <Box sx={{ mb: isMobile ? 2 : 4 }}>
           <Typography 
@@ -300,24 +309,37 @@ export const AdminPage = () => {
         </Box>
 
         {/* Tabs compactos */}
-        <Box sx={{ borderBottom: 1, borderColor: 'var(--color-border)', mb: isMobile ? 2 : 3 }}>
+        <Box sx={{ 
+          borderBottom: 1, 
+          borderColor: 'var(--color-border)', 
+          mb: isMobile ? 2 : 3,
+          maxWidth: '100%',
+          overflow: 'hidden'
+        }}>
           <Tabs 
             value={activeTab} 
             onChange={handleTabChange}
-            variant={isMobile ? "scrollable" : "standard"}
-            scrollButtons={isMobile ? "auto" : false}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
             sx={{
+              maxWidth: '100%',
               '& .MuiTab-root': {
                 textTransform: 'none',
                 fontWeight: 600,
-                minWidth: isMobile ? 80 : 160,
-                fontSize: isMobile ? '0.75rem' : '0.875rem'
+                minWidth: isMobile ? 80 : 120,
+                maxWidth: isMobile ? 120 : 160,
+                fontSize: isMobile ? '0.75rem' : '0.875rem',
+                whiteSpace: 'nowrap'
               },
               '& .Mui-selected': {
                 color: 'var(--color-primary)'
               },
               '& .MuiTabs-indicator': {
                 backgroundColor: 'var(--color-primary)'
+              },
+              '& .MuiTabs-scrollButtons': {
+                color: 'var(--color-primary)'
               }
             }}
           >
@@ -338,7 +360,10 @@ export const AdminPage = () => {
         </Box>
 
         {/* Tab Content */}
-        <Box>
+        <Box sx={{ 
+          maxWidth: '100%',
+          overflow: 'hidden'
+        }}>
           {activeTab === 'dashboard' && renderDashboardTab()}
           {activeTab === 'users' && renderUsersTab()}
           {activeTab === 'system' && renderSystemTab()}

@@ -345,7 +345,8 @@ export const AdicionRapidaPage = () => {
         px: { xs: 1, sm: 2, md: 3 }, 
         py: 3,
         overflow: 'hidden',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        minHeight: '100vh'
       }}>
           <Typography variant="h4" component="h1" gutterBottom>
             Adición Rápida
@@ -353,7 +354,14 @@ export const AdicionRapidaPage = () => {
           
           {/* Formulario de entrada */}
           <LoadingInfo loading={loading} error={error}>
-            <Paper sx={{ p: 3, mb: 3, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+            <Paper sx={{ 
+              p: 3, 
+              mb: 3, 
+              width: '100%', 
+              maxWidth: '100%', 
+              overflow: 'hidden',
+              boxSizing: 'border-box'
+            }}>
             <Typography variant="h6" gutterBottom>
               Nuevo Registro
             </Typography>
@@ -365,8 +373,15 @@ export const AdicionRapidaPage = () => {
               </Alert>
             )}
             
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'flex-end' }}>
-               <Box sx={{ flex: '1 1 200px', minWidth: '180px' }}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: 1, 
+              alignItems: 'flex-end',
+              maxWidth: '100%',
+              overflow: 'hidden'
+            }}>
+               <Box sx={{ flex: '1 1 200px', minWidth: '150px', maxWidth: '200px' }}>
                  <AutocompleteSelect
                    label="Proveedor"
                    value={formData.proveedor}
@@ -379,7 +394,7 @@ export const AdicionRapidaPage = () => {
                  />
                </Box>
                
-                               <Box sx={{ flex: '1 1 250px', minWidth: '200px' }}>
+               <Box sx={{ flex: '1 1 250px', minWidth: '180px', maxWidth: '250px' }}>
                   <AutocompleteSelect
                     label="Item"
                     value={formData.item}
@@ -398,30 +413,30 @@ export const AdicionRapidaPage = () => {
                     loading={loading}
                     disabled={!formData.proveedor}
                     noOptionsText={formData.proveedor && itemsFiltrados.length === 0 ? "No hay items para este proveedor" : "No hay opciones"}
-                                         extraOption={formData.proveedor ? (
-                       <Box 
-                         sx={{ 
-                           display: 'flex', 
-                           alignItems: 'center', 
-                           gap: 1, 
-                           color: '#000000',
-                           cursor: 'pointer',
-                           px: 1,
-                           py: 0.5,
-                           '&:hover': {
-                             backgroundColor: '#f0f0f0'
-                           }
-                         }}
-                         onClick={() => setOpenNuevoItem(true)}
-                       >
-                         <span style={{ fontSize: '14px' }}>+</span>
-                         <span style={{ fontSize: '12px' }}>Agregar nuevo item</span>
-                       </Box>
-                     ) : null}
+                    extraOption={formData.proveedor ? (
+                      <Box 
+                        sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: 1, 
+                          color: '#000000',
+                          cursor: 'pointer',
+                          px: 1,
+                          py: 0.5,
+                          '&:hover': {
+                            backgroundColor: '#f0f0f0'
+                          }
+                        }}
+                        onClick={() => setOpenNuevoItem(true)}
+                      >
+                        <span style={{ fontSize: '14px' }}>+</span>
+                        <span style={{ fontSize: '12px' }}>Agregar nuevo item</span>
+                      </Box>
+                    ) : null}
                   />
                 </Box>
               
-              <Box sx={{ flex: '1 1 120px', minWidth: '100px' }}>
+              <Box sx={{ flex: '1 1 120px', minWidth: '80px', maxWidth: '120px' }}>
                 <CompactInput
                   label="Partida"
                   value={formData.partida}
@@ -429,7 +444,7 @@ export const AdicionRapidaPage = () => {
                 />
               </Box>
               
-              <Box sx={{ flex: '1 1 100px', minWidth: '80px' }}>
+              <Box sx={{ flex: '1 1 100px', minWidth: '70px', maxWidth: '100px' }}>
                 <CompactInput
                   label="Kilos"
                   type="number"
@@ -438,7 +453,7 @@ export const AdicionRapidaPage = () => {
                 />
               </Box>
               
-              <Box sx={{ flex: '1 1 100px', minWidth: '80px' }}>
+              <Box sx={{ flex: '1 1 100px', minWidth: '70px', maxWidth: '100px' }}>
                 <CompactInput
                   label="Unidades"
                   type="number"
@@ -447,7 +462,7 @@ export const AdicionRapidaPage = () => {
                 />
               </Box>
               
-              <Box sx={{ flex: '1 1 80px', minWidth: '70px' }}>
+              <Box sx={{ flex: '1 1 80px', minWidth: '60px', maxWidth: '80px' }}>
                 <CompactInput
                   label="Rack"
                   value={formData.rack}
@@ -455,7 +470,7 @@ export const AdicionRapidaPage = () => {
                 />
               </Box>
               
-              <Box sx={{ flex: '1 1 80px', minWidth: '70px' }}>
+              <Box sx={{ flex: '1 1 80px', minWidth: '60px', maxWidth: '80px' }}>
                 <CompactInput
                   label="Fila"
                   value={formData.fila}
@@ -463,7 +478,7 @@ export const AdicionRapidaPage = () => {
                 />
               </Box>
               
-              <Box sx={{ flex: '1 1 100px', minWidth: '80px' }}>
+              <Box sx={{ flex: '1 1 100px', minWidth: '70px', maxWidth: '100px' }}>
                 <CompactInput
                   label="Nivel (AB)"
                   value={formData.nivel}
@@ -471,7 +486,7 @@ export const AdicionRapidaPage = () => {
                 />
               </Box>
               
-              <Box sx={{ flex: '1 1 100px', minWidth: '80px' }}>
+              <Box sx={{ flex: '1 1 100px', minWidth: '70px', maxWidth: '100px' }}>
                 <CompactInput
                   label="Pasillo"
                   value={formData.pasillo}
@@ -502,7 +517,7 @@ export const AdicionRapidaPage = () => {
 
                      {/* Tabla de registros */}
            {registros.length > 0 && (
-             <Paper sx={{ p: 3, mb: 3, width: '100%', maxWidth: '100%', overflow: 'auto' }}>
+             <Paper sx={{ p: 3, mb: 3, width: '100%', maxWidth: '100%' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6">
                   Registros ({registros.length})
@@ -516,35 +531,53 @@ export const AdicionRapidaPage = () => {
                 </Button>
               </Box>
               
-              <TableContainer>
-                <Table size="small">
+              <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+                <Table size="small" sx={{ minWidth: 800 }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Proveedor</TableCell>
-                      <TableCell>Item</TableCell>
-                      <TableCell>Partida</TableCell>
-                      <TableCell>Kilos</TableCell>
-                      <TableCell>Unidades</TableCell>
-                      <TableCell>Rack</TableCell>
-                      <TableCell>Fila</TableCell>
-                      <TableCell>Nivel</TableCell>
-                      <TableCell>Pasillo</TableCell>
-                      <TableCell>Acciones</TableCell>
+                      <TableCell sx={{ minWidth: 120, maxWidth: 150 }}>Proveedor</TableCell>
+                      <TableCell sx={{ minWidth: 200, maxWidth: 250 }}>Item</TableCell>
+                      <TableCell sx={{ minWidth: 80, maxWidth: 100 }}>Partida</TableCell>
+                      <TableCell sx={{ minWidth: 60, maxWidth: 80 }}>Kilos</TableCell>
+                      <TableCell sx={{ minWidth: 80, maxWidth: 100 }}>Unidades</TableCell>
+                      <TableCell sx={{ minWidth: 50, maxWidth: 70 }}>Rack</TableCell>
+                      <TableCell sx={{ minWidth: 50, maxWidth: 70 }}>Fila</TableCell>
+                      <TableCell sx={{ minWidth: 60, maxWidth: 80 }}>Nivel</TableCell>
+                      <TableCell sx={{ minWidth: 60, maxWidth: 80 }}>Pasillo</TableCell>
+                      <TableCell sx={{ minWidth: 80, maxWidth: 100 }}>Acciones</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {registros.map((registro, index) => (
                       <TableRow key={registro.id}>
-                        <TableCell>{registro.proveedor}</TableCell>
-                        <TableCell>{registro.item}</TableCell>
-                        <TableCell>{registro.partida}</TableCell>
-                        <TableCell>{registro.kilos}</TableCell>
-                        <TableCell>{registro.unidades}</TableCell>
-                        <TableCell>{registro.rack}</TableCell>
-                        <TableCell>{registro.fila}</TableCell>
-                        <TableCell>{registro.nivel}</TableCell>
-                        <TableCell>{registro.pasillo}</TableCell>
-                        <TableCell>
+                        <TableCell sx={{ minWidth: 120, maxWidth: 150, wordBreak: 'break-word' }}>
+                          {registro.proveedor}
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 200, maxWidth: 250, wordBreak: 'break-word' }}>
+                          {registro.item}
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 80, maxWidth: 100 }}>
+                          {registro.partida}
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 60, maxWidth: 80 }}>
+                          {registro.kilos}
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 80, maxWidth: 100 }}>
+                          {registro.unidades}
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 50, maxWidth: 70 }}>
+                          {registro.rack}
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 50, maxWidth: 70 }}>
+                          {registro.fila}
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 60, maxWidth: 80 }}>
+                          {registro.nivel}
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 60, maxWidth: 80 }}>
+                          {registro.pasillo}
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 80, maxWidth: 100 }}>
                           <IconButton
                             color="error"
                             size="small"

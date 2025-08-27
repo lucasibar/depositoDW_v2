@@ -243,12 +243,15 @@ export const MaterialesPage = () => {
               display: 'flex',
               flexWrap: 'wrap',
               gap: isMobile ? 1 : 2,
-              alignItems: 'flex-end'
+              alignItems: 'flex-end',
+              maxWidth: '100%',
+              overflow: 'hidden'
             }}>
               {/* Selector de Proveedor */}
               <Box sx={{ 
                 flex: '1 1 200px',
-                minWidth: '200px'
+                minWidth: '150px',
+                maxWidth: '200px'
               }}>
                                  <AutocompleteSelect
                    label="Proveedor"
@@ -272,7 +275,8 @@ export const MaterialesPage = () => {
               {/* Selector de Item */}
               <Box sx={{ 
                 flex: '1 1 300px',
-                minWidth: '250px'
+                minWidth: '200px',
+                maxWidth: '300px'
               }}>
                                  <AutocompleteSelect
                    label="Item"

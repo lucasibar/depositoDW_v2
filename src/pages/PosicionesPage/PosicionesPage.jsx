@@ -88,6 +88,11 @@ export const PosicionesPage = () => {
         newData.rack = '';
         newData.fila = '';
         newData.nivel = '';
+        
+        // Si se selecciona "entrada", ejecutar la búsqueda automáticamente
+        if (value === 'entrada') {
+          setTimeout(() => handleBuscarEntrada(), 0);
+        }
       } else {
         // Si se selecciona rack, fila o nivel, limpiar pasillo
         newData[field] = value;
@@ -338,6 +343,12 @@ export const PosicionesPage = () => {
                   <MenuItem value="">
                     <em>Selecciona un pasillo</em>
                   </MenuItem>
+                  <MenuItem value="entrada">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <InventoryIcon fontSize="small" />
+                      Entrada
+                    </Box>
+                  </MenuItem>
                   {pasillos.map((pasillo) => (
                     <MenuItem key={pasillo} value={pasillo}>
                       Pasillo {pasillo}
@@ -440,32 +451,7 @@ export const PosicionesPage = () => {
               </Button>
             </Box>
 
-            {/* Botón de búsqueda en entrada */}
-            <Box sx={{ 
-              flex: '0 0 auto',
-              minWidth: '140px'
-            }}>
-              <Button
-                variant="outlined"
-                color="secondary"
-                size="large"
-                onClick={handleBuscarEntrada}
-                disabled={buscando}
-                startIcon={buscando ? <CircularProgress size={20} /> : <InventoryIcon />}
-                sx={{ 
-                  minWidth: 140,
-                  height: 56,
-                  borderColor: 'var(--color-secondary)',
-                  color: 'var(--color-secondary)',
-                  '&:hover': {
-                    borderColor: 'var(--color-secondary-dark)',
-                    backgroundColor: 'var(--color-secondary-light)'
-                  }
-                }}
-              >
-                {buscando ? 'Buscando...' : 'Entrada'}
-              </Button>
-            </Box>
+
           </Box>
         </ModernCard>
 

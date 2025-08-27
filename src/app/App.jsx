@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import Login from '../pages/Login/Login';
 
 import { ComprasPage } from '../pages/ComprasPage/ComprasPage';
+import { DashboardComprasPage } from '../pages/DashboardComprasPage/DashboardComprasPage';
 import { AdminPage } from '../pages/AdminPage/AdminPage';
 import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
 import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
@@ -43,6 +44,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['compras', 'admin']}>
               <ComprasPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Dashboard de Compras - Accesible solo para compras y admin */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/dashboard-compras" 
+          element={
+            <RoleProtectedRoute allowedRoles={['compras', 'admin']}>
+              <DashboardComprasPage />
             </RoleProtectedRoute>
           } 
         />

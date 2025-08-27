@@ -114,7 +114,13 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           label: 'Compras',
           path: '/depositoDW_v2/compras',
           icon: <ShoppingCartIcon />,
-          show: user?.role === 'admin'
+          show: user?.role === 'admin' || user?.role === 'compras'
+        },
+        {
+          label: 'Dashboard Compras',
+          path: '/depositoDW_v2/dashboard-compras',
+          icon: <DashboardIcon />,
+          show: user?.role === 'admin' || user?.role === 'compras'
         },
         {
           label: 'Calidad',
@@ -377,7 +383,13 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ 
+      display: 'flex', 
+      minHeight: '100vh',
+      width: '100%',
+      maxWidth: '100%',
+      overflow: 'hidden'
+    }}>
       {/* AppBar para móvil */}
       {isMobile && (
         <AppBar 
@@ -449,7 +461,10 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           flexGrow: 1,
           backgroundColor: 'var(--color-background)',
           minHeight: '100vh',
-          pt: isMobile ? '64px' : 0
+          pt: isMobile ? '64px' : 0,
+          width: '100%',
+          maxWidth: '100%',
+          overflow: 'hidden'
         }}
       >
         {children}

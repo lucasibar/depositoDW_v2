@@ -1,0 +1,1 @@
+export { DashboardComprasCard } from './DashboardComprasCard';
