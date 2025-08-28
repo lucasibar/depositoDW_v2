@@ -30,9 +30,26 @@ export const enviarAdicionRapida = createAsyncThunk(
       dispatch(setLoading(true));
       dispatch(setError(null));
       
-      const response = await axios.post(`${API_CONFIG.BASE_URL}/posiciones/adicion_rapida`, {
-        registros: registros
-      });
+      // Simplificar los datos enviados - solo itemId y datos esenciales
+      const registrosSimplificados = registros.map(registro => ({
+        itemId: registro.itemId,
+        partida: registro.partida, // Solo el número de partida
+        kilos: registro.kilos,
+        unidades: registro.unidades,
+        // Datos de posición para encontrarla
+        rack: registro.rack,
+        fila: registro.fila,
+        nivel: registro.nivel,
+        pasillo: registro.pasillo
+      }));
+      
+      const datosParaEnviar = {
+        registros: registrosSimplificados
+      };
+      
+      console.log('📦 JSON enviado en adición rápida:', JSON.stringify(datosParaEnviar, null, 2));
+      
+      const response = await axios.post(`${API_CONFIG.BASE_URL}/posiciones/adicion_rapida`, datosParaEnviar);
       
       return response.data;
     } catch (error) {

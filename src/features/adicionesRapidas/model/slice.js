@@ -13,10 +13,7 @@ const adicionesRapidasSlice = createSlice({
   initialState,
   reducers: {
     agregarRegistro: (state, action) => {
-      console.log('Slice: Agregando registro:', action.payload);
-      console.log('Slice: Registros antes:', state.registros.length);
       state.registros.push(action.payload);
-      console.log('Slice: Registros después:', state.registros.length);
     },
     limpiarRegistros: (state) => {
       state.registros = [];

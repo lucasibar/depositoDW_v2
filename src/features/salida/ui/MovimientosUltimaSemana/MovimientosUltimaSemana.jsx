@@ -285,6 +285,7 @@ export const MovimientosUltimaSemana = () => {
                               <TableCell sx={{ fontWeight: 600 }}>Descripción</TableCell>
                               <TableCell sx={{ fontWeight: 600 }}>Categoría</TableCell>
                               <TableCell sx={{ fontWeight: 600 }}>Partida</TableCell>
+                              <TableCell sx={{ fontWeight: 600 }}>Proveedor</TableCell>
                               <TableCell sx={{ fontWeight: 600 }}>Kilos</TableCell>
                               <TableCell sx={{ fontWeight: 600 }}>Unidades</TableCell>
                             </TableRow>
@@ -296,6 +297,7 @@ export const MovimientosUltimaSemana = () => {
                                   <TableCell>{item.descripcion}</TableCell>
                                   <TableCell>{item.categoria}</TableCell>
                                   <TableCell>{item.partida}</TableCell>
+                                  <TableCell>{item.proveedor}</TableCell>
                                   <TableCell>{item.kilos}</TableCell>
                                   <TableCell>{item.unidades}</TableCell>
                                 </TableRow>
