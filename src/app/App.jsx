@@ -12,6 +12,7 @@ import { AdicionRapidaPage } from '../pages/AdicionRapidaPage/AdicionRapidaPage'
 import { MaterialesPage } from '../pages/MaterialesPage/MaterialesPage';
 import { PosicionesPage } from '../pages/PosicionesPage/PosicionesPage';
 import { StockPage } from '../pages/StockPage/StockPage';
+import { ReporteStockPage } from '../pages/ReporteStockPage/ReporteStockPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 
 
@@ -132,6 +133,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['compras', 'admin', 'deposito']}>
               <StockPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Reporte Stock Consolidado - Accesible para compras, admin y deposito */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/reporte-stock" 
+          element={
+            <RoleProtectedRoute allowedRoles={['compras', 'admin', 'deposito']}>
+              <ReporteStockPage />
             </RoleProtectedRoute>
           } 
         />

@@ -84,6 +84,18 @@ const AppHeader = ({ user }) => {
         >
           Admin
         </Button>
+        <Button 
+          color="inherit" 
+          onClick={() => navigate('/depositoDW_v2/reporte-stock')}
+          sx={{ 
+            border: '1px solid rgba(255,255,255,0.3)',
+            '&:hover': {
+              backgroundColor: 'rgba(255,255,255,0.1)'
+            }
+          }}
+        >
+          Reporte Stock
+        </Button>
       </>
     );
   };

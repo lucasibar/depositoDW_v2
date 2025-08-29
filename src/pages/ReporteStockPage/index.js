@@ -1,0 +1,1 @@
+export { ReporteStockPage } from './ReporteStockPage';

@@ -1,0 +1,41 @@
+.exportButton {
+  min-width: 220px;
+  height: 40px;
+  font-weight: 600;
+  text-transform: none;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.exportButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.exportButton:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.exportButton:disabled {
+  background: #e0e0e0;
+  color: #9e9e9e;
+  transform: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .exportButton {
+    min-width: 100%;
+    height: 44px;
+    font-size: 13px;
+  }
+}
