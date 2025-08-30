@@ -19,7 +19,8 @@ import {
   Search as SearchIcon,
   Inventory as InventoryIcon,
   SwapHoriz as SwapIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  LocalShipping as LocalShippingIcon
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
@@ -31,6 +32,7 @@ import { useNavegacionRapidaPosiciones } from '../../features/adicionesRapidas/h
 import { useNavegacionRapidaStock } from '../../features/adicionesRapidas/hooks/useNavegacionRapidaStock';
 import MovimientoInterno from '../../components/MovimientoInterno/MovimientoInterno';
 import AjustePosicionModal from '../../features/stock/ui/AjustePosicionModal';
+import RemitoSalidaDesdePosicionModal from '../../features/salida/ui/RemitoSalidaDesdePosicionModal/RemitoSalidaDesdePosicionModal';
 import { apiClient } from '../../config/api';
 
 export const PosicionesPage = () => {
@@ -64,6 +66,10 @@ export const PosicionesPage = () => {
   // Estados para ajuste de stock
   const [modalAjusteOpen, setModalAjusteOpen] = useState(false);
   const [materialSeleccionado, setMaterialSeleccionado] = useState(null);
+  
+  // Estados para remito de salida desde posición
+  const [modalRemitoSalidaOpen, setModalRemitoSalidaOpen] = useState(false);
+  const [resultadoSeleccionado, setResultadoSeleccionado] = useState(null);
 
   // Redux state
   const navegacionRapidaPosiciones = useSelector(selectNavegacionRapidaPosiciones);
@@ -421,6 +427,40 @@ export const PosicionesPage = () => {
     handleBuscar();
   };
 
+  // Handlers para remito de salida desde posición
+  const handleAbrirModalRemitoSalida = (resultado) => {
+    console.log('Abriendo modal de remito de salida para resultado:', resultado);
+    console.log('Posición actual:', posicionActual);
+    
+    if (!posicionActual) {
+      setNotification({
+        open: true,
+        message: 'Error: No se pudo obtener la información de la posición',
+        severity: 'error'
+      });
+      return;
+    }
+    
+    setResultadoSeleccionado(resultado);
+    setModalRemitoSalidaOpen(true);
+  };
+
+  const handleCerrarModalRemitoSalida = () => {
+    setModalRemitoSalidaOpen(false);
+    setResultadoSeleccionado(null);
+  };
+
+  const handleRemitoSalidaExitoso = () => {
+    console.log('Remito de salida creado exitosamente, recargando resultados...');
+    setNotification({
+      open: true,
+      message: 'Remito de salida creado correctamente',
+      severity: 'success'
+    });
+    // Recargar los resultados para mostrar el stock actualizado
+    handleBuscar();
+  };
+
   // Handler para click en carta de item
   const handleItemClick = (resultado) => {
     console.log('Item clickeado:', resultado);
@@ -651,33 +691,59 @@ export const PosicionesPage = () => {
                           {resultado.item?.categoria || 'N/A'} - {resultado.item?.descripcion || 'N/A'}
                         </Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<EditIcon />}
-                          onClick={() => handleAbrirModalAjuste(resultado)}
-                          sx={{
-                            borderColor: 'var(--color-primary)',
-                            color: 'var(--color-primary)',
-                            '&:hover': {
-                              borderColor: 'var(--color-primary-dark)',
-                              backgroundColor: 'var(--color-primary-light)'
-                            }
-                          }}
-                        >
-                          Ajustar
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<SwapIcon />}
-                          onClick={() => handleMovimientoInterno(resultado)}
-                          disabled={!posicionActual}
-                        >
-                          Mover
-                        </Button>
-                      </Box>
+                                             <Box sx={{ display: 'flex', gap: 1 }}>
+                         <Button
+                           variant="outlined"
+                           size="small"
+                           startIcon={<EditIcon />}
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleAbrirModalAjuste(resultado);
+                           }}
+                           sx={{
+                             borderColor: 'var(--color-primary)',
+                             color: 'var(--color-primary)',
+                             '&:hover': {
+                               borderColor: 'var(--color-primary-dark)',
+                               backgroundColor: 'var(--color-primary-light)'
+                             }
+                           }}
+                         >
+                           Ajustar
+                         </Button>
+                         <Button
+                           variant="outlined"
+                           size="small"
+                           startIcon={<SwapIcon />}
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleMovimientoInterno(resultado);
+                           }}
+                           disabled={!posicionActual}
+                         >
+                           Mover
+                         </Button>
+                         <Button
+                           variant="outlined"
+                           size="small"
+                           startIcon={<LocalShippingIcon />}
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handleAbrirModalRemitoSalida(resultado);
+                           }}
+                           disabled={!posicionActual}
+                           sx={{
+                             borderColor: 'var(--color-secondary)',
+                             color: 'var(--color-secondary)',
+                             '&:hover': {
+                               borderColor: 'var(--color-secondary-dark)',
+                               backgroundColor: 'var(--color-secondary-light)'
+                             }
+                           }}
+                         >
+                           Remito Salida
+                         </Button>
+                       </Box>
                     </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -752,14 +818,23 @@ export const PosicionesPage = () => {
           onMovimientoCompletado={handleMovimientoCompletado}
         />
 
-        {/* Modal de Ajuste de Stock desde Posiciones */}
-        <AjustePosicionModal
-          open={modalAjusteOpen}
-          onClose={handleCerrarModalAjuste}
-          material={materialSeleccionado}
-          onAjusteExitoso={handleAjusteExitoso}
-        />
-      </Box>
-    </AppLayout>
-  );
-};
+                 {/* Modal de Ajuste de Stock desde Posiciones */}
+         <AjustePosicionModal
+           open={modalAjusteOpen}
+           onClose={handleCerrarModalAjuste}
+           material={materialSeleccionado}
+           onAjusteExitoso={handleAjusteExitoso}
+         />
+
+         {/* Modal de Remito de Salida desde Posición */}
+         <RemitoSalidaDesdePosicionModal
+           open={modalRemitoSalidaOpen}
+           onClose={handleCerrarModalRemitoSalida}
+           resultado={resultadoSeleccionado}
+           posicionActual={posicionActual}
+           onSubmit={handleRemitoSalidaExitoso}
+         />
+       </Box>
+     </AppLayout>
+   );
+ };
