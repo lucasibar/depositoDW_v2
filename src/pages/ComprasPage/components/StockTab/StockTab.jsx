@@ -10,6 +10,7 @@ import { Refresh as RefreshIcon } from '@mui/icons-material';
 import { useStockData } from "../../../../features/stock/hooks";
 import { useComprasActions } from "../../../../features/compras/hooks";
 import { LoadingState, ErrorState, StockContent } from "../../../../features/stock/ui";
+import { MaterialDetailModal } from "../../../../shared/ui/MaterialDetailModal";
 import ModernCard from "../../../../shared/ui/ModernCard/ModernCard";
 
 export const StockTab = () => {
@@ -20,11 +21,18 @@ export const StockTab = () => {
     filteredMaterials,
     isLoading,
     error,
+    searchTerm,
     handleSearch,
     handleRetry
   } = useStockData();
 
-  const { handleMaterialClick } = useComprasActions();
+  const { 
+    handleMaterialClick, 
+    modalOpen, 
+    selectedMaterial, 
+    handleCloseModal,
+    handleNavigateToMateriales
+  } = useComprasActions();
 
   if (isLoading) {
     return <LoadingState />;
@@ -58,6 +66,14 @@ export const StockTab = () => {
         filteredMaterials={filteredMaterials}
         onSearch={handleSearch}
         onMaterialClick={handleMaterialClick}
+      />
+      
+      {/* Modal de detalles del material */}
+      <MaterialDetailModal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        material={selectedMaterial}
+        onNavigateToMateriales={handleNavigateToMateriales}
       />
     </Box>
   );

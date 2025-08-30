@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { 
   Box, 
   Typography, 
@@ -26,6 +26,9 @@ import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { checkAuthentication, handleLogout } from '../../features/stock/utils/navigationUtils';
 import { useNavigate } from 'react-router-dom';
 import { buscarItemsPorPosicion } from '../../features/adicionesRapidas/model/thunks';
+import { selectNavegacionRapidaPosiciones } from '../../features/adicionesRapidas/model/selectors';
+import { useNavegacionRapidaPosiciones } from '../../features/adicionesRapidas/hooks/useNavegacionRapidaPosiciones';
+import { useNavegacionRapidaStock } from '../../features/adicionesRapidas/hooks/useNavegacionRapidaStock';
 import MovimientoInterno from '../../components/MovimientoInterno/MovimientoInterno';
 import AjustePosicionModal from '../../features/stock/ui/AjustePosicionModal';
 import { apiClient } from '../../config/api';
@@ -62,6 +65,13 @@ export const PosicionesPage = () => {
   const [modalAjusteOpen, setModalAjusteOpen] = useState(false);
   const [materialSeleccionado, setMaterialSeleccionado] = useState(null);
 
+  // Redux state
+  const navegacionRapidaPosiciones = useSelector(selectNavegacionRapidaPosiciones);
+
+  // Hook para navegación rápida
+  const { limpiarEstadoNavegacion } = useNavegacionRapidaPosiciones();
+  const { navegarAStockConBusqueda } = useNavegacionRapidaStock();
+
   // Inicialización y autenticación
   useEffect(() => {
     const currentUser = checkAuthentication(navigate);
@@ -69,6 +79,60 @@ export const PosicionesPage = () => {
       setUser(currentUser);
     }
   }, [navigate]);
+
+  // Procesar navegación rápida cuando llegue desde materiales
+  useEffect(() => {
+    if (navegacionRapidaPosiciones.ejecutarBusqueda && navegacionRapidaPosiciones.posicionSeleccionada) {
+      console.log('Procesando navegación rápida a posiciones:', navegacionRapidaPosiciones);
+      
+      // Configurar el formulario con los datos de navegación rápida
+      const posicion = navegacionRapidaPosiciones.posicionSeleccionada;
+      
+      if (posicion.rack && posicion.fila && posicion.nivel) {
+        // Posición con rack, fila y nivel
+        setFormData({
+          rack: posicion.rack,
+          fila: posicion.fila,
+          nivel: posicion.nivel,
+          pasillo: ''
+        });
+        
+        // Ejecutar búsqueda automáticamente
+        setTimeout(() => {
+          handleBuscarAutomatica(posicion);
+        }, 100);
+      } else if (posicion.pasillo) {
+        // Posición con pasillo
+        setFormData({
+          rack: '',
+          fila: '',
+          nivel: '',
+          pasillo: posicion.pasillo
+        });
+        
+        // Ejecutar búsqueda automáticamente
+        setTimeout(() => {
+          handleBuscarAutomaticaPasillo(posicion.pasillo);
+        }, 100);
+      } else if (posicion.entrada === true) {
+        // Posición de entrada
+        setFormData({
+          rack: '',
+          fila: '',
+          nivel: '',
+          pasillo: 'entrada'
+        });
+        
+        // Ejecutar búsqueda automáticamente
+        setTimeout(() => {
+          handleBuscarEntrada();
+        }, 100);
+      }
+
+      // Limpiar el estado de navegación rápida
+      limpiarEstadoNavegacion();
+    }
+  }, [navegacionRapidaPosiciones, limpiarEstadoNavegacion]);
 
   // Handlers de navegación
   const handleLogoutClick = () => {
@@ -145,6 +209,90 @@ export const PosicionesPage = () => {
       setNotification({
         open: true,
         message: error.message || 'Error al buscar items en la posición',
+        severity: 'error'
+      });
+    } finally {
+      setBuscando(false);
+    }
+  };
+
+  // Función para búsqueda automática desde navegación rápida (rack/fila/nivel)
+  const handleBuscarAutomatica = async (posicion) => {
+    if (!posicion.rack || !posicion.fila || !posicion.nivel) {
+      console.warn('Posición no válida para búsqueda automática:', posicion);
+      return;
+    }
+
+    setBuscando(true);
+    try {
+      console.log('Búsqueda automática para posición:', posicion);
+      
+      // Obtener la posición actual
+      const response = await apiClient.get(`/posiciones?rack=${posicion.rack}&fila=${posicion.fila}&AB=${posicion.nivel}`);
+      const posicionActual = response.data[0];
+      setPosicionActual(posicionActual);
+      
+      // Crear objeto con la estructura esperada
+      const datosPosicion = {
+        rack: posicion.rack,
+        fila: posicion.fila,
+        nivel: posicion.nivel
+      };
+      
+      const resultado = await dispatch(buscarItemsPorPosicion(datosPosicion)).unwrap();
+      
+      setResultados(resultado);
+      setNotification({
+        open: true,
+        message: `Búsqueda automática: Se encontraron ${resultado.length} items en la posición ${posicion.rack}-${posicion.fila}-${posicion.nivel}`,
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error en búsqueda automática:', error);
+      setNotification({
+        open: true,
+        message: error.message || 'Error en búsqueda automática',
+        severity: 'error'
+      });
+    } finally {
+      setBuscando(false);
+    }
+  };
+
+  // Función para búsqueda automática desde navegación rápida (pasillo)
+  const handleBuscarAutomaticaPasillo = async (numeroPasillo) => {
+    if (!numeroPasillo) {
+      console.warn('Número de pasillo no válido para búsqueda automática');
+      return;
+    }
+
+    setBuscando(true);
+    try {
+      console.log('Búsqueda automática para pasillo:', numeroPasillo);
+      
+      // Obtener la posición actual
+      const response = await apiClient.get(`/posiciones?numeroPasillo=${numeroPasillo}`);
+      const posicionActual = response.data[0];
+      setPosicionActual(posicionActual);
+      
+      // Crear objeto con la estructura esperada
+      const datosPosicion = {
+        pasillo: numeroPasillo
+      };
+      
+      const resultado = await dispatch(buscarItemsPorPosicion(datosPosicion)).unwrap();
+      
+      setResultados(resultado);
+      setNotification({
+        open: true,
+        message: `Búsqueda automática: Se encontraron ${resultado.length} items en el pasillo ${numeroPasillo}`,
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error en búsqueda automática de pasillo:', error);
+      setNotification({
+        open: true,
+        message: error.message || 'Error en búsqueda automática de pasillo',
         severity: 'error'
       });
     } finally {
@@ -271,6 +419,12 @@ export const PosicionesPage = () => {
     });
     // Recargar los resultados para mostrar el stock actualizado
     handleBuscar();
+  };
+
+  // Handler para click en carta de item
+  const handleItemClick = (resultado) => {
+    console.log('Item clickeado:', resultado);
+    navegarAStockConBusqueda(resultado);
   };
 
   // Generar opciones para los selectores
@@ -469,19 +623,23 @@ export const PosicionesPage = () => {
                 gap: isMobile ? 1 : 2
               }}>
                 {resultados.map((resultado, index) => (
-                  <Box 
-                    key={index}
-                    sx={{
-                      p: 2,
-                      border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--border-radius-md)',
-                      backgroundColor: 'var(--color-background)',
-                      '&:hover': {
-                        backgroundColor: 'var(--color-divider)',
-                        transition: 'var(--transition-normal)'
-                      }
-                    }}
-                  >
+                                     <Box 
+                     key={index}
+                     sx={{
+                       p: 2,
+                       border: '1px solid var(--color-border)',
+                       borderRadius: 'var(--border-radius-md)',
+                       backgroundColor: 'var(--color-background)',
+                       cursor: 'pointer',
+                       '&:hover': {
+                         backgroundColor: 'var(--color-divider)',
+                         transition: 'var(--transition-normal)',
+                         transform: 'translateY(-2px)',
+                         boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                       }
+                     }}
+                     onClick={() => handleItemClick(resultado)}
+                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <InventoryIcon sx={{ 

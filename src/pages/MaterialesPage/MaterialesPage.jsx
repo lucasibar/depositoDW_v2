@@ -14,7 +14,8 @@ import {
 import { 
   Search as SearchIcon,
   Inventory as InventoryIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  LocationOn as LocationIcon
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
@@ -29,9 +30,12 @@ import {
   selectProveedores, 
   selectItems, 
   selectAdicionesRapidasLoading, 
-  selectAdicionesRapidasError 
+  selectAdicionesRapidasError,
+  selectNavegacionRapida
 } from '../../features/adicionesRapidas/model/selectors';
 import { useAdicionRapida } from '../../features/adicionesRapidas/hooks/useAdicionRapida';
+import { useNavegacionRapida } from '../../features/adicionesRapidas/hooks/useNavegacionRapida';
+import { useNavegacionRapidaPosiciones } from '../../features/adicionesRapidas/hooks/useNavegacionRapidaPosiciones';
 import { checkAuthentication, handleLogout } from '../../features/stock/utils/navigationUtils';
 import { useNavigate } from 'react-router-dom';
 import AjusteMaterialModal from '../../features/stock/ui/AjusteMaterialModal';
@@ -66,6 +70,7 @@ export const MaterialesPage = () => {
   const items = useSelector(selectItems);
   const loading = useSelector(selectAdicionesRapidasLoading);
   const error = useSelector(selectAdicionesRapidasError);
+  const navegacionRapida = useSelector(selectNavegacionRapida);
 
   // Hook personalizado para filtrado
   const { itemsFiltrados, filterProveedores, filterItems } = useAdicionRapida(
@@ -74,11 +79,16 @@ export const MaterialesPage = () => {
     formData.proveedor
   );
 
+  // Hook para navegación rápida
+  const { limpiarEstadoNavegacion } = useNavegacionRapida();
+  const { navegarAPosicionesConBusqueda } = useNavegacionRapidaPosiciones();
+
   // Debug logs para ajuste de materiales
   console.log('MaterialesPage - Estado actual:', {
     itemSeleccionado: formData.item?.id,
     resultados: resultados.length,
-    modalAjusteOpen: modalAjusteOpen
+    modalAjusteOpen: modalAjusteOpen,
+    navegacionRapida
   });
 
   // Inicialización y autenticación
@@ -95,6 +105,34 @@ export const MaterialesPage = () => {
       dispatch(cargarDatosIniciales());
     }
   }, [dispatch, user]);
+
+  // Procesar navegación rápida cuando llegue desde stock
+  useEffect(() => {
+    if (navegacionRapida.ejecutarBusqueda && navegacionRapida.itemSeleccionado && proveedores.length > 0 && items.length > 0) {
+      console.log('Procesando navegación rápida:', navegacionRapida);
+      
+      // Configurar el formulario con los datos de navegación rápida
+      const itemEncontrado = items.find(item => item.id === navegacionRapida.itemSeleccionado.id);
+      const proveedorEncontrado = navegacionRapida.proveedorSeleccionado 
+        ? proveedores.find(p => p.nombre === navegacionRapida.proveedorSeleccionado)
+        : null;
+
+      if (itemEncontrado) {
+        setFormData({
+          proveedor: proveedorEncontrado?.nombre || '',
+          item: itemEncontrado
+        });
+
+        // Ejecutar búsqueda automáticamente
+        setTimeout(() => {
+          handleBuscarAutomatica(itemEncontrado);
+        }, 100);
+
+        // Limpiar el estado de navegación rápida
+        limpiarEstadoNavegacion();
+      }
+    }
+  }, [navegacionRapida, proveedores, items, limpiarEstadoNavegacion]);
 
   // Handlers de navegación
   const handleLogoutClick = () => {
@@ -164,6 +202,44 @@ export const MaterialesPage = () => {
     } finally {
       setBuscando(false);
     }
+  };
+
+  // Función para búsqueda automática desde navegación rápida
+  const handleBuscarAutomatica = async (item) => {
+    if (!item || !item.id) {
+      console.warn('Item no válido para búsqueda automática:', item);
+      return;
+    }
+
+    setBuscando(true);
+    try {
+      console.log('Búsqueda automática para item ID:', item.id);
+      
+      const resultado = await stockApi.buscarMaterialesPorItemId(item.id);
+      console.log('Resultados de búsqueda automática:', resultado);
+      
+      setResultados(resultado);
+      setNotification({
+        open: true,
+        message: `Búsqueda automática: Se encontraron ${resultado.length} posiciones con stock`,
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error en búsqueda automática:', error);
+      setNotification({
+        open: true,
+        message: 'Error en búsqueda automática. Revisa la consola para más detalles.',
+        severity: 'error'
+      });
+    } finally {
+      setBuscando(false);
+    }
+  };
+
+  // Handler para click en carta de posición
+  const handlePosicionClick = (resultado) => {
+    console.log('Posición clickeada:', resultado);
+    navegarAPosicionesConBusqueda(resultado);
   };
 
   const handleCloseNotification = () => {
@@ -345,22 +421,35 @@ export const MaterialesPage = () => {
                        border: '1px solid var(--color-border)',
                        borderRadius: 'var(--border-radius-md)',
                        backgroundColor: 'var(--color-background)',
+                       cursor: 'pointer',
                        '&:hover': {
                          backgroundColor: 'var(--color-divider)',
-                         transition: 'var(--transition-normal)'
+                         transition: 'var(--transition-normal)',
+                         transform: 'translateY(-2px)',
+                         boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
                        }
                      }}
+                     onClick={() => handlePosicionClick(resultado)}
                    >
                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                       <InventoryIcon sx={{ 
+                       <LocationIcon sx={{ 
                          fontSize: 20, 
                          color: 'var(--color-primary)', 
                          mr: 1 
                        }} />
                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                         {resultado.posicion?.rack && resultado.posicion?.fila && resultado.posicion?.AB 
-                           ? `${resultado.posicion.rack}-${resultado.posicion.fila}-${resultado.posicion.AB}` 
-                           : `Pasillo ${resultado.posicion?.numeroPasillo || 'N/A'}`}
+                         {(() => {
+                           const pos = resultado.posicion;
+                           if (pos?.rack && pos?.fila && pos?.AB) {
+                             return `${pos.rack}-${pos.fila}-${pos.AB}`;
+                           } else if (pos?.numeroPasillo) {
+                             return `Pasillo ${pos.numeroPasillo}`;
+                           } else if (pos?.entrada === true) {
+                             return 'Entrada';
+                           } else {
+                             return 'Posición no especificada';
+                           }
+                         })()}
                        </Typography>
                      </Box>
                    
@@ -380,24 +469,27 @@ export const MaterialesPage = () => {
                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
                          {resultado.kilos} kg
                        </Typography>
-                     </Box>
+                       </Box>
                      
-                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                        <Typography variant="body2" color="text.secondary">
                          Unidades:
                        </Typography>
                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
                          {resultado.unidades} un
                        </Typography>
-                     </Box>
+                       </Box>
                      
-                     {/* Botón de ajuste */}
-                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                     {/* Botones de acción */}
+                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', gap: 1 }}>
                        <Button
                          variant="outlined"
                          size="small"
                          startIcon={<EditIcon />}
-                         onClick={() => handleAbrirModalAjuste(resultado)}
+                         onClick={(e) => {
+                           e.stopPropagation(); // Evitar que se active el click de la carta
+                           handleAbrirModalAjuste(resultado);
+                         }}
                          sx={{
                            borderColor: 'var(--color-primary)',
                            color: 'var(--color-primary)',
@@ -408,6 +500,20 @@ export const MaterialesPage = () => {
                          }}
                        >
                          Ajustar Stock
+                       </Button>
+                       
+                       <Button
+                         variant="contained"
+                         size="small"
+                         startIcon={<LocationIcon />}
+                         sx={{
+                           backgroundColor: 'var(--color-secondary)',
+                           '&:hover': {
+                             backgroundColor: 'var(--color-secondary-dark)'
+                           }
+                         }}
+                       >
+                         Ver Posición
                        </Button>
                      </Box>
                    </Box>
