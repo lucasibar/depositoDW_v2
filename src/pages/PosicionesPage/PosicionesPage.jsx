@@ -20,7 +20,8 @@ import {
   Inventory as InventoryIcon,
   SwapHoriz as SwapIcon,
   Edit as EditIcon,
-  LocalShipping as LocalShippingIcon
+  LocalShipping as LocalShippingIcon,
+  Add as AddIcon
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
@@ -33,6 +34,7 @@ import { useNavegacionRapidaStock } from '../../features/adicionesRapidas/hooks/
 import MovimientoInterno from '../../components/MovimientoInterno/MovimientoInterno';
 import AjustePosicionModal from '../../features/stock/ui/AjustePosicionModal';
 import RemitoSalidaDesdePosicionModal from '../../features/salida/ui/RemitoSalidaDesdePosicionModal/RemitoSalidaDesdePosicionModal';
+import { AdicionRapidaPosicion } from '../../components/AdicionRapidaPosicion';
 import { apiClient } from '../../config/api';
 
 export const PosicionesPage = () => {
@@ -70,6 +72,9 @@ export const PosicionesPage = () => {
   // Estados para remito de salida desde posición
   const [modalRemitoSalidaOpen, setModalRemitoSalidaOpen] = useState(false);
   const [resultadoSeleccionado, setResultadoSeleccionado] = useState(null);
+  
+  // Estados para adición rápida
+  const [modalAdicionRapidaOpen, setModalAdicionRapidaOpen] = useState(false);
 
   // Redux state
   const navegacionRapidaPosiciones = useSelector(selectNavegacionRapidaPosiciones);
@@ -461,6 +466,50 @@ export const PosicionesPage = () => {
     handleBuscar();
   };
 
+  // Handlers para adición rápida
+  const handleAbrirModalAdicionRapida = () => {
+    if (!posicionActual) {
+      setNotification({
+        open: true,
+        message: 'Por favor seleccione una posición primero',
+        severity: 'warning'
+      });
+      return;
+    }
+    setModalAdicionRapidaOpen(true);
+  };
+
+  const handleCerrarModalAdicionRapida = () => {
+    setModalAdicionRapidaOpen(false);
+  };
+
+  const handleAdicionRapidaExitoso = async (adicionData) => {
+    try {
+      console.log('Enviando adición rápida:', adicionData);
+      
+      // Llamar a la misma ruta que usa la adición rápida normal
+      const response = await apiClient.post('/movimientos/adicion-rapida', adicionData);
+      
+      console.log('Respuesta de adición rápida:', response.data);
+      
+      setNotification({
+        open: true,
+        message: 'Adición rápida realizada correctamente',
+        severity: 'success'
+      });
+      
+      // Recargar los resultados para mostrar el stock actualizado
+      handleBuscar();
+    } catch (error) {
+      console.error('Error en adición rápida:', error);
+      setNotification({
+        open: true,
+        message: error.response?.data?.message || 'Error al realizar la adición rápida',
+        severity: 'error'
+      });
+    }
+  };
+
   // Handler para click en carta de item
   const handleItemClick = (resultado) => {
     console.log('Item clickeado:', resultado);
@@ -642,6 +691,33 @@ export const PosicionesPage = () => {
                 }}
               >
                 {buscando ? 'Buscando...' : 'Buscar'}
+              </Button>
+            </Box>
+
+            {/* Botón de adición rápida */}
+            <Box sx={{ 
+              flex: '0 0 auto',
+              minWidth: '140px'
+            }}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="large"
+                onClick={handleAbrirModalAdicionRapida}
+                disabled={!posicionActual}
+                startIcon={<AddIcon />}
+                sx={{ 
+                  minWidth: 140,
+                  height: 56,
+                  borderColor: 'var(--color-secondary)',
+                  color: 'var(--color-secondary)',
+                  '&:hover': {
+                    borderColor: 'var(--color-secondary-dark)',
+                    backgroundColor: 'var(--color-secondary-light)'
+                  }
+                }}
+              >
+                Adición Rápida
               </Button>
             </Box>
 
@@ -833,6 +909,14 @@ export const PosicionesPage = () => {
            resultado={resultadoSeleccionado}
            posicionActual={posicionActual}
            onSubmit={handleRemitoSalidaExitoso}
+         />
+
+         {/* Modal de Adición Rápida desde Posición */}
+         <AdicionRapidaPosicion
+           open={modalAdicionRapidaOpen}
+           onClose={handleCerrarModalAdicionRapida}
+           posicion={posicionActual}
+           onSubmit={handleAdicionRapidaExitoso}
          />
        </Box>
      </AppLayout>
