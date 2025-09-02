@@ -20,7 +20,7 @@ import styles from './ModalAgregarItem.module.css';
 
 // Categorías disponibles
 const CATEGORIAS = [
-  "costura", "algodon", "algodon-color", "nylon", "nylon REC", "nylon-color", "lycra", "lycra REC", 
+  "poliester", "costura", "algodon", "algodon-color", "nylon", "nylon REC", "nylon-color", "lycra", "lycra REC", 
   "goma", "tarugo", "etiqueta", "bolsa", "percha", "ribbon", "caja", 
   "cinta", "plantilla", "film", "consumibes(aceite y parafina)", "faja", "caballete"
 ];
