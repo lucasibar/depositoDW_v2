@@ -25,7 +25,7 @@ const URL = "https://derwill-deposito-backend.onrender.com";
 
 // Categorías para nuevos items
 const CATEGORIAS = [
-  "costura", "algodon", "algodon-color", "nylon", "nylon REC", "nylon-color", "lycra", "lycra REC", 
+  "poliester", "costura", "algodon", "algodon-color", "nylon", "nylon REC", "nylon-color", "lycra", "lycra REC", 
   "goma", "tarugo", "etiqueta", "bolsa", "percha", "ribbon", "caja", 
   "cinta", "plantilla", "film", "consumibes(aceite y parafina)", "faja", "caballete"
 ];
@@ -296,10 +296,19 @@ export const AdicionRapidaForm = ({ open, onClose, posicion, onSubmit }) => {
                   formData.proveedor ? "No se encontraron items" : "Seleccione un proveedor primero"
                 }
                 filterOptions={(options, { inputValue }) => {
-                  const filtered = options.filter(option =>
-                    option.categoria.toLowerCase().includes(inputValue.toLowerCase()) ||
-                    option.descripcion.toLowerCase().includes(inputValue.toLowerCase())
-                  );
+                  if (!inputValue.trim()) return options;
+                  
+                  // Dividir la búsqueda en palabras individuales
+                  const searchWords = inputValue.toLowerCase().trim().split(' ').filter(word => word.length > 0);
+                  
+                  // Filtrar items que contengan TODAS las palabras de búsqueda
+                  const filtered = options.filter(option => {
+                    const itemText = `${option.categoria} ${option.descripcion}`.toLowerCase();
+                    
+                    // Verificar que TODAS las palabras estén presentes
+                    return searchWords.every(word => itemText.includes(word));
+                  });
+                  
                   return filtered;
                 }}
               />

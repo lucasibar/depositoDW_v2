@@ -64,10 +64,18 @@ export const CreateRemitoForm = ({ onRemitoCreated }) => {
     );
 
   // Filtrar items basado en búsqueda
-  const filteredItemsBySearch = filteredItems.filter(item =>
-    item.descripcion.toLowerCase().includes(itemSearch.toLowerCase()) ||
-    item.categoria.toLowerCase().includes(itemSearch.toLowerCase())
-  );
+  const filteredItemsBySearch = filteredItems.filter(item => {
+    if (!itemSearch.trim()) return true;
+    
+    // Dividir la búsqueda en palabras individuales
+    const searchWords = itemSearch.toLowerCase().trim().split(' ').filter(word => word.length > 0);
+    
+    // Buscar en categoría y descripción
+    const itemText = `${item.categoria} ${item.descripcion}`.toLowerCase();
+    
+    // Verificar que TODAS las palabras estén presentes
+    return searchWords.every(word => itemText.includes(word));
+  });
 
   const handleAddItem = () => {
     if (!selectedItem || cantidad <= 0) return;
