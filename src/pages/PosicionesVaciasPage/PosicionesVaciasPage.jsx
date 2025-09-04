@@ -12,11 +12,26 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Paper
+  Paper,
+  Button,
+  ButtonGroup,
+  Tooltip
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { LocationOn, Storage, Grid3x3, FilterList } from '@mui/icons-material';
+import { 
+  LocationOn, 
+  Storage, 
+  Grid3x3, 
+  FilterList, 
+  FileDownload,
+  Assessment,
+  GetApp
+} from '@mui/icons-material';
 import { usePosicionesVacias } from '../../features/stock/hooks/usePosicionesVacias';
+import { 
+  exportPosicionesVaciasToExcel, 
+  exportEstadisticasPosicionesToExcel 
+} from '../../shared/utils/excelExporter';
 import './PosicionesVaciasPage.css';
 
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -65,6 +80,41 @@ const PosicionesVaciasPage = () => {
     setFiltroFila('');
     setFiltroNivel('');
     setFiltroPasillo('');
+  };
+
+  // Función para exportar posiciones vacías a Excel
+  const handleExportarPosiciones = () => {
+    try {
+      const resultado = exportPosicionesVaciasToExcel(posicionesVacias, posicionesFiltradas);
+      if (resultado.exito) {
+        // Mostrar mensaje de éxito (puedes usar SweetAlert2 si está disponible)
+        console.log(`✅ ${resultado.mensaje}`);
+        alert(`✅ ${resultado.mensaje}`);
+      } else {
+        console.error(`❌ ${resultado.mensaje}`);
+        alert(`❌ ${resultado.mensaje}`);
+      }
+    } catch (error) {
+      console.error('❌ Error al exportar posiciones:', error);
+      alert('❌ Error al exportar las posiciones vacías');
+    }
+  };
+
+  // Función para exportar estadísticas a Excel
+  const handleExportarEstadisticas = () => {
+    try {
+      const resultado = exportEstadisticasPosicionesToExcel(stats, valoresUnicos);
+      if (resultado.exito) {
+        console.log(`✅ ${resultado.mensaje}`);
+        alert(`✅ ${resultado.mensaje}`);
+      } else {
+        console.error(`❌ ${resultado.mensaje}`);
+        alert(`❌ ${resultado.mensaje}`);
+      }
+    } catch (error) {
+      console.error('❌ Error al exportar estadísticas:', error);
+      alert('❌ Error al exportar las estadísticas');
+    }
   };
 
   const obtenerIconoTipoComponent = (posicion) => {
@@ -120,6 +170,34 @@ const PosicionesVaciasPage = () => {
         <Typography variant="body1" sx={{ mt: 1, opacity: 0.9 }}>
           Total de espacios disponibles en el depósito
         </Typography>
+        
+        {/* Botón de Exportación Principal */}
+        <Box sx={{ mt: 3 }}>
+          <Tooltip title="Exportar todas las posiciones vacías a Excel para imprimir">
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<GetApp />}
+              onClick={handleExportarPosiciones}
+              size="large"
+              sx={{ 
+                borderRadius: 3,
+                textTransform: 'none',
+                fontWeight: 700,
+                fontSize: '1.1rem',
+                px: 4,
+                py: 1.5,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                '&:hover': {
+                  boxShadow: '0 6px 16px rgba(0, 0, 0, 0.4)',
+                  transform: 'translateY(-2px)'
+                }
+              }}
+            >
+              📊 Exportar a Excel para Imprimir
+            </Button>
+          </Tooltip>
+        </Box>
       </Box>
 
       {/* Estadísticas */}
@@ -249,7 +327,7 @@ const PosicionesVaciasPage = () => {
           </Grid>
         </Grid>
         
-        <Box sx={{ mt: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ mt: 2, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           <Chip
             label={`Resultados: ${posicionesFiltradas.length} de ${posicionesVacias.length}`}
             color="info"
@@ -262,6 +340,43 @@ const PosicionesVaciasPage = () => {
             variant="outlined"
             clickable
           />
+          
+          {/* Botones de Exportación */}
+          <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
+            <Tooltip title="Exportar posiciones vacías a Excel">
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<FileDownload />}
+                onClick={handleExportarPosiciones}
+                size="small"
+                sx={{ 
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600
+                }}
+              >
+                Exportar Posiciones
+              </Button>
+            </Tooltip>
+            
+            <Tooltip title="Exportar estadísticas a Excel">
+              <Button
+                variant="outlined"
+                color="info"
+                startIcon={<Assessment />}
+                onClick={handleExportarEstadisticas}
+                size="small"
+                sx={{ 
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600
+                }}
+              >
+                Exportar Estadísticas
+              </Button>
+            </Tooltip>
+          </Box>
         </Box>
       </Paper>
 
