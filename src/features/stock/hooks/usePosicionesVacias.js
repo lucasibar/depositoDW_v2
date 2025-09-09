@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://derwill-deposito-backend.onrender.com';
 
 export const usePosicionesVacias = () => {
   const [posicionesVacias, setPosicionesVacias] = useState([]);
@@ -18,15 +18,31 @@ export const usePosicionesVacias = () => {
       setLoading(true);
       setError(null);
       
+      const url = `${API_BASE_URL}/posiciones/vacias`;
       console.log('🔄 usePosicionesVacias: Cargando posiciones vacías...');
-      const response = await fetch(`${API_BASE_URL}/posiciones/vacias`);
+      console.log('🌐 URL:', url);
+      console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
+      console.log('🔧 API_BASE_URL:', API_BASE_URL);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('❌ Error response body:', errorText);
+        throw new Error(`Error ${response.status}: ${response.statusText} - ${errorText}`);
       }
       
       const data = await response.json();
       console.log('✅ usePosicionesVacias: Posiciones vacías cargadas:', data);
+      console.log('📊 Total posiciones:', data.length);
       
       setPosicionesVacias(data);
       calcularEstadisticas(data);
