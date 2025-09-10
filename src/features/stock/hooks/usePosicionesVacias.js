@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://derwill-deposito-backend.onrender.com';
+// URL del servidor directamente
+const API_BASE_URL = 'https://derwill-deposito-backend.onrender.com';
 
 export const usePosicionesVacias = () => {
   const [posicionesVacias, setPosicionesVacias] = useState([]);
@@ -13,23 +14,33 @@ export const usePosicionesVacias = () => {
     entrada: 0
   });
 
-  const cargarPosicionesVacias = useCallback(async () => {
+  const cargarPosicionesVacias = useCallback(async (intento = 1, maxIntentos = 3) => {
     try {
       setLoading(true);
       setError(null);
       
       const url = `${API_BASE_URL}/posiciones/vacias`;
-      console.log('🔄 usePosicionesVacias: Cargando posiciones vacías...');
+      console.log(`🔄 usePosicionesVacias: Cargando posiciones vacías... (Intento ${intento}/${maxIntentos})`);
       console.log('🌐 URL:', url);
       console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
       console.log('🔧 API_BASE_URL:', API_BASE_URL);
+      
+      // Configuración de fetch con timeout y manejo de errores mejorado
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
       
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
+        signal: controller.signal,
+        mode: 'cors', // Explícitamente habilitar CORS
+        credentials: 'omit', // No enviar cookies para evitar problemas de CORS
       });
+      
+      clearTimeout(timeoutId);
       
       console.log('📡 Response status:', response.status);
       console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
@@ -49,8 +60,31 @@ export const usePosicionesVacias = () => {
       
       return data;
     } catch (error) {
-      console.error('❌ usePosicionesVacias: Error cargando posiciones vacías:', error);
-      setError(error.message);
+      console.error(`❌ usePosicionesVacias: Error cargando posiciones vacías (Intento ${intento}):`, error);
+      
+      // Si es un error de red y no hemos alcanzado el máximo de intentos, reintentar
+      if (intento < maxIntentos && (
+        error.name === 'AbortError' || 
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError') ||
+        error.message.includes('ERR_NETWORK')
+      )) {
+        console.log(`🔄 Reintentando en ${intento * 1000}ms...`);
+        await new Promise(resolve => setTimeout(resolve, intento * 1000));
+        return cargarPosicionesVacias(intento + 1, maxIntentos);
+      }
+      
+      // Determinar el tipo de error para mostrar un mensaje más útil
+      let errorMessage = error.message;
+      if (error.name === 'AbortError') {
+        errorMessage = 'La solicitud tardó demasiado tiempo. Verifica tu conexión a internet.';
+      } else if (error.message.includes('Failed to fetch')) {
+        errorMessage = 'No se pudo conectar con el servidor. Verifica que el servidor esté funcionando y tu conexión a internet.';
+      } else if (error.message.includes('CORS')) {
+        errorMessage = 'Error de CORS. El servidor no permite solicitudes desde este origen.';
+      }
+      
+      setError(errorMessage);
       throw error;
     } finally {
       setLoading(false);
@@ -181,6 +215,21 @@ export const usePosicionesVacias = () => {
     };
   }, [obtenerPosicionesPorArea]);
 
+  // Función para verificar conectividad del servidor
+  const verificarConectividad = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/health`, {
+        method: 'GET',
+        mode: 'cors',
+        credentials: 'omit',
+      });
+      return response.ok;
+    } catch (error) {
+      console.warn('⚠️ No se pudo verificar la conectividad del servidor:', error.message);
+      return false;
+    }
+  }, []);
+
   useEffect(() => {
     cargarPosicionesVacias();
   }, [cargarPosicionesVacias]);
@@ -194,6 +243,7 @@ export const usePosicionesVacias = () => {
     
     // Funciones
     cargarPosicionesVacias,
+    verificarConectividad,
     formatearPosicion,
     obtenerColorTipo,
     obtenerIconoTipo,
