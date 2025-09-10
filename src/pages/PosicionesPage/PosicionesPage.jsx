@@ -199,15 +199,30 @@ export const PosicionesPage = () => {
       // Obtener la posición actual para usar en el movimiento interno
       let posicionActual = null;
       if (tienePasillo) {
-        const response = await apiClient.get(`/posiciones?numeroPasillo=${formData.pasillo}`);
-        posicionActual = response.data[0];
+        // Si el pasillo es "entrada", usar el parámetro entrada=true
+        if (formData.pasillo === 'entrada') {
+          const response = await apiClient.get(`/posiciones?entrada=true`);
+          posicionActual = response.data[0];
+        } else {
+          const response = await apiClient.get(`/posiciones?numeroPasillo=${formData.pasillo}`);
+          posicionActual = response.data[0];
+        }
       } else {
         const response = await apiClient.get(`/posiciones?rack=${formData.rack}&fila=${formData.fila}&AB=${formData.nivel}`);
         posicionActual = response.data[0];
       }
       setPosicionActual(posicionActual);
       
-      const resultado = await dispatch(buscarItemsPorPosicion(formData)).unwrap();
+      // Preparar los datos para la búsqueda, convirtiendo "entrada" a los parámetros correctos
+      const datosBusqueda = { ...formData };
+      if (formData.pasillo === 'entrada') {
+        // Para entrada, usar entrada=true y limpiar numeroPasillo
+        datosBusqueda.entrada = 'true';
+        datosBusqueda.pasillo = '';
+        datosBusqueda.numeroPasillo = '';
+      }
+      
+      const resultado = await dispatch(buscarItemsPorPosicion(datosBusqueda)).unwrap();
       
       setResultados(resultado);
       setNotification({

@@ -72,21 +72,32 @@ const MovimientoInterno = ({
 
   // Función para calcular kilos automáticamente basado en cajas
   const calcularKilosPorCajas = (cajas, totalKilos, totalUnidades) => {
+    console.log('🔢 calcularKilosPorCajas:', { cajas, totalKilos, totalUnidades });
+    
     if (!cajas || !totalKilos || !totalUnidades || totalUnidades === 0) {
+      console.log('❌ Valores inválidos para cálculo');
       return '';
     }
     
     const cajasNum = parseInt(cajas);
-    if (cajasNum <= 0) return '';
+    if (cajasNum <= 0) {
+      console.log('❌ Número de cajas inválido:', cajasNum);
+      return '';
+    }
     
     // Calcular kilos por caja: totalKilos / totalUnidades
     const kilosPorCaja = totalKilos / totalUnidades;
+    console.log('📊 Kilos por caja:', kilosPorCaja);
     
     // Calcular kilos totales para las cajas seleccionadas
     const kilosCalculados = kilosPorCaja * cajasNum;
+    console.log('📊 Kilos calculados:', kilosCalculados);
     
     // Redondear a número entero
-    return Math.round(kilosCalculados).toString();
+    const kilosRedondeados = Math.round(kilosCalculados);
+    console.log('📊 Kilos redondeados:', kilosRedondeados);
+    
+    return kilosRedondeados.toString();
   };
 
   const handleInputChange = (field, value) => {
@@ -182,9 +193,16 @@ const MovimientoInterno = ({
       
       if (tienePasillo) {
         console.log('MovimientoInterno - Buscando por pasillo:', formData.pasillo);
-        const response = await apiClient.get(`/posiciones?numeroPasillo=${formData.pasillo}`);
-        console.log('MovimientoInterno - Respuesta búsqueda pasillo:', response.data);
-        posicionDestino = response.data[0];
+        // Si el pasillo es "entrada", usar el parámetro entrada=true
+        if (formData.pasillo === 'entrada') {
+          const response = await apiClient.get(`/posiciones?entrada=true`);
+          console.log('MovimientoInterno - Respuesta búsqueda entrada:', response.data);
+          posicionDestino = response.data[0];
+        } else {
+          const response = await apiClient.get(`/posiciones?numeroPasillo=${formData.pasillo}`);
+          console.log('MovimientoInterno - Respuesta búsqueda pasillo:', response.data);
+          posicionDestino = response.data[0];
+        }
       } else {
         console.log('MovimientoInterno - Buscando por rack/fila/nivel:', { rack: formData.rack, fila: formData.fila, nivel: formData.nivel });
         const response = await apiClient.get(`/posiciones?rack=${formData.rack}&fila=${formData.fila}&AB=${formData.nivel}`);
@@ -205,18 +223,41 @@ const MovimientoInterno = ({
         return;
       }
 
+      // Asegurar que los valores sean números válidos
+      const kilosToSend = parseFloat(formData.kilos) || 0;
+      const unidadesToSend = parseInt(formData.unidades) || 0;
+
+      // Validar que los valores sean válidos
+      if (isNaN(kilosToSend) || isNaN(unidadesToSend)) {
+        setError('Los valores de kilos y unidades deben ser números válidos');
+        return;
+      }
+
+      if (kilosToSend <= 0 || unidadesToSend <= 0) {
+        setError('Los valores de kilos y unidades deben ser mayores a 0');
+        return;
+      }
+
+      // Validar que todos los IDs sean válidos
+      if (!itemSeleccionado.item?.id || !itemSeleccionado.partida?.id || !posicionOrigen?.id || !posicionDestino?.id) {
+        setError('Error: Faltan datos necesarios para realizar el movimiento');
+        return;
+      }
+
       const movimientoData = {
         itemId: itemSeleccionado.item.id,
         partidaId: itemSeleccionado.partida.id,
         posicionOrigenId: posicionOrigen.id,
         posicionDestinoId: posicionDestino.id,
-        kilos: parseFloat(formData.kilos),
-        unidades: parseInt(formData.unidades)
+        kilos: kilosToSend,
+        unidades: unidadesToSend
       };
 
       console.log('MovimientoInterno - Datos enviados al backend:', movimientoData);
       console.log('MovimientoInterno - Posición origen:', posicionOrigen);
       console.log('MovimientoInterno - Posición destino:', posicionDestino);
+      console.log('MovimientoInterno - Valores calculados:', { kilosToSend, unidadesToSend });
+      console.log('MovimientoInterno - FormData completo:', formData);
 
       const response = await apiClient.post('/movimientos/movimiento-interno', movimientoData);
       
