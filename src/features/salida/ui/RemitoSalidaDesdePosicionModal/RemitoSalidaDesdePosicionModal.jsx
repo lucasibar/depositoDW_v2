@@ -27,6 +27,7 @@ export default function RemitoSalidaDesdePosicionModal({ open, onClose, resultad
   );
 
   const [proveedor, setProveedor] = useState("");
+  const [cajas, setCajas] = useState("");
   const [kilos, setKilos] = useState(0);
   const [unidades, setUnidades] = useState(0);
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
@@ -50,6 +51,36 @@ export default function RemitoSalidaDesdePosicionModal({ open, onClose, resultad
     setProveedor(e.target.value);
   };
 
+  // Función para calcular kilos automáticamente basado en cajas
+  const calcularKilosPorCajas = (cajas, totalKilos, totalUnidades) => {
+    if (!cajas || !totalKilos || !totalUnidades || totalUnidades === 0) {
+      return 0;
+    }
+    
+    const cajasNum = parseInt(cajas);
+    if (cajasNum <= 0) return 0;
+    
+    // Calcular kilos por caja: totalKilos / totalUnidades
+    const kilosPorCaja = totalKilos / totalUnidades;
+    
+    // Calcular kilos totales para las cajas seleccionadas
+    const kilosCalculados = kilosPorCaja * cajasNum;
+    
+    // Redondear a número entero
+    return Math.round(kilosCalculados);
+  };
+
+  const handleCajasChange = (e) => {
+    const value = e.target.value;
+    setCajas(value);
+    
+    if (value && resultado) {
+      const kilosCalculados = calcularKilosPorCajas(value, resultado.totalKilos, resultado.totalUnidades);
+      setKilos(kilosCalculados);
+      setUnidades(parseInt(value) || 0);
+    }
+  };
+
   const handleUnidadesChange = (e) => {
     const value = parseInt(e.target.value) || 0;
     // Calcular kilos proporcionalmente a las unidades y redondear a entero
@@ -66,6 +97,25 @@ export default function RemitoSalidaDesdePosicionModal({ open, onClose, resultad
     if (!proveedor || !fecha) {
       alert("Por favor complete todos los campos requeridos");
       return;
+    }
+
+    // Validar que se haya especificado cajas o kilos/unidades
+    if (!cajas && (kilos <= 0 || unidades <= 0)) {
+      alert("Debe especificar la cantidad de cajas o los kilos y unidades a mover");
+      return;
+    }
+
+    // Si se especificaron cajas, validar que sean válidas
+    if (cajas) {
+      const cajasNum = parseInt(cajas);
+      if (cajasNum <= 0) {
+        alert("La cantidad de cajas debe ser mayor a 0");
+        return;
+      }
+      if (cajasNum > resultado.totalUnidades) {
+        alert(`No puede sacar más cajas de las disponibles (${resultado.totalUnidades} cajas)`);
+        return;
+      }
     }
 
     if (kilos > resultado.totalKilos || unidades > resultado.totalUnidades) {
@@ -122,7 +172,7 @@ export default function RemitoSalidaDesdePosicionModal({ open, onClose, resultad
 
   // Función para validar que todos los campos estén completos
   const isFormValid = () => {
-    return proveedor && fecha && kilos > 0 && unidades > 0;
+    return proveedor && fecha && (cajas || (kilos > 0 && unidades > 0));
   };
 
   return (
@@ -155,6 +205,33 @@ export default function RemitoSalidaDesdePosicionModal({ open, onClose, resultad
               ))}
             </TextField>
 
+            {/* Información sobre cálculo automático */}
+            {resultado?.totalKilos && resultado?.totalUnidades && (
+              <Box sx={{ 
+                p: 2, 
+                bgcolor: 'info.light', 
+                borderRadius: 1,
+                mb: 2
+              }}>
+                <Typography variant="body2">
+                  <strong>Cálculo automático:</strong> Si especificas la cantidad de cajas, 
+                  los kilos se calcularán automáticamente. 
+                  Kilos por caja: {(resultado.totalKilos / resultado.totalUnidades).toFixed(2)} kg
+                </Typography>
+              </Box>
+            )}
+
+            <TextField
+              label="Cantidad de Cajas"
+              type="number"
+              value={cajas}
+              onChange={handleCajasChange}
+              fullWidth
+              margin="normal"
+              inputProps={{ min: 0, max: resultado?.totalUnidades || 0 }}
+              helperText={`Máximo disponible: ${resultado?.totalUnidades || 0} cajas`}
+            />
+
             <Typography variant="h6" component="h6">
               Kilos: {kilos}
             </Typography>
@@ -166,7 +243,13 @@ export default function RemitoSalidaDesdePosicionModal({ open, onClose, resultad
               onChange={handleUnidadesChange}
               fullWidth
               margin="normal"
+              disabled={cajas !== ''} // Deshabilitar si se especificaron cajas
               inputProps={{ min: 0, max: resultado?.totalUnidades || 0 }}
+              helperText={
+                cajas 
+                  ? `Calculado automáticamente: ${unidades} un`
+                  : `Máximo disponible: ${resultado?.totalUnidades || 0} un`
+              }
             />
             
             <TextField

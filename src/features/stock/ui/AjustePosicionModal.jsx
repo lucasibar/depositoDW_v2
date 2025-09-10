@@ -15,19 +15,55 @@ import { apiClient } from '../../../config/api';
 
 const AjustePosicionModal = ({ open, onClose, material, onAjusteExitoso }) => {
   const [formData, setFormData] = useState({
+    cajas: '',
     kilos: '',
     unidades: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Función para calcular kilos automáticamente basado en cajas
+  const calcularKilosPorCajas = (cajas, totalKilos, totalUnidades) => {
+    if (!cajas || !totalKilos || !totalUnidades || totalUnidades === 0) {
+      return '';
+    }
+    
+    const cajasNum = parseInt(cajas);
+    if (cajasNum <= 0) return '';
+    
+    // Calcular kilos por caja: totalKilos / totalUnidades
+    const kilosPorCaja = totalKilos / totalUnidades;
+    
+    // Calcular kilos totales para las cajas seleccionadas
+    const kilosCalculados = kilosPorCaja * cajasNum;
+    
+    // Redondear a número entero
+    return Math.round(kilosCalculados).toString();
+  };
+
   const handleInputChange = (field, value) => {
     // Solo permitir números positivos
     const numericValue = value.replace(/[^0-9.]/g, '');
-    setFormData(prev => ({
-      ...prev,
-      [field]: numericValue
-    }));
+    
+    setFormData(prev => {
+      const newData = { ...prev };
+      
+      if (field === 'cajas') {
+        // Si se cambia el número de cajas, calcular automáticamente los kilos
+        newData.cajas = numericValue;
+        const kilosCalculados = calcularKilosPorCajas(
+          numericValue, 
+          material?.totalKilos, 
+          material?.totalUnidades
+        );
+        newData.kilos = kilosCalculados;
+        newData.unidades = numericValue; // Las unidades son iguales a las cajas
+      } else {
+        newData[field] = numericValue;
+      }
+      
+      return newData;
+    });
   };
 
   const handleSubmit = async () => {
@@ -35,9 +71,23 @@ const AjustePosicionModal = ({ open, onClose, material, onAjusteExitoso }) => {
     console.log('📋 Datos del formulario:', formData);
     console.log('📦 Material seleccionado:', material);
     
-    if (!formData.kilos && !formData.unidades) {
-      setError('Debes ingresar al menos kilos o unidades');
+    // Validar que se haya especificado cajas o kilos/unidades
+    if (!formData.cajas && (!formData.kilos && !formData.unidades)) {
+      setError('Debes especificar la cantidad de cajas o los kilos y unidades a ajustar');
       return;
+    }
+
+    // Si se especificaron cajas, validar que sean válidas
+    if (formData.cajas) {
+      const cajasNum = parseInt(formData.cajas);
+      if (cajasNum <= 0) {
+        setError('La cantidad de cajas debe ser mayor a 0');
+        return;
+      }
+      if (cajasNum > material.totalUnidades) {
+        setError(`No puedes ajustar más cajas de las disponibles (${material.totalUnidades} cajas)`);
+        return;
+      }
     }
 
     const kilos = parseFloat(formData.kilos) || 0;
@@ -94,7 +144,7 @@ const AjustePosicionModal = ({ open, onClose, material, onAjusteExitoso }) => {
   };
 
   const handleClose = () => {
-    setFormData({ kilos: '', unidades: '' });
+    setFormData({ cajas: '', kilos: '', unidades: '' });
     setError('');
     setLoading(false);
     onClose();
@@ -140,7 +190,30 @@ const AjustePosicionModal = ({ open, onClose, material, onAjusteExitoso }) => {
             </Typography>
           </Box>
 
+          {/* Información sobre cálculo automático */}
+          {material?.totalKilos && material?.totalUnidades && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                <strong>Cálculo automático:</strong> Si especificas la cantidad de cajas, 
+                los kilos se calcularán automáticamente. 
+                Kilos por caja: {(material.totalKilos / material.totalUnidades).toFixed(2)} kg
+              </Typography>
+            </Alert>
+          )}
+
           {/* Campos de entrada */}
+          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+            <TextField
+              label="Cantidad de Cajas"
+              type="text"
+              value={formData.cajas}
+              onChange={(e) => handleInputChange('cajas', e.target.value)}
+              fullWidth
+              disabled={loading}
+              helperText={`Máximo disponible: ${material?.totalUnidades || 0} cajas`}
+            />
+          </Box>
+
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
             <TextField
               label="Kilos a restar"
@@ -148,8 +221,12 @@ const AjustePosicionModal = ({ open, onClose, material, onAjusteExitoso }) => {
               value={formData.kilos}
               onChange={(e) => handleInputChange('kilos', e.target.value)}
               fullWidth
-              disabled={loading}
-              helperText="Ingresa la cantidad de kilos a restar"
+              disabled={loading || formData.cajas !== ''} // Deshabilitar si se especificaron cajas
+              helperText={
+                formData.cajas 
+                  ? `Calculado automáticamente: ${formData.kilos || 0} kg`
+                  : "Ingresa la cantidad de kilos a restar"
+              }
             />
           </Box>
           
@@ -160,8 +237,12 @@ const AjustePosicionModal = ({ open, onClose, material, onAjusteExitoso }) => {
               value={formData.unidades}
               onChange={(e) => handleInputChange('unidades', e.target.value)}
               fullWidth
-              disabled={loading}
-              helperText="Ingresa la cantidad de unidades a restar"
+              disabled={loading || formData.cajas !== ''} // Deshabilitar si se especificaron cajas
+              helperText={
+                formData.cajas 
+                  ? `Calculado automáticamente: ${formData.unidades || 0} un`
+                  : "Ingresa la cantidad de unidades a restar"
+              }
             />
           </Box>
         </Box>
@@ -177,7 +258,7 @@ const AjustePosicionModal = ({ open, onClose, material, onAjusteExitoso }) => {
         </Button>
         <Button 
           onClick={handleSubmit}
-          disabled={loading || (!formData.kilos && !formData.unidades)}
+          disabled={loading || (!formData.cajas && !formData.kilos && !formData.unidades)}
           variant="contained"
           color="primary"
           startIcon={loading ? <CircularProgress size={20} /> : null}

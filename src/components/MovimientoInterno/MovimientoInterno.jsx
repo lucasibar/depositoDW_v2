@@ -40,6 +40,7 @@ const MovimientoInterno = ({
     fila: '',
     nivel: '',
     pasillo: '',
+    cajas: '',
     kilos: '',
     unidades: ''
   });
@@ -53,6 +54,7 @@ const MovimientoInterno = ({
         fila: '',
         nivel: '',
         pasillo: '',
+        cajas: '',
         kilos: '',
         unidades: ''
       });
@@ -68,6 +70,25 @@ const MovimientoInterno = ({
     }
   }, [open, itemSeleccionado]);
 
+  // Función para calcular kilos automáticamente basado en cajas
+  const calcularKilosPorCajas = (cajas, totalKilos, totalUnidades) => {
+    if (!cajas || !totalKilos || !totalUnidades || totalUnidades === 0) {
+      return '';
+    }
+    
+    const cajasNum = parseInt(cajas);
+    if (cajasNum <= 0) return '';
+    
+    // Calcular kilos por caja: totalKilos / totalUnidades
+    const kilosPorCaja = totalKilos / totalUnidades;
+    
+    // Calcular kilos totales para las cajas seleccionadas
+    const kilosCalculados = kilosPorCaja * cajasNum;
+    
+    // Redondear a número entero
+    return Math.round(kilosCalculados).toString();
+  };
+
   const handleInputChange = (field, value) => {
     console.log('MovimientoInterno - handleInputChange:', field, value);
     setFormData(prev => {
@@ -79,6 +100,16 @@ const MovimientoInterno = ({
         newData.rack = '';
         newData.fila = '';
         newData.nivel = '';
+      } else if (field === 'cajas') {
+        // Si se cambia el número de cajas, calcular automáticamente los kilos
+        newData.cajas = value;
+        const kilosCalculados = calcularKilosPorCajas(
+          value, 
+          itemSeleccionado?.totalKilos, 
+          itemSeleccionado?.totalUnidades
+        );
+        newData.kilos = kilosCalculados;
+        newData.unidades = value; // Las unidades son iguales a las cajas
       } else {
         // Si se selecciona rack, fila o nivel, limpiar pasillo
         newData[field] = value;
@@ -103,14 +134,31 @@ const MovimientoInterno = ({
       return;
     }
 
-    if (!formData.kilos || !formData.unidades) {
-      setError('Debe especificar kilos y unidades');
+    // Validar que se haya especificado cajas o kilos/unidades
+    if (!formData.cajas && (!formData.kilos || !formData.unidades)) {
+      setError('Debe especificar la cantidad de cajas o los kilos y unidades a mover');
       return;
     }
 
-    if (parseFloat(formData.kilos) <= 0 || parseInt(formData.unidades) <= 0) {
-      setError('Los valores de kilos y unidades deben ser mayores a 0');
-      return;
+    // Si se especificaron cajas, validar que sean válidas
+    if (formData.cajas) {
+      const cajasNum = parseInt(formData.cajas);
+      if (cajasNum <= 0) {
+        setError('La cantidad de cajas debe ser mayor a 0');
+        return;
+      }
+      if (cajasNum > itemSeleccionado.totalUnidades) {
+        setError(`No puede mover más cajas de las disponibles (${itemSeleccionado.totalUnidades} cajas)`);
+        return;
+      }
+    }
+
+    // Validar kilos y unidades si se especificaron directamente
+    if (formData.kilos && formData.unidades) {
+      if (parseFloat(formData.kilos) <= 0 || parseInt(formData.unidades) <= 0) {
+        setError('Los valores de kilos y unidades deben ser mayores a 0');
+        return;
+      }
     }
 
     if (itemSeleccionado.totalKilos && parseFloat(formData.kilos) > itemSeleccionado.totalKilos) {
@@ -180,6 +228,7 @@ const MovimientoInterno = ({
         fila: '',
         nivel: '',
         pasillo: '',
+        cajas: '',
         kilos: '',
         unidades: ''
       });
@@ -208,6 +257,7 @@ const MovimientoInterno = ({
       fila: '',
       nivel: '',
       pasillo: '',
+      cajas: '',
       kilos: '',
       unidades: ''
     });
@@ -370,6 +420,17 @@ const MovimientoInterno = ({
           Detalles del Movimiento
         </Typography>
 
+        {/* Información sobre cálculo automático */}
+        {itemSeleccionado?.totalKilos && itemSeleccionado?.totalUnidades && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              <strong>Cálculo automático:</strong> Si especificas la cantidad de cajas, 
+              los kilos se calcularán automáticamente. 
+              Kilos por caja: {(itemSeleccionado.totalKilos / itemSeleccionado.totalUnidades).toFixed(2)} kg
+            </Typography>
+          </Alert>
+        )}
+
                 <Grid container spacing={2}>
           {/* Selector de Pasillo */}
           <Grid item xs={12} md={6}>
@@ -456,36 +517,60 @@ const MovimientoInterno = ({
           </Grid>
 
           <Grid item xs={12} md={6}>
-                         <TextField
-               fullWidth
-               label="Kilos a Mover"
-               type="number"
-               value={formData.kilos || ''}
-               onChange={(e) => handleInputChange('kilos', e.target.value)}
-               disabled={loading}
-               inputProps={{ 
-                 min: 0, 
-                 max: itemSeleccionado?.totalKilos || 0,
-                 step: 0.01
-               }}
-               helperText={`Máximo disponible: ${itemSeleccionado?.totalKilos || 0} kg`}
-             />
+            <TextField
+              fullWidth
+              label="Cantidad de Cajas"
+              type="number"
+              value={formData.cajas || ''}
+              onChange={(e) => handleInputChange('cajas', e.target.value)}
+              disabled={loading}
+              inputProps={{ 
+                min: 0, 
+                max: itemSeleccionado?.totalUnidades || 0
+              }}
+              helperText={`Máximo disponible: ${itemSeleccionado?.totalUnidades || 0} cajas`}
+            />
           </Grid>
 
           <Grid item xs={12} md={6}>
-                         <TextField
-               fullWidth
-               label="Unidades a Mover"
-               type="number"
-               value={formData.unidades || ''}
-               onChange={(e) => handleInputChange('unidades', e.target.value)}
-               disabled={loading}
-               inputProps={{ 
-                 min: 0, 
-                 max: itemSeleccionado?.totalUnidades || 0
-               }}
-               helperText={`Máximo disponible: ${itemSeleccionado?.totalUnidades || 0} un`}
-             />
+            <TextField
+              fullWidth
+              label="Kilos a Mover"
+              type="number"
+              value={formData.kilos || ''}
+              onChange={(e) => handleInputChange('kilos', e.target.value)}
+              disabled={loading || formData.cajas !== ''} // Deshabilitar si se especificaron cajas
+              inputProps={{ 
+                min: 0, 
+                max: itemSeleccionado?.totalKilos || 0,
+                step: 0.01
+              }}
+              helperText={
+                formData.cajas 
+                  ? `Calculado automáticamente: ${formData.kilos || 0} kg`
+                  : `Máximo disponible: ${itemSeleccionado?.totalKilos || 0} kg`
+              }
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Unidades a Mover"
+              type="number"
+              value={formData.unidades || ''}
+              onChange={(e) => handleInputChange('unidades', e.target.value)}
+              disabled={loading || formData.cajas !== ''} // Deshabilitar si se especificaron cajas
+              inputProps={{ 
+                min: 0, 
+                max: itemSeleccionado?.totalUnidades || 0
+              }}
+              helperText={
+                formData.cajas 
+                  ? `Calculado automáticamente: ${formData.unidades || 0} un`
+                  : `Máximo disponible: ${itemSeleccionado?.totalUnidades || 0} un`
+              }
+            />
           </Grid>
         </Grid>
       </DialogContent>
@@ -512,3 +597,4 @@ const MovimientoInterno = ({
 };
 
 export default MovimientoInterno;
+
