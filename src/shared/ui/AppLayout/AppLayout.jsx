@@ -35,7 +35,8 @@ import {
   Assessment as AssessmentIcon,
   Add as AddIcon,
   Category as CategoryIcon,
-  LocationOn as LocationIcon
+  LocationOn as LocationIcon,
+  Warehouse as WarehouseIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getRoleColor, getRoleLabel } from '../../../features/stock/utils/userUtils';
@@ -52,6 +53,7 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     if (pageTitle) return pageTitle;
     
     const path = location.pathname;
+    if (path.includes('/posiciones-vacias')) return 'Dashboard Depósito';
     if (path.includes('/posiciones')) return 'Posiciones';
     if (path.includes('/adicion-rapida')) return 'Adición Rápida';
     if (path.includes('/materiales')) return 'Materiales';
@@ -117,12 +119,6 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           show: user?.role === 'admin' || user?.role === 'compras'
         },
         {
-          label: 'Dashboard Compras',
-          path: '/depositoDW_v2/dashboard-compras',
-          icon: <DashboardIcon />,
-          show: user?.role === 'admin' || user?.role === 'compras'
-        },
-        {
           label: 'Calidad',
           path: '/depositoDW_v2/calidad',
           icon: <CheckCircleIcon />,
@@ -144,6 +140,18 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           path: '/depositoDW_v2/admin',
           icon: <DashboardIcon />,
           show: user?.role === 'admin'
+        },
+        {
+          label: 'Dashboard Compras',
+          path: '/depositoDW_v2/dashboard-compras',
+          icon: <DashboardIcon />,
+          show: user?.role === 'admin' || user?.role === 'compras'
+        },
+        {
+          label: 'Dashboard Depósito',
+          path: '/depositoDW_v2/posiciones-vacias',
+          icon: <WarehouseIcon />,
+          show: user?.role === 'admin' || user?.role === 'deposito'
         },
         {
           label: 'Reportes',

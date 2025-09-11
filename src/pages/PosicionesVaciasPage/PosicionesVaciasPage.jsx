@@ -28,10 +28,14 @@ import {
   GetApp
 } from '@mui/icons-material';
 import { usePosicionesVacias } from '../../features/stock/hooks/usePosicionesVacias';
+import { useOcupacionDeposito } from '../../features/stock/hooks/useOcupacionDeposito';
+import { useMovimientosInternosPesados } from '../../features/movimientos/hooks/useMovimientosInternosPesados';
 import { 
   exportPosicionesVaciasToExcel, 
   exportEstadisticasPosicionesToExcel 
 } from '../../shared/utils/excelExporter';
+import OccupationProgressCircle from '../../shared/ui/OccupationProgressCircle';
+import MovimientosInternosPesadosCard from '../../shared/ui/MovimientosInternosPesadosCard';
 import './PosicionesVaciasPage.css';
 
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -56,6 +60,20 @@ const PosicionesVaciasPage = () => {
     obtenerIconoTipo,
     valoresUnicos
   } = usePosicionesVacias();
+
+  const {
+    estadisticas: estadisticasOcupacion,
+    loading: loadingOcupacion,
+    error: errorOcupacion,
+    recargarEstadisticas: recargarOcupacion
+  } = useOcupacionDeposito();
+
+  const {
+    estadisticas: estadisticasMovimientos,
+    loading: loadingMovimientos,
+    error: errorMovimientos,
+    recargarEstadisticas: recargarMovimientos
+  } = useMovimientosInternosPesados();
 
   // Estados para los filtros
   const [filtroRack, setFiltroRack] = useState('');
@@ -218,10 +236,10 @@ const PosicionesVaciasPage = () => {
           <Card sx={{ bgcolor: 'secondary.main', color: 'white' }}>
             <CardContent sx={{ textAlign: 'center' }}>
               <Typography variant="h4" component="div">
-                {stats.rack}
+                {estadisticasOcupacion?.totalPosiciones || 0}
               </Typography>
               <Typography variant="body2">
-                Sistema Rack/Fila/Nivel
+                Total Posiciones
               </Typography>
             </CardContent>
           </Card>
@@ -249,6 +267,28 @@ const PosicionesVaciasPage = () => {
               </Typography>
             </CardContent>
           </Card>
+        </Grid>
+      </Grid>
+
+      {/* Nuevas Visualizaciones */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* Círculo de Ocupación del Depósito */}
+        <Grid item xs={12} md={6}>
+          <OccupationProgressCircle
+            estadisticas={estadisticasOcupacion}
+            loading={loadingOcupacion}
+            error={errorOcupacion}
+          />
+        </Grid>
+
+        {/* Movimientos Internos Pesados */}
+        <Grid item xs={12} md={6}>
+          <MovimientosInternosPesadosCard
+            estadisticas={estadisticasMovimientos}
+            loading={loadingMovimientos}
+            error={errorMovimientos}
+            onRefresh={recargarMovimientos}
+          />
         </Grid>
       </Grid>
 
