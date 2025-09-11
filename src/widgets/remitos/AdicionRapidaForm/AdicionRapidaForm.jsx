@@ -121,11 +121,34 @@ export const AdicionRapidaForm = ({ open, onClose, posicion, onSubmit }) => {
     }
   }, [open, dispatch, proveedores]);
 
+  // Limpiar item cuando cambie el proveedor
+  useEffect(() => {
+    if (formData.proveedor && formData.item) {
+      // Verificar si el item actual pertenece al proveedor seleccionado
+      const itemPerteneceAlProveedor = formData.item.proveedor?.id === formData.proveedor.id;
+      if (!itemPerteneceAlProveedor) {
+        setFormData(prev => ({
+          ...prev,
+          item: ''
+        }));
+      }
+    }
+  }, [formData.proveedor]);
+
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      
+      // Si se cambia el proveedor, resetear el item seleccionado
+      if (field === 'proveedor') {
+        newData.item = '';
+      }
+      
+      return newData;
+    });
   };
 
   const handleProveedorCreado = (nuevoProveedor) => {
@@ -296,20 +319,20 @@ export const AdicionRapidaForm = ({ open, onClose, posicion, onSubmit }) => {
                   formData.proveedor ? "No se encontraron items" : "Seleccione un proveedor primero"
                 }
                 filterOptions={(options, { inputValue }) => {
-                  if (!inputValue.trim()) return options;
+                  // Si no hay texto de búsqueda, mostrar todas las opciones
+                  if (!inputValue || !inputValue.trim()) {
+                    return options;
+                  }
                   
-                  // Dividir la búsqueda en palabras individuales
-                  const searchWords = inputValue.toLowerCase().trim().split(' ').filter(word => word.length > 0);
+                  const searchText = inputValue.toLowerCase().trim();
                   
-                  // Filtrar items que contengan TODAS las palabras de búsqueda
-                  const filtered = options.filter(option => {
-                    const itemText = `${option.categoria} ${option.descripcion}`.toLowerCase();
+                  // Filtrar items que contengan el texto de búsqueda en categoría o descripción
+                  return options.filter(option => {
+                    const categoria = (option.categoria || '').toLowerCase();
+                    const descripcion = (option.descripcion || '').toLowerCase();
                     
-                    // Verificar que TODAS las palabras estén presentes
-                    return searchWords.every(word => itemText.includes(word));
+                    return categoria.includes(searchText) || descripcion.includes(searchText);
                   });
-                  
-                  return filtered;
                 }}
               />
               {formData.proveedor && (
