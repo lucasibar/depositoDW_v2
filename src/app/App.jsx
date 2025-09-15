@@ -14,6 +14,7 @@ import { PosicionesPage } from '../pages/PosicionesPage/PosicionesPage';
 import { StockPage } from '../pages/StockPage/StockPage';
 import { ReporteStockPage } from '../pages/ReporteStockPage/ReporteStockPage';
 import PosicionesVaciasPage from '../pages/PosicionesVaciasPage';
+import MapaPage from '../pages/MapaPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 
 
@@ -134,6 +135,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <PosicionesVaciasPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Mapa - Accesible para deposito y admin */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/mapa" 
+          element={
+            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
+              <MapaPage />
             </RoleProtectedRoute>
           } 
         />
