@@ -36,13 +36,15 @@ import {
   Add as AddIcon,
   Category as CategoryIcon,
   LocationOn as LocationIcon,
-  Warehouse as WarehouseIcon
+  Warehouse as WarehouseIcon,
+  Map as MapIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getRoleColor, getRoleLabel } from '../../../features/stock/utils/userUtils';
 
 const AppLayout = ({ children, user, onLogout, pageTitle }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
@@ -63,6 +65,7 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     if (path.includes('/salida')) return 'Salida';
     if (path.includes('/admin')) return 'Dashboard';
     if (path.includes('/reportes')) return 'Reportes';
+    if (path.includes('/mapa')) return 'Mapa del Depósito';
     return 'Der Will';
   };
 
@@ -70,10 +73,17 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     setMobileOpen(!mobileOpen);
   };
 
+  const handleDesktopMenuToggle = () => {
+    setDesktopMenuOpen(!desktopMenuOpen);
+  };
+
   const handleNavigation = (path) => {
     navigate(path);
     if (isMobile) {
       setMobileOpen(false);
+    } else {
+      // En desktop, mantener el menú abierto para mejor UX
+      // setDesktopMenuOpen(false);
     }
   };
 
@@ -104,6 +114,12 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           label: 'Posiciones',
           path: '/depositoDW_v2/posiciones',
           icon: <LocationIcon />,
+          show: user?.role === 'admin' || user?.role === 'deposito'
+        },
+        {
+          label: 'Mapa',
+          path: '/depositoDW_v2/mapa',
+          icon: <MapIcon />,
           show: user?.role === 'admin' || user?.role === 'deposito'
         },
         {
@@ -430,14 +446,21 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
         <Box
           component="nav"
           sx={{ 
-            width: 280, 
+            position: 'fixed',
+            top: 0,
+            right: 0,
+            height: '100vh',
+            width: desktopMenuOpen ? 280 : 0,
             flexShrink: 0,
             backgroundColor: 'var(--color-surface)',
-            borderRight: '1px solid var(--color-border)',
-            boxShadow: 'var(--shadow-sm)'
+            borderLeft: desktopMenuOpen ? '1px solid var(--color-border)' : 'none',
+            boxShadow: desktopMenuOpen ? 'var(--shadow-sm)' : 'none',
+            transition: 'width 0.3s ease-in-out, border 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+            overflow: 'hidden',
+            zIndex: theme.zIndex.drawer
           }}
         >
-          {drawer}
+          {desktopMenuOpen && drawer}
         </Box>
       )}
 
@@ -460,6 +483,38 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
         >
           {drawer}
         </Drawer>
+      )}
+
+      {/* Botón hamburguesa flotante para desktop */}
+      {!isMobile && (
+        <IconButton
+          onClick={handleDesktopMenuToggle}
+          sx={{
+            position: 'fixed',
+            top: 20,
+            right: desktopMenuOpen ? 300 : 20,
+            zIndex: theme.zIndex.drawer + 2,
+            backgroundColor: 'var(--color-primary)',
+            color: 'white',
+            width: 56,
+            height: 56,
+            boxShadow: 'var(--shadow-md)',
+            transition: 'all 0.3s ease-in-out',
+            border: '2px solid rgba(255, 255, 255, 0.2)',
+            '&:hover': {
+              backgroundColor: 'var(--color-primary-dark)',
+              transform: 'scale(1.05)',
+              boxShadow: 'var(--shadow-lg)',
+              border: '2px solid rgba(255, 255, 255, 0.4)'
+            },
+            '&:active': {
+              transform: 'scale(0.95)'
+            }
+          }}
+          aria-label={desktopMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+        >
+          <MenuIcon />
+        </IconButton>
       )}
 
       {/* Contenido principal */}

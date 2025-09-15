@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -36,6 +36,9 @@ import {
 } from '../../shared/utils/excelExporter';
 import OccupationProgressCircle from '../../shared/ui/OccupationProgressCircle';
 import MovimientosInternosPesadosCard from '../../shared/ui/MovimientosInternosPesadosCard';
+import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import { checkAuthentication, handleLogout } from '../../features/stock/utils/navigationUtils';
+import { useNavigate } from 'react-router-dom';
 import './PosicionesVaciasPage.css';
 
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -49,6 +52,24 @@ const StyledCard = styled(Card)(({ theme }) => ({
 }));
 
 const PosicionesVaciasPage = () => {
+  const navigate = useNavigate();
+  
+  // Estados del usuario y autenticación
+  const [user, setUser] = useState(null);
+
+  // Inicialización y autenticación
+  useEffect(() => {
+    const currentUser = checkAuthentication(navigate);
+    if (currentUser) {
+      setUser(currentUser);
+    }
+  }, [navigate]);
+
+  // Handler de logout
+  const handleLogoutClick = () => {
+    handleLogout(navigate);
+  };
+
   const {
     posicionesVacias,
     loading,
@@ -166,16 +187,17 @@ const PosicionesVaciasPage = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4, textAlign: 'center' }}>
-        <Typography variant="h3" component="h1" gutterBottom color="primary">
-          📦 Posiciones Vacías
-        </Typography>
-        <Typography variant="h6" color="text.secondary" gutterBottom>
-          Depósito - Inventario de Espacios Disponibles
-        </Typography>
-      </Box>
+    <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Dashboard Depósito">
+      <Box sx={{ p: 3 }}>
+        {/* Header */}
+        <Box sx={{ mb: 4, textAlign: 'center' }}>
+          <Typography variant="h3" component="h1" gutterBottom color="primary">
+            📦 Posiciones Vacías
+          </Typography>
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            Depósito - Inventario de Espacios Disponibles
+          </Typography>
+        </Box>
 
       {/* Contador Grande de Posiciones Cargadas */}
       <Box className="contador-grande">
@@ -482,18 +504,19 @@ const PosicionesVaciasPage = () => {
         </Grid>
       )}
 
-      {/* Botón de Recarga */}
-      <Box sx={{ mt: 4, textAlign: 'center' }}>
-        <Chip
-          label="🔄 Recargar Posiciones"
-          onClick={cargarPosicionesVacias}
-          color="primary"
-          variant="outlined"
-          clickable
-          sx={{ cursor: 'pointer' }}
-        />
+        {/* Botón de Recarga */}
+        <Box sx={{ mt: 4, textAlign: 'center' }}>
+          <Chip
+            label="🔄 Recargar Posiciones"
+            onClick={cargarPosicionesVacias}
+            color="primary"
+            variant="outlined"
+            clickable
+            sx={{ cursor: 'pointer' }}
+          />
+        </Box>
       </Box>
-    </Box>
+    </AppLayout>
   );
 };
 

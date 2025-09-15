@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   Dialog, 
@@ -97,11 +97,40 @@ export const AdicionRapidaPosicion = ({ open, onClose, posicion, onSubmit }) => 
   // Estados para los modales
   const [openNuevoProveedor, setOpenNuevoProveedor] = useState(false);
   const [openNuevoItem, setOpenNuevoItem] = useState(false);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
 
   // Filtrar items por proveedor seleccionado
-  const itemsProveedor = formData.proveedor 
-    ? allItems.filter(item => item.proveedor?.id === formData.proveedor.id)
-    : [];
+  const itemsProveedor = useMemo(() => {
+    if (!formData.proveedor || !allItems || allItems.length === 0) {
+      return [];
+    }
+
+    console.log('🔍 Filtrando items para proveedor:', formData.proveedor);
+    console.log('📦 Total de items disponibles:', allItems.length);
+    
+    const itemsFiltrados = allItems.filter(item => {
+      // Verificar que el item tenga proveedor
+      if (!item.proveedor) {
+        console.log('⚠️ Item sin proveedor:', item);
+        return false;
+      }
+
+      // Comparar IDs (tanto string como number)
+      const itemProveedorId = String(item.proveedor.id);
+      const proveedorSeleccionadoId = String(formData.proveedor.id);
+      
+      const coincide = itemProveedorId === proveedorSeleccionadoId;
+      
+      if (coincide) {
+        console.log('✅ Item coincide:', item.categoria, '-', item.descripcion);
+      }
+      
+      return coincide;
+    });
+
+    console.log('🎯 Items filtrados encontrados:', itemsFiltrados.length);
+    return itemsFiltrados;
+  }, [formData.proveedor, allItems]);
 
   // Cargar proveedores cuando se abra el modal
   useEffect(() => {
@@ -252,6 +281,38 @@ export const AdicionRapidaPosicion = ({ open, onClose, posicion, onSubmit }) => 
               </Alert>
             )}
             
+            {/* Botón de depuración */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+              <Button 
+                size="small" 
+                onClick={() => setShowDebugInfo(!showDebugInfo)}
+                sx={{ 
+                  color: '#666', 
+                  textTransform: 'none',
+                  fontSize: '0.75rem'
+                }}
+              >
+                {showDebugInfo ? 'Ocultar' : 'Mostrar'} Info Debug
+              </Button>
+            </Box>
+            
+            {/* Información de depuración */}
+            {showDebugInfo && (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="body2" component="div">
+                  <strong>Debug Info:</strong><br/>
+                  • Proveedores cargados: {proveedores?.length || 0}<br/>
+                  • Items totales: {allItems?.length || 0}<br/>
+                  • Items para proveedor seleccionado: {itemsProveedor.length}<br/>
+                  {formData.proveedor && (
+                    <>
+                      • Proveedor seleccionado: {formData.proveedor.nombre} (ID: {formData.proveedor.id})<br/>
+                    </>
+                  )}
+                </Typography>
+              </Alert>
+            )}
+            
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Autocomplete
                 options={proveedores || []}
@@ -295,6 +356,14 @@ export const AdicionRapidaPosicion = ({ open, onClose, posicion, onSubmit }) => 
             </Box>
             
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {formData.proveedor && (
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  {itemsProveedor.length > 0 
+                    ? `${itemsProveedor.length} item${itemsProveedor.length !== 1 ? 's' : ''} disponible${itemsProveedor.length !== 1 ? 's' : ''} para ${formData.proveedor.nombre}`
+                    : `No hay items disponibles para ${formData.proveedor.nombre}`
+                  }
+                </Typography>
+              )}
               <Autocomplete
                 options={itemsProveedor}
                 getOptionLabel={(option) => option ? `${option.categoria || ''} - ${option.descripcion || ''}` : ''}
@@ -327,18 +396,32 @@ export const AdicionRapidaPosicion = ({ open, onClose, posicion, onSubmit }) => 
                 filterOptions={(options, { inputValue }) => {
                   // Si no hay texto de búsqueda, mostrar todas las opciones
                   if (!inputValue || !inputValue.trim()) {
+                    console.log('🔍 Sin filtro de texto, mostrando todos los items:', options.length);
                     return options;
                   }
                   
                   const searchText = inputValue.toLowerCase().trim();
+                  console.log('🔍 Buscando texto:', searchText);
                   
                   // Filtrar items que contengan el texto de búsqueda en categoría o descripción
-                  return options.filter(option => {
+                  const itemsFiltrados = options.filter(option => {
+                    if (!option) return false;
+                    
                     const categoria = (option.categoria || '').toLowerCase();
                     const descripcion = (option.descripcion || '').toLowerCase();
                     
-                    return categoria.includes(searchText) || descripcion.includes(searchText);
+                    const coincideCategoria = categoria.includes(searchText);
+                    const coincideDescripcion = descripcion.includes(searchText);
+                    
+                    if (coincideCategoria || coincideDescripcion) {
+                      console.log('✅ Item coincide:', option.categoria, '-', option.descripcion);
+                    }
+                    
+                    return coincideCategoria || coincideDescripcion;
                   });
+                  
+                  console.log('🎯 Items filtrados por texto:', itemsFiltrados.length);
+                  return itemsFiltrados;
                 }}
               />
               {formData.proveedor && (
