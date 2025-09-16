@@ -135,29 +135,32 @@ const AutocompleteSelect = ({
       renderOption={(props, option) => {
         const { key, ...otherProps } = props;
         
-                 // Si es la opción adicional, renderizar el componente personalizado
-         if (extraOption && option === extraOption) {
-           return (
-             <Box 
-               component="li" 
-               key="extra-option"
-               {...otherProps} 
-               sx={{ 
-                 fontSize: '12px', 
-                 py: 0.5,
-                 borderBottom: '1px solid #e0e0e0',
-                 backgroundColor: '#f5f5f5'
-               }}
-             >
-               {extraOption}
-             </Box>
-           );
-         }
+        // Si es la opción adicional, renderizar el componente personalizado
+        if (extraOption && option === extraOption) {
+          return (
+            <Box 
+              component="li" 
+              key="extra-option"
+              {...otherProps} 
+              sx={{ 
+                fontSize: '12px', 
+                py: 0.5,
+                borderBottom: '1px solid #e0e0e0',
+                backgroundColor: '#f5f5f5'
+              }}
+            >
+              {extraOption}
+            </Box>
+          );
+        }
+        
+        // Generar una key única que incluya el ID para evitar duplicados
+        const uniqueKey = option.id ? `option-${option.id}` : `option-${getOptionLabel(option)}-${Math.random()}`;
         
         return (
           <Box 
             component="li" 
-            key={getOptionKey ? getOptionKey(option) : key}
+            key={uniqueKey}
             {...otherProps} 
             sx={{ fontSize: '12px', py: 0.5 }}
           >

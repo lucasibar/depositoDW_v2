@@ -20,8 +20,10 @@ export const useAdicionRapida = (proveedores, items, selectedProveedor) => {
   // Función para filtrar proveedores
   const filterProveedores = createProveedoresFilter;
 
-  // Función para filtrar items
-  const filterItems = createItemsFilter;
+  // Función para filtrar items - usar itemsFiltrados (ya filtrados por proveedor)
+  const filterItems = (options, { inputValue }) => {
+    return createItemsFilter(options, { inputValue });
+  };
 
   // Validar si el formulario está completo
   const isFormValid = (formData) => {

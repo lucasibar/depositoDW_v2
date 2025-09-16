@@ -16,12 +16,14 @@ export const filterItemsBySearch = (items, searchText) => {
   const searchWords = searchText.toLowerCase().trim().split(' ').filter(word => word.length > 0);
   
   // Filtrar items que contengan TODAS las palabras de búsqueda
-  return items.filter(item => {
+  const filteredItems = items.filter(item => {
     const itemText = `${item.categoria || ''} ${item.descripcion || ''}`.toLowerCase();
     
     // Verificar que TODAS las palabras estén presentes
     return searchWords.every(word => itemText.includes(word));
   });
+  
+  return filteredItems;
 };
 
 /**

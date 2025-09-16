@@ -327,11 +327,14 @@ export const AdicionRapidaPosicion = ({ open, onClose, posicion, onSubmit }) => 
                     placeholder="Buscar proveedor..."
                   />
                 )}
-                renderOption={(props, option) => (
-                  <Box component="li" {...props}>
-                    {option.nombre}
-                  </Box>
-                )}
+                renderOption={(props, option) => {
+                  const { key, ...otherProps } = props;
+                  return (
+                    <Box component="li" key={option.id || `proveedor-${option.nombre}`} {...otherProps}>
+                      {option.nombre}
+                    </Box>
+                  );
+                }}
                 noOptionsText="No se encontraron proveedores"
                 loading={!proveedores || proveedores.length === 0}
                 loadingText="Cargando proveedores..."
@@ -378,50 +381,42 @@ export const AdicionRapidaPosicion = ({ open, onClose, posicion, onSubmit }) => 
                     disabled={!formData.proveedor}
                   />
                 )}
-                renderOption={(props, option) => (
-                  <Box component="li" {...props}>
-                    <Box>
-                      <Typography variant="body2" fontWeight="bold">
-                        {option.categoria}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        {option.descripcion}
-                      </Typography>
+                renderOption={(props, option) => {
+                  const { key, ...otherProps } = props;
+                  return (
+                    <Box component="li" key={option.id || `item-${option.categoria}-${option.descripcion}`} {...otherProps}>
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold">
+                          {option.categoria}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          {option.descripcion}
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                )}
+                  );
+                }}
                 noOptionsText={
                   formData.proveedor ? "No se encontraron items" : "Seleccione un proveedor primero"
                 }
                 filterOptions={(options, { inputValue }) => {
                   // Si no hay texto de búsqueda, mostrar todas las opciones
                   if (!inputValue || !inputValue.trim()) {
-                    console.log('🔍 Sin filtro de texto, mostrando todos los items:', options.length);
                     return options;
                   }
                   
-                  const searchText = inputValue.toLowerCase().trim();
-                  console.log('🔍 Buscando texto:', searchText);
+                  // Dividir la búsqueda en palabras individuales
+                  const searchWords = inputValue.toLowerCase().trim().split(' ').filter(word => word.length > 0);
                   
-                  // Filtrar items que contengan el texto de búsqueda en categoría o descripción
-                  const itemsFiltrados = options.filter(option => {
+                  // Filtrar items que contengan TODAS las palabras de búsqueda
+                  return options.filter(option => {
                     if (!option) return false;
                     
-                    const categoria = (option.categoria || '').toLowerCase();
-                    const descripcion = (option.descripcion || '').toLowerCase();
+                    const itemText = `${option.categoria || ''} ${option.descripcion || ''}`.toLowerCase();
                     
-                    const coincideCategoria = categoria.includes(searchText);
-                    const coincideDescripcion = descripcion.includes(searchText);
-                    
-                    if (coincideCategoria || coincideDescripcion) {
-                      console.log('✅ Item coincide:', option.categoria, '-', option.descripcion);
-                    }
-                    
-                    return coincideCategoria || coincideDescripcion;
+                    // Verificar que TODAS las palabras estén presentes
+                    return searchWords.every(word => itemText.includes(word));
                   });
-                  
-                  console.log('🎯 Items filtrados por texto:', itemsFiltrados.length);
-                  return itemsFiltrados;
                 }}
               />
               {formData.proveedor && (
