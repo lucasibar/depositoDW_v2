@@ -37,7 +37,8 @@ import {
   Category as CategoryIcon,
   LocationOn as LocationIcon,
   Warehouse as WarehouseIcon,
-  Map as MapIcon
+  Map as MapIcon,
+  SwapHoriz as SwapHorizIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getRoleColor, getRoleLabel } from '../../../features/stock/utils/userUtils';
@@ -66,6 +67,7 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     if (path.includes('/admin')) return 'Dashboard';
     if (path.includes('/reportes')) return 'Reportes';
     if (path.includes('/mapa')) return 'Mapa del Depósito';
+    if (path.includes('/movimientos-mercaderia')) return 'Movimientos Mercadería';
     return 'Der Will';
   };
 
@@ -120,6 +122,12 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           label: 'Mapa',
           path: '/depositoDW_v2/mapa',
           icon: <MapIcon />,
+          show: user?.role === 'admin' || user?.role === 'deposito'
+        },
+        {
+          label: 'Movimientos Mercadería',
+          path: '/depositoDW_v2/movimientos-mercaderia',
+          icon: <SwapHorizIcon />,
           show: user?.role === 'admin' || user?.role === 'deposito'
         },
         {
