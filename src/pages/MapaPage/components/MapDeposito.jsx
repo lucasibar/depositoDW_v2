@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, Typography, Grid, Paper, IconButton, Card, CardContent, Divider } from '@mui/material';
 import { ArrowBackIos, ArrowForwardIos, Visibility, VisibilityOff } from '@mui/icons-material';
 import { usePosicionesMapa } from '../../../hooks/usePosicionesMapa';
+import { useNavegacionRapidaPosiciones } from '../../../features/adicionesRapidas/hooks/useNavegacionRapidaPosiciones';
 
 const MapDeposito = () => {
   const [currentView, setCurrentView] = useState(0); // 0: Real, 1: Ideal
@@ -18,6 +19,9 @@ const MapDeposito = () => {
     error, 
     refetch 
   } = usePosicionesMapa();
+
+  // Hook para navegación rápida
+  const { navegarAPosicionesConBusqueda } = useNavegacionRapidaPosiciones();
 
   // Generar colores únicos para cada categoría
   const coloresPorCategoria = React.useMemo(() => {
@@ -196,8 +200,25 @@ const MapDeposito = () => {
 
   const depositoStructure = generateDepositoStructure();
 
+  // Función para manejar el clic en una posición
+  const handlePositionClick = (rack, position, floor) => {
+    console.log('Clic en posición:', { rack, position, floor });
+    
+    // Crear un objeto resultado simulado para la navegación
+    const resultado = {
+      posicion: {
+        rack: parseInt(rack),
+        fila: position,
+        AB: floor
+      }
+    };
+    
+    // Navegar a la página de posiciones con los filtros configurados
+    navegarAPosicionesConBusqueda(resultado);
+  };
+
   const RackComponent = ({ rack, floor }) => {
-    const positions = Array.from({ length: rack.positions }, (_, i) => i + 1);
+    const positions = Array.from({ length: rack.positions }, (_, i) => rack.positions - i);
     
     // Función para determinar el color de la posición basado en rack, fila y AB
     const getPositionColor = (position) => {
@@ -267,6 +288,7 @@ const MapDeposito = () => {
           {positions.map((position) => (
             <Box
               key={position}
+              onClick={() => handlePositionClick(rack.id.split('-')[1], position, floor)}
               sx={{
                 width: '90%',
                 height: 20,
@@ -279,11 +301,14 @@ const MapDeposito = () => {
                 fontSize: '0.6rem',
                 color: 'var(--color-text-secondary)',
                 fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
                 '&:hover': {
                   backgroundColor: 'var(--color-primary-light)',
-                  cursor: 'pointer',
-                  border: '1px solid var(--color-primary)',
-                  color: 'var(--color-primary)'
+                  border: '2px solid var(--color-primary)',
+                  color: 'var(--color-primary)',
+                  transform: 'scale(1.05)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                 }
               }}
             >
@@ -318,6 +343,20 @@ const MapDeposito = () => {
 
   const PasilloComponent = ({ pasillo }) => (
     <Box
+      onClick={() => {
+        console.log('Clic en pasillo:', pasillo.id);
+        const numeroPasillo = pasillo.id.split('-')[1];
+        
+        // Crear un objeto resultado simulado para la navegación
+        const resultado = {
+          posicion: {
+            numeroPasillo: parseInt(numeroPasillo)
+          }
+        };
+        
+        // Navegar a la página de posiciones con los filtros configurados
+        navegarAPosicionesConBusqueda(resultado);
+      }}
       sx={{
         width: '100%',
         height: '100%',
@@ -329,6 +368,14 @@ const MapDeposito = () => {
         justifyContent: 'center',
         minHeight: 400,
         position: 'relative',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        '&:hover': {
+          backgroundColor: 'var(--color-primary-light)',
+          border: '2px solid var(--color-primary)',
+          transform: 'scale(1.02)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        },
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -928,6 +975,10 @@ const MapDeposito = () => {
         
         <Typography variant="caption" sx={{ mt: 2, display: 'block', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
           * Estructura: P1 → R1 → R2 → P2 → R3 → R4 → ... → P10 → R19 → R20 → P11. Cada rack contiene 14 posiciones numeradas del 1 al 14.
+        </Typography>
+        
+        <Typography variant="caption" sx={{ mt: 1, display: 'block', color: 'var(--color-primary)', fontWeight: 600 }}>
+          💡 Haz clic en cualquier posición o pasillo para ver los detalles en la página de posiciones
         </Typography>
       </Box>
     </Box>
