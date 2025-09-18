@@ -22,6 +22,9 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
   const [numeroPartida, setNumeroPartida] = useState('');
   const [kilos, setKilos] = useState('');
   const [unidades, setUnidades] = useState('');
+  const [reciclado, setReciclado] = useState(false);
+  const [certificadoTransaccion, setCertificadoTransaccion] = useState('');
+  const [prePos, setPrePos] = useState('');
   const [partidasRemito, setPartidasRemito] = useState([]);
   const [showItemDropdown, setShowItemDropdown] = useState(false);
   const [showProveedorModal, setShowProveedorModal] = useState(false);
@@ -115,12 +118,21 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
       return;
     }
 
+    // Validar campos de reciclado si está marcado
+    if (reciclado && (!certificadoTransaccion || !prePos)) {
+      alert('Si la mercadería es reciclada, debe completar el certificado de transacción y seleccionar PRE o POS consumo');
+      return;
+    }
+
     const itemSeleccionado = items.find(item => item.id === selectedItem);
     const nuevaPartida = {
       kilos: parseFloat(kilos),
       numeroPartida: numeroPartida,
       unidades: parseInt(unidades),
-      item: itemSeleccionado
+      item: itemSeleccionado,
+      reciclado: reciclado,
+      certificado_transaccion: reciclado ? certificadoTransaccion : null,
+      pre_pos: reciclado ? prePos : null
     };
 
     setPartidasRemito([...partidasRemito, nuevaPartida]);
@@ -131,6 +143,9 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
     setNumeroPartida('');
     setKilos('');
     setUnidades('');
+    setReciclado(false);
+    setCertificadoTransaccion('');
+    setPrePos('');
   };
 
   const handleRemovePartida = (index) => {
@@ -249,11 +264,16 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
           </div>
 
           {/* AGREGAR PARTIDAS */}
-          {selectedProveedor && (
-            <div className={styles.section}>
-              <h4>Agregar Partidas</h4>
-              
-                          <div className={styles.formGroup}>
+          <div className={styles.section}>
+            <h4>Agregar Partidas</h4>
+            
+            {!selectedProveedor && (
+              <div className={styles.warningMessage}>
+                <p>⚠️ Debe seleccionar un proveedor antes de agregar partidas</p>
+              </div>
+            )}
+            
+            <div className={styles.formGroup}>
               <label htmlFor="item">Item:</label>
               <div className={styles.searchContainer} ref={itemInputRef}>
                 <div className={styles.inputWithButton}>
@@ -263,20 +283,22 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
                     value={itemSearch}
                     onChange={handleItemSearchChange}
                     onFocus={() => setShowItemDropdown(true)}
-                    placeholder="Buscar item por descripción o categoría..."
-                    className={styles.searchInput}
+                    placeholder={selectedProveedor ? "Buscar item por descripción o categoría..." : "Seleccione un proveedor primero"}
+                    className={`${styles.searchInput} ${!selectedProveedor ? styles.disabledInput : ''}`}
                     autoComplete="off"
+                    disabled={!selectedProveedor}
                   />
                   <button
                     type="button"
                     onClick={() => setShowItemModal(true)}
-                    className={styles.addItemButton}
+                    className={`${styles.addItemButton} ${!selectedProveedor ? styles.disabledButton : ''}`}
                     title="Agregar nuevo item"
+                    disabled={!selectedProveedor}
                   >
                     +
                   </button>
                 </div>
-                {showItemDropdown && filteredItems.length > 0 && (
+                {showItemDropdown && filteredItems.length > 0 && selectedProveedor && (
                   <div className={styles.dropdown}>
                     {filteredItems.map(item => (
                       <div
@@ -293,60 +315,137 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
               </div>
             </div>
 
-              <div className={styles.partidaFields}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="numeroPartida">Número de Partida:</label>
-                  <input
-                    type="text"
-                    id="numeroPartida"
-                    value={numeroPartida}
-                    onChange={(e) => setNumeroPartida(e.target.value)}
-                    className={styles.input}
-                    placeholder="Puede contener letras"
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label htmlFor="kilos">Kilos:</label>
-                  <input
-                    type="number"
-                    id="kilos"
-                    value={kilos}
-                    onChange={(e) => setKilos(e.target.value)}
-                    className={styles.input}
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label htmlFor="unidades">Unidades:</label>
-                  <input
-                    type="number"
-                    id="unidades"
-                    value={unidades}
-                    onChange={(e) => setUnidades(e.target.value)}
-                    className={styles.input}
-                    min="0"
-                  />
-                </div>
+            <div className={styles.partidaFields}>
+              <div className={styles.formGroup}>
+                <label htmlFor="numeroPartida">Número de Partida:</label>
+                <input
+                  type="text"
+                  id="numeroPartida"
+                  value={numeroPartida}
+                  onChange={(e) => setNumeroPartida(e.target.value)}
+                  className={`${styles.input} ${!selectedProveedor ? styles.disabledInput : ''}`}
+                  placeholder="Puede contener letras"
+                  disabled={!selectedProveedor}
+                />
               </div>
 
-              <button
-                type="button"
-                onClick={handleAddPartida}
-                className={styles.addButton}
-                disabled={!selectedItem || !numeroPartida || !kilos || !unidades}
-              >
-                Agregar Partida
-              </button>
+              <div className={styles.formGroup}>
+                <label htmlFor="kilos">Kilos:</label>
+                <input
+                  type="number"
+                  id="kilos"
+                  value={kilos}
+                  onChange={(e) => setKilos(e.target.value)}
+                  className={`${styles.input} ${!selectedProveedor ? styles.disabledInput : ''}`}
+                  step="0.01"
+                  min="0"
+                  disabled={!selectedProveedor}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="unidades">Unidades:</label>
+                <input
+                  type="number"
+                  id="unidades"
+                  value={unidades}
+                  onChange={(e) => setUnidades(e.target.value)}
+                  className={`${styles.input} ${!selectedProveedor ? styles.disabledInput : ''}`}
+                  min="0"
+                  disabled={!selectedProveedor}
+                />
+              </div>
             </div>
-          )}
+
+            {/* Campos de Reciclado */}
+            <div className={styles.recicladoSection}>
+              <div className={styles.formGroup}>
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={reciclado}
+                    onChange={(e) => {
+                      setReciclado(e.target.checked);
+                      if (!e.target.checked) {
+                        setCertificadoTransaccion('');
+                        setPrePos('');
+                      }
+                    }}
+                    disabled={!selectedProveedor}
+                    className={styles.checkbox}
+                  />
+                  <span className={styles.checkboxText}>Mercadería Reciclada</span>
+                </label>
+              </div>
+
+              {reciclado && (
+                <div className={styles.recicladoFields}>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="certificadoTransaccion">Certificado de Transacción:</label>
+                    <input
+                      type="text"
+                      id="certificadoTransaccion"
+                      value={certificadoTransaccion}
+                      onChange={(e) => setCertificadoTransaccion(e.target.value)}
+                      className={`${styles.input} ${!selectedProveedor ? styles.disabledInput : ''}`}
+                      placeholder="Número o código del certificado"
+                      disabled={!selectedProveedor}
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>Tipo de Consumo:</label>
+                    <div className={styles.radioGroup}>
+                      <label className={styles.radioLabel}>
+                        <input
+                          type="radio"
+                          name="prePos"
+                          value="PRE"
+                          checked={prePos === 'PRE'}
+                          onChange={(e) => setPrePos(e.target.value)}
+                          disabled={!selectedProveedor}
+                          className={styles.radio}
+                        />
+                        <span className={styles.radioText}>PRE Consumo</span>
+                      </label>
+                      <label className={styles.radioLabel}>
+                        <input
+                          type="radio"
+                          name="prePos"
+                          value="POS"
+                          checked={prePos === 'POS'}
+                          onChange={(e) => setPrePos(e.target.value)}
+                          disabled={!selectedProveedor}
+                          className={styles.radio}
+                        />
+                        <span className={styles.radioText}>POS Consumo</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAddPartida}
+              className={`${styles.addButton} ${!selectedProveedor ? styles.disabledButton : ''}`}
+              disabled={!selectedProveedor || !selectedItem || !numeroPartida || !kilos || !unidades}
+            >
+              Agregar Partida
+            </button>
+          </div>
 
           {/* LISTA DE PARTIDAS */}
-          {partidasRemito.length > 0 && (
-            <div className={styles.section}>
-              <h4>Partidas del Remito ({partidasRemito.length})</h4>
+          <div className={styles.section}>
+            <h4>Partidas del Remito ({partidasRemito.length})</h4>
+            
+            {partidasRemito.length === 0 ? (
+              <div className={styles.emptyState}>
+                <p>📋 No hay partidas agregadas al remito</p>
+                <p>Complete los campos de arriba y haga clic en "Agregar Partida" para comenzar</p>
+              </div>
+            ) : (
               <div className={styles.partidasList}>
                 {partidasRemito.map((partida, index) => (
                   <div key={index} className={styles.partidaItem}>
@@ -359,6 +458,17 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
                         <span>Partida: {partida.numeroPartida}</span>
                         <span>Kilos: {partida.kilos}</span>
                         <span>Unidades: {partida.unidades}</span>
+                        {partida.reciclado === true && (
+                          <>
+                            <span className={styles.recicladoTag}>🔄 Reciclado</span>
+                            {partida.certificado_transaccion && (
+                              <span>Cert: {partida.certificado_transaccion}</span>
+                            )}
+                            {partida.pre_pos && (
+                              <span>{partida.pre_pos} Consumo</span>
+                            )}
+                          </>
+                        )}
                       </div>
                     </div>
                     <button
@@ -371,15 +481,24 @@ export const CreateRemitoEntradaForm = ({ onRemitoCreated }) => {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* BOTÓN PARA CREAR REMITO */}
-          {partidasRemito.length > 0 && (
-            <button type="submit" className={styles.submitButton}>
+          <div className={styles.submitSection}>
+            <button 
+              type="submit" 
+              className={`${styles.submitButton} ${partidasRemito.length === 0 ? styles.disabledButton : ''}`}
+              disabled={partidasRemito.length === 0}
+            >
               Crear Remito de Entrada
             </button>
-          )}
+            {partidasRemito.length === 0 && (
+              <p className={styles.submitHint}>
+                Agregue al menos una partida para poder crear el remito
+              </p>
+            )}
+          </div>
         </form>
       </div>
 

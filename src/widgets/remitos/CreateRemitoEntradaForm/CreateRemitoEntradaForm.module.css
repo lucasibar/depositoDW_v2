@@ -276,6 +276,148 @@
   margin: 1rem 0;
 }
 
+/* Nuevos estilos para elementos siempre visibles */
+.warningMessage {
+  background: #fef5e7;
+  border: 1px solid #f6e05e;
+  color: #744210;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.warningMessage p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.disabledInput {
+  background-color: #f7fafc !important;
+  color: #a0aec0 !important;
+  cursor: not-allowed !important;
+  border-color: #e2e8f0 !important;
+}
+
+.disabledButton {
+  background: #cbd5e0 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+.disabledButton:hover {
+  background: #cbd5e0 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem;
+  color: #718096;
+  background: #f7fafc;
+  border-radius: 6px;
+  border: 2px dashed #e2e8f0;
+}
+
+.emptyState p {
+  margin: 0.5rem 0;
+}
+
+.emptyState p:first-child {
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.submitSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.submitHint {
+  color: #718096;
+  font-size: 0.9rem;
+  text-align: center;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Estilos para campos de reciclado */
+.recicladoSection {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+  border-radius: 6px;
+}
+
+.recicladoFields {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: #0c4a6e;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #0ea5e9;
+  cursor: pointer;
+}
+
+.checkboxText {
+  font-size: 1rem;
+  user-select: none;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: #374151;
+}
+
+.radio {
+  width: 16px;
+  height: 16px;
+  accent-color: #0ea5e9;
+  cursor: pointer;
+}
+
+.radioText {
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.recicladoTag {
+  background: #0ea5e9 !important;
+  color: white !important;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
 /* Responsive */
 @media (max-width: 1024px) and (min-width: 769px) {
   /* Tablet */
@@ -334,5 +476,14 @@
   .removeButton {
     margin-left: 0;
     align-self: flex-end;
+  }
+  
+  .recicladoFields {
+    gap: 0.75rem;
+  }
+  
+  .radioGroup {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 } 

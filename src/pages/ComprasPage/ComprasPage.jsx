@@ -21,20 +21,12 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
-import { RemitosTab } from './components/RemitosTab/RemitosTab';
 import { OrdenesCompraTab } from './components/OrdenesCompraTab/OrdenesCompraTab';
 import { PresupuestoTab } from './components/PresupuestoTab/PresupuestoTab';
 import { RemitosListTab } from './components/RemitosListTab/RemitosListTab';
 
 // Datos de las pestañas con iconos y contadores
 const TABS = [
-  { 
-    id: 'remitos', 
-    label: 'Crear Remito', 
-    icon: <ReceiptIcon />,
-    component: RemitosTab,
-    color: 'primary'
-  },
   { 
     id: 'listado-remitos', 
     label: 'Listado Remitos', 
@@ -69,7 +61,6 @@ export const ComprasPage = () => {
 
   // Estados para contadores (se pueden conectar con Redux más adelante)
   const [tabCounts, setTabCounts] = useState({
-    remitos: 0,
     'listado-remitos': 0,
     ordenes: 0,
     presupuesto: 0

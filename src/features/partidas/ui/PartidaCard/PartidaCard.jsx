@@ -122,6 +122,24 @@ const PartidaCard = ({
             <Box component="span">
               <strong>Unidades:</strong> {partida.unidades || '0'}
             </Box>
+            {partida.reciclado === true && (
+              <>
+                <Box component="span">•</Box>
+                <Box 
+                  component="span" 
+                  sx={{ 
+                    backgroundColor: '#0ea5e9',
+                    color: 'white',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600
+                  }}
+                >
+                  REC-{partida.pre_pos || 'N/A'}
+                </Box>
+              </>
+            )}
           </Typography>
         </Box>
       );
@@ -188,6 +206,21 @@ const PartidaCard = ({
           <Box component="span">
             <strong>Unidades:</strong> {partida.unidades || '0'}
           </Box>
+          {partida.reciclado === true && (
+            <Box 
+              component="span" 
+              sx={{ 
+                backgroundColor: '#0ea5e9',
+                color: 'white',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                fontSize: '0.75rem',
+                fontWeight: 600
+              }}
+            >
+              REC-{partida.pre_pos || 'N/A'}
+            </Box>
+          )}
         </Typography>
       </Box>
     );

@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import Login from '../pages/Login/Login';
 
 import { ComprasPage } from '../pages/ComprasPage/ComprasPage';
+import { RemitoEntradaPage } from '../pages/RemitoEntradaPage/RemitoEntradaPage';
 import { DashboardComprasPage } from '../pages/DashboardComprasPage/DashboardComprasPage';
 import { AdminPage } from '../pages/AdminPage/AdminPage';
 import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
@@ -48,6 +49,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['compras', 'admin']}>
               <ComprasPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Remito Entrada - Accesible solo para compras y admin */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/remito-entrada" 
+          element={
+            <RoleProtectedRoute allowedRoles={['compras', 'admin']}>
+              <RemitoEntradaPage />
             </RoleProtectedRoute>
           } 
         />

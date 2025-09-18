@@ -97,7 +97,10 @@ const partidasSlice = createSlice({
              proveedor: partida.item?.proveedor?.nombre || "Sin proveedor",
              fecha: fechaFormateada,
              fechaModificacion: null,
-             posicion: partida.posicion || "Sin posición"
+             posicion: partida.posicion || "Sin posición",
+             reciclado: partida.reciclado || false,
+             certificado_transaccion: partida.certificado_transaccion || null,
+             pre_pos: partida.pre_pos || null
            };
          });
 

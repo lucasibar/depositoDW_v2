@@ -38,7 +38,8 @@ import {
   LocationOn as LocationIcon,
   Warehouse as WarehouseIcon,
   Map as MapIcon,
-  SwapHoriz as SwapHorizIcon
+  SwapHoriz as SwapHorizIcon,
+  Receipt as ReceiptIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getRoleColor, getRoleLabel } from '../../../features/stock/utils/userUtils';
@@ -62,6 +63,7 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     if (path.includes('/materiales')) return 'Materiales';
     if (path.includes('/stock')) return 'Stock';
     if (path.includes('/compras')) return 'Compras';
+    if (path.includes('/remito-entrada')) return 'Remito Entrada';
     if (path.includes('/calidad')) return 'Calidad';
     if (path.includes('/salida')) return 'Salida';
     if (path.includes('/admin')) return 'Dashboard';
@@ -140,6 +142,12 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           label: 'Compras',
           path: '/depositoDW_v2/compras',
           icon: <ShoppingCartIcon />,
+          show: user?.role === 'admin' || user?.role === 'compras'
+        },
+        {
+          label: 'Remito Entrada',
+          path: '/depositoDW_v2/remito-entrada',
+          icon: <ReceiptIcon />,
           show: user?.role === 'admin' || user?.role === 'compras'
         },
         {
