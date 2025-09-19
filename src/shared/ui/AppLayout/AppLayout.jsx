@@ -70,6 +70,7 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     if (path.includes('/reportes')) return 'Reportes';
     if (path.includes('/mapa')) return 'Mapa del Depósito';
     if (path.includes('/movimientos-mercaderia')) return 'Movimientos Mercadería';
+    if (path.includes('/ordenes-pedido')) return 'Órdenes de Pedido';
     return 'Der Will';
   };
 
@@ -161,6 +162,12 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           path: '/depositoDW_v2/salida',
           icon: <ExitToAppIcon />,
           show: user?.role === 'admin'
+        },
+        {
+          label: 'Órdenes de Pedido',
+          path: '/depositoDW_v2/ordenes-pedido',
+          icon: <ShoppingCartIcon />,
+          show: user?.role === 'admin' || user?.role === 'compras' || user?.role === 'deposito'
         }
       ]
     },

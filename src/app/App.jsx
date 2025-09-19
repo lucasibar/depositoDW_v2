@@ -17,6 +17,7 @@ import { ReporteStockPage } from '../pages/ReporteStockPage/ReporteStockPage';
 import PosicionesVaciasPage from '../pages/PosicionesVaciasPage';
 import MapaPage from '../pages/MapaPage';
 import MovimientosMercaderiaPage from '../pages/MovimientosMercaderiaPage';
+import { ZonaPickingPage } from '../pages/ZonaPickingPage/ZonaPickingPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 
 
@@ -192,6 +193,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['compras', 'admin', 'deposito']}>
               <ReporteStockPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Órdenes de Pedido - Accesible para compras, admin y deposito */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/ordenes-pedido" 
+          element={
+            <RoleProtectedRoute allowedRoles={['compras', 'admin', 'deposito']}>
+              <ZonaPickingPage />
             </RoleProtectedRoute>
           } 
         />
