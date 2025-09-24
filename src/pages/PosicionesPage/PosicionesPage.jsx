@@ -535,7 +535,7 @@ export const PosicionesPage = () => {
   const racks = Array.from({ length: 20 }, (_, i) => i + 1);
   const filas = Array.from({ length: 14 }, (_, i) => i + 1);
   const niveles = ['A', 'B'];
-  const pasillos = Array.from({ length: 11 }, (_, i) => i + 1);
+  const pasillos = [...Array.from({ length: 11 }, (_, i) => i + 1), 147];
 
   // Renderizado condicional si no hay usuario
   if (!user) {
