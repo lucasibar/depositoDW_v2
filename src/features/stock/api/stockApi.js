@@ -26,6 +26,28 @@ export const stockApi = {
     }
   },
 
+  // Obtener composición por posición desde movimientos_consulta_rapida
+  getConsultaRapidaAgrupado: async () => {
+    try {
+      console.log('🌐 stockApi: Haciendo petición a:', `${API_BASE_URL}/movimientos/consulta-rapida-agrupado`);
+      const response = await fetch(`${API_BASE_URL}/movimientos/consulta-rapida-agrupado`);
+      console.log('📡 stockApi: Respuesta del servidor:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ stockApi: Error del servidor:', errorText);
+        throw new Error(`Error al obtener consulta rápida agrupada: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ stockApi: Consulta rápida agrupada recibida:', Array.isArray(data) ? data.length : data);
+      return data;
+    } catch (error) {
+      console.error('❌ stockApi: Error al obtener consulta rápida agrupada:', error);
+      throw error;
+    }
+  },
+
   // Obtener todos los movimientos
   getAllMovimientos: async () => {
     try {

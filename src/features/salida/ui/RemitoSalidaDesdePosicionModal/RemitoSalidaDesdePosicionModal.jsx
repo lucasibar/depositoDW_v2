@@ -131,16 +131,24 @@ export default function RemitoSalidaDesdePosicionModal({ open, onClose, resultad
     setLoading(true);
 
     try {
+      // Debug: Verificar estructura de los datos
+      console.log('🔍 Resultado recibido:', resultado);
+      console.log('🔍 Posicion actual:', posicionActual);
+      console.log('🔍 Proveedor seleccionado:', proveedor);
+      console.log('🔍 Kilos:', kilos);
+      console.log('🔍 Unidades:', unidades);
+      console.log('🔍 Fecha:', fecha);
+
       // Crear los datos del remito
       const remitoData = {
         selectedItem: {
           itemId: resultado.item?.id,
           categoria: resultado.item?.categoria,
           descripcion: resultado.item?.descripcion,
-          proveedor: resultado.proveedor,
+          proveedor: resultado.proveedor || resultado.item?.proveedor,
           partida: resultado.partida?.numeroPartida,
-          kilos: resultado.totalKilos,
-          unidades: resultado.totalUnidades
+          kilos: parseFloat(kilos),
+          unidades: parseInt(unidades)
         },
         kilos: parseFloat(kilos),
         unidades: parseInt(unidades),
@@ -149,7 +157,7 @@ export default function RemitoSalidaDesdePosicionModal({ open, onClose, resultad
         fecha: fecha
       };
 
-      console.log('Enviando remito de salida desde posición:', remitoData);
+      console.log('📤 Enviando remito de salida desde posición:', remitoData);
 
       // Llamar al endpoint
       const response = await apiClient.post('/movimientos/salida-desde-posicion', remitoData);

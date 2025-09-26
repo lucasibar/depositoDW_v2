@@ -109,17 +109,41 @@ const AjustePosicionModal = ({ open, onClose, material, onAjusteExitoso }) => {
     setError('');
 
     try {
+      // Debug: Verificar estructura del material
+      console.log('🔍 Material recibido:', material);
+      console.log('🔍 Material.item:', material.item);
+      console.log('🔍 Material.partida:', material.partida);
+      console.log('🔍 Material.posicion:', material.posicion);
+      console.log('🔍 Material.proveedor:', material.proveedor);
+      console.log('🔍 Material.item?.proveedor:', material.item?.proveedor);
+
+      // Validar que todos los datos necesarios estén presentes
+      if (!material.item?.id) {
+        throw new Error('ID del item no disponible');
+      }
+      if (!material.partida?.id) {
+        throw new Error('ID de la partida no disponible');
+      }
+      if (!material.posicion?.id) {
+        throw new Error('ID de la posición no disponible');
+      }
+
+      const proveedorId = material.proveedor?.id || material.item?.proveedor?.id;
+      if (!proveedorId) {
+        throw new Error('ID del proveedor no disponible');
+      }
+
       const ajusteData = {
-        proveedor: material.proveedor,
+        proveedor: material.item?.proveedor || material.proveedor,
         tipoMovimiento: 'ajusteRESTA',
         item: {
           itemId: material.item.id,
           categoria: material.item.categoria,
           descripcion: material.item.descripcion,
-          proveedor: material.proveedor,
+          proveedor: material.item?.proveedor || material.proveedor,
           partida: material.partida.numeroPartida,
-          kilos: kilos,
-          unidades: unidades
+          kilos: 0,
+          unidades: 0
         },
         kilos: kilos,
         unidades: unidades,
@@ -157,10 +181,8 @@ const AjustePosicionModal = ({ open, onClose, material, onAjusteExitoso }) => {
       maxWidth="sm"
       fullWidth
     >
-      <DialogTitle>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          Ajustar Stock - Posición
-        </Typography>
+      <DialogTitle sx={{ fontWeight: 600 }}>
+        Ajustar Stock - Posición
       </DialogTitle>
       
       <DialogContent>

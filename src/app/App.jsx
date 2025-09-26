@@ -10,15 +10,13 @@ import { AdminPage } from '../pages/AdminPage/AdminPage';
 import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
 import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
 import { AdicionRapidaPage } from '../pages/AdicionRapidaPage/AdicionRapidaPage';
-import { MaterialesPage } from '../pages/MaterialesPage/MaterialesPage';
-import { PosicionesPage } from '../pages/PosicionesPage/PosicionesPage';
-import { StockPage } from '../pages/StockPage/StockPage';
 import { ReporteStockPage } from '../pages/ReporteStockPage/ReporteStockPage';
 import PosicionesVaciasPage from '../pages/PosicionesVaciasPage';
 import MapaPage from '../pages/MapaPage';
 import MovimientosMercaderiaPage from '../pages/MovimientosMercaderiaPage';
 import { ZonaPickingPage } from '../pages/ZonaPickingPage/ZonaPickingPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
+import StockPage from '../pages/StockPage/StockPage';
 
 
 import { useAuthSync } from '../features/auth/hooks/useAuthSync';
@@ -120,27 +118,6 @@ export const App = () => {
           } 
         />
         
-        {/* Ruta de Materiales - Accesible para deposito, usuario, admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/materiales" 
-          element={
-            <RoleProtectedRoute allowedRoles={['deposito', 'usuario', 'admin']}>
-              <MaterialesPage />
-            </RoleProtectedRoute>
-          } 
-        />
-        
-        {/* Ruta de Posiciones - Accesible solo para deposito y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/posiciones" 
-          element={
-            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
-              <PosicionesPage />
-            </RoleProtectedRoute>
-          } 
-        />
         
         {/* Ruta de Posiciones Vacías - Accesible para deposito y admin */}
         <Route 
@@ -175,12 +152,13 @@ export const App = () => {
           } 
         />
         
-        {/* Ruta de Stock - Accesible para compras, admin y deposito */}
+
+        {/* Ruta de Stock - Accesible para deposito y admin */}
         <Route 
           exact 
-          path="/depositoDW_v2/stock" 
+          path="/depositoDW_v2/posiciones-composicion" 
           element={
-            <RoleProtectedRoute allowedRoles={['compras', 'admin', 'deposito']}>
+            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <StockPage />
             </RoleProtectedRoute>
           } 

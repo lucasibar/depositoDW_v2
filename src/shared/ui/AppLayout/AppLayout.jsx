@@ -22,20 +22,12 @@ import {
 import { 
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  Inventory as InventoryIcon,
   ShoppingCart as ShoppingCartIcon,
   CheckCircle as CheckCircleIcon,
   ExitToApp as ExitToAppIcon,
-  AdminPanelSettings as AdminIcon,
-  Person as PersonIcon,
   Logout as LogoutIcon,
   Settings as SettingsIcon,
-  Home as HomeIcon,
-  Store as StoreIcon,
   Assessment as AssessmentIcon,
-  Add as AddIcon,
-  Category as CategoryIcon,
-  LocationOn as LocationIcon,
   Warehouse as WarehouseIcon,
   Map as MapIcon,
   SwapHoriz as SwapHorizIcon,
@@ -58,10 +50,8 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     
     const path = location.pathname;
     if (path.includes('/posiciones-vacias')) return 'Dashboard Depósito';
-    if (path.includes('/posiciones')) return 'Posiciones';
+    if (path.includes('/posiciones-composicion')) return 'Stock';
     if (path.includes('/adicion-rapida')) return 'Adición Rápida';
-    if (path.includes('/materiales')) return 'Materiales';
-    if (path.includes('/stock')) return 'Stock';
     if (path.includes('/compras')) return 'Compras';
     if (path.includes('/remito-entrada')) return 'Remito Entrada';
     if (path.includes('/calidad')) return 'Calidad';
@@ -104,27 +94,21 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
       section: 'Operaciones',
       items: [
         {
-          label: 'Adición Rápida',
-          path: '/depositoDW_v2/adicion-rapida',
-          icon: <AddIcon />,
-          show: user?.role === 'admin' || user?.role === 'deposito' || user?.role === 'usuario'
+          label: 'Remito Entrada',
+          path: '/depositoDW_v2/remito-entrada',
+          icon: <ReceiptIcon />,
+          show: user?.role === 'admin' || user?.role === 'compras'
         },
         {
-          label: 'Materiales',
-          path: '/depositoDW_v2/materiales',
-          icon: <CategoryIcon />,
-          show: user?.role === 'admin' || user?.role === 'deposito' || user?.role === 'usuario'
+          label: 'Salida',
+          path: '/depositoDW_v2/salida',
+          icon: <ExitToAppIcon />,
+          show: user?.role === 'admin'
         },
         {
-          label: 'Posiciones',
-          path: '/depositoDW_v2/posiciones',
-          icon: <LocationIcon />,
-          show: user?.role === 'admin' || user?.role === 'deposito'
-        },
-        {
-          label: 'Mapa',
-          path: '/depositoDW_v2/mapa',
-          icon: <MapIcon />,
+          label: 'Stock',
+          path: '/depositoDW_v2/posiciones-composicion',
+          icon: <WarehouseIcon />,
           show: user?.role === 'admin' || user?.role === 'deposito'
         },
         {
@@ -134,22 +118,10 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           show: user?.role === 'admin' || user?.role === 'deposito'
         },
         {
-          label: 'Stock',
-          path: '/depositoDW_v2/stock',
-          icon: <InventoryIcon />,
-          show: user?.role === 'admin' || user?.role === 'compras' || user?.role === 'deposito'
-        },
-        {
-          label: 'Compras',
-          path: '/depositoDW_v2/compras',
+          label: 'Órdenes de Pedido',
+          path: '/depositoDW_v2/ordenes-pedido',
           icon: <ShoppingCartIcon />,
-          show: user?.role === 'admin' || user?.role === 'compras'
-        },
-        {
-          label: 'Remito Entrada',
-          path: '/depositoDW_v2/remito-entrada',
-          icon: <ReceiptIcon />,
-          show: user?.role === 'admin' || user?.role === 'compras'
+          show: user?.role === 'admin' || user?.role === 'compras' || user?.role === 'deposito'
         },
         {
           label: 'Calidad',
@@ -157,18 +129,6 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           icon: <CheckCircleIcon />,
           show: user?.role === 'admin'
         },
-        {
-          label: 'Salida',
-          path: '/depositoDW_v2/salida',
-          icon: <ExitToAppIcon />,
-          show: user?.role === 'admin'
-        },
-        {
-          label: 'Órdenes de Pedido',
-          path: '/depositoDW_v2/ordenes-pedido',
-          icon: <ShoppingCartIcon />,
-          show: user?.role === 'admin' || user?.role === 'compras' || user?.role === 'deposito'
-        }
       ]
     },
     {
@@ -190,6 +150,12 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           label: 'Dashboard Depósito',
           path: '/depositoDW_v2/posiciones-vacias',
           icon: <WarehouseIcon />,
+          show: user?.role === 'admin' || user?.role === 'deposito'
+        },
+        {
+          label: 'Mapa',
+          path: '/depositoDW_v2/mapa',
+          icon: <MapIcon />,
           show: user?.role === 'admin' || user?.role === 'deposito'
         },
         {
@@ -319,7 +285,8 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
               {section.items.filter(item => item.show).map((item) => (
                 <ListItem key={item.path} sx={{ p: 0, px: 1.5 }}>
                   <ListItemButton
-                    onClick={() => handleNavigation(item.path)}
+                    onClick={() => !item.disabled && handleNavigation(item.path)}
+                    disabled={item.disabled}
                     sx={{
                       borderRadius: 'var(--border-radius-md)',
                       mx: 0.5,
@@ -327,21 +294,29 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
                       backgroundColor: isActiveRoute(item.path) 
                         ? 'var(--color-primary)' 
                         : 'transparent',
-                      color: isActiveRoute(item.path) 
-                        ? 'white' 
-                        : 'var(--color-text-primary)',
+                      color: item.disabled 
+                        ? 'var(--color-text-disabled)'
+                        : isActiveRoute(item.path) 
+                          ? 'white' 
+                          : 'var(--color-text-primary)',
+                      opacity: item.disabled ? 0.6 : 1,
+                      cursor: item.disabled ? 'not-allowed' : 'pointer',
                       '&:hover': {
-                        backgroundColor: isActiveRoute(item.path)
-                          ? 'var(--color-primary-dark)'
-                          : 'var(--color-divider)'
+                        backgroundColor: item.disabled 
+                          ? 'transparent'
+                          : isActiveRoute(item.path)
+                            ? 'var(--color-primary-dark)'
+                            : 'var(--color-divider)'
                       },
                       transition: 'var(--transition-normal)'
                     }}
                   >
                     <ListItemIcon sx={{ 
-                      color: isActiveRoute(item.path) 
-                        ? 'white' 
-                        : 'var(--color-text-secondary)',
+                      color: item.disabled 
+                        ? 'var(--color-text-disabled)'
+                        : isActiveRoute(item.path) 
+                          ? 'white' 
+                          : 'var(--color-text-secondary)',
                       minWidth: 40
                     }}>
                       {item.icon}
@@ -351,7 +326,10 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
                       primaryTypographyProps={{
                         sx: { 
                           fontWeight: isActiveRoute(item.path) ? 600 : 500,
-                          fontSize: '0.9rem'
+                          fontSize: '0.9rem',
+                          color: item.disabled 
+                            ? 'var(--color-text-disabled)'
+                            : 'inherit'
                         }
                       }}
                     />
