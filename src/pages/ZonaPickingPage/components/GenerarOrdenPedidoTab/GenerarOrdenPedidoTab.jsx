@@ -38,6 +38,7 @@ import { dataProveedoresItems } from '../../../../features/remitos/model/slice';
 import { selectProveedores, selectItems, selectOrdenesPedidoLoading, selectOrdenesPedidoError, selectOrdenACopiar } from '../../../../features/ordenesPedido/model/selectors';
 import { ModalAgregarProveedor } from '../../../../widgets/remitos/ModalAgregarProveedor/ModalAgregarProveedor';
 import { ModalAgregarItem } from '../../../../widgets/remitos/ModalAgregarItem/ModalAgregarItem';
+import AutocompleteSelect from '../../../../shared/ui/AutocompleteSelect';
 
 // Función para obtener la fecha actual en formato YYYY-MM-DD sin problemas de timezone
 const getCurrentDateString = () => {
@@ -61,8 +62,8 @@ export const GenerarOrdenPedidoTab = ({ params = {} }) => {
   
   // Estados para el formulario simplificado
   const [selectedCliente, setSelectedCliente] = useState('');
-  const [selectedProveedor, setSelectedProveedor] = useState('');
-  const [selectedItem, setSelectedItem] = useState('');
+  const [selectedProveedor, setSelectedProveedor] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [kilos, setKilos] = useState('');
   const [fechaOrden, setFechaOrden] = useState(getCurrentDateString());
   const [showProveedorModal, setShowProveedorModal] = useState(false);
@@ -132,10 +133,9 @@ export const GenerarOrdenPedidoTab = ({ params = {} }) => {
         let matchesProveedor = false;
         if (item.proveedor) {
           if (item.proveedor.id) {
-            matchesProveedor = item.proveedor.id === selectedProveedor;
+            matchesProveedor = item.proveedor.id === selectedProveedor.id;
           } else if (item.proveedor.nombre) {
-            const selectedProveedorObj = proveedores.find(p => p.id === selectedProveedor);
-            matchesProveedor = item.proveedor.nombre === selectedProveedorObj?.nombre;
+            matchesProveedor = item.proveedor.nombre === selectedProveedor.nombre;
           }
         }
         return matchesProveedor;
@@ -144,12 +144,12 @@ export const GenerarOrdenPedidoTab = ({ params = {} }) => {
 
   const handleProveedorCreado = (nuevoProveedor) => {
     dispatch(dataProveedoresItems());
-    setSelectedProveedor(nuevoProveedor.id);
+    setSelectedProveedor(nuevoProveedor);
   };
 
   const handleItemCreado = (nuevoItem) => {
     dispatch(dataProveedoresItems());
-    setSelectedItem(nuevoItem.id);
+    setSelectedItem(nuevoItem);
   };
 
   // Función para agregar item a la lista
@@ -159,25 +159,23 @@ export const GenerarOrdenPedidoTab = ({ params = {} }) => {
       return;
     }
 
-    const itemSeleccionado = items.find(item => item.id === selectedItem);
-    
     // Verificar si el item ya está en la lista
-    const itemExistente = itemsLista.find(item => item.id === selectedItem);
+    const itemExistente = itemsLista.find(item => item.id === selectedItem.id);
     if (itemExistente) {
       alert('Este item ya está en la lista');
       return;
     }
 
     const nuevoItem = {
-      id: selectedItem,
-      item: itemSeleccionado,
+      id: selectedItem.id,
+      item: selectedItem,
       kilos: parseFloat(kilos)
     };
 
     setItemsLista([...itemsLista, nuevoItem]);
     
     // Limpiar campos del formulario
-    setSelectedItem('');
+    setSelectedItem(null);
     setKilos('');
   };
 
@@ -234,8 +232,8 @@ export const GenerarOrdenPedidoTab = ({ params = {} }) => {
       
       // Limpiar formulario después del éxito
       setSelectedCliente('');
-      setSelectedProveedor('');
-      setSelectedItem('');
+      setSelectedProveedor(null);
+      setSelectedItem(null);
       setKilos('');
       setFechaOrden(getCurrentDateString());
       setItemsLista([]);
@@ -248,8 +246,8 @@ export const GenerarOrdenPedidoTab = ({ params = {} }) => {
 
   const handleClear = () => {
     setSelectedCliente('');
-    setSelectedProveedor('');
-    setSelectedItem('');
+    setSelectedProveedor(null);
+    setSelectedItem(null);
     setKilos('');
     setFechaOrden(new Date().toISOString().split('T')[0]);
     setItemsLista([]);
@@ -316,23 +314,19 @@ export const GenerarOrdenPedidoTab = ({ params = {} }) => {
 
             {/* Proveedor para filtrar items */}
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Proveedor (para filtrar items)</InputLabel>
-                <Select
-                  value={selectedProveedor}
-                  label="Proveedor (para filtrar items)"
-                  onChange={(e) => {
-                    setSelectedProveedor(e.target.value);
-                    setSelectedItem(''); // Limpiar item cuando cambie el proveedor
-                  }}
-                >
-                  {filteredProveedores.map((proveedor) => (
-                    <MenuItem key={proveedor.id} value={proveedor.id}>
-                      {proveedor.nombre}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <AutocompleteSelect
+                label="Proveedor (para filtrar items)"
+                value={selectedProveedor}
+                onChange={(proveedor) => {
+                  setSelectedProveedor(proveedor);
+                  setSelectedItem(null); // Limpiar item cuando cambie el proveedor
+                }}
+                options={filteredProveedores}
+                getOptionLabel={(option) => option.nombre}
+                getOptionKey={(option) => option.id}
+                size="medium"
+                sx={{ width: '100%' }}
+              />
               <Box sx={{ mt: 1 }}>
                 <Button
                   size="small"
@@ -347,21 +341,17 @@ export const GenerarOrdenPedidoTab = ({ params = {} }) => {
 
             {/* Item */}
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth required disabled={!selectedProveedor}>
-                <InputLabel>Item</InputLabel>
-                <Select
-                  value={selectedItem}
-                  label="Item"
-                  onChange={(e) => setSelectedItem(e.target.value)}
-                  disabled={!selectedProveedor}
-                >
-                  {filteredItems.map((item) => (
-                    <MenuItem key={item.id} value={item.id}>
-                      {item.descripcion} - {item.categoria}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <AutocompleteSelect
+                label="Item"
+                value={selectedItem}
+                onChange={(item) => setSelectedItem(item)}
+                options={filteredItems}
+                getOptionLabel={(option) => `${option.descripcion} - ${option.categoria}`}
+                getOptionKey={(option) => option.id}
+                size="medium"
+                sx={{ width: '100%' }}
+                disabled={!selectedProveedor}
+              />
               <Box sx={{ mt: 1 }}>
                 <Button
                   size="small"
@@ -534,7 +524,7 @@ export const GenerarOrdenPedidoTab = ({ params = {} }) => {
         open={showItemModal}
         onClose={() => setShowItemModal(false)}
         onItemCreado={handleItemCreado}
-        proveedorSeleccionado={proveedores.find(prov => prov.id === selectedProveedor)}
+        proveedorSeleccionado={selectedProveedor}
       />
     </Box>
   );

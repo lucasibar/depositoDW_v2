@@ -449,12 +449,12 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           sx={{ 
             position: 'fixed',
             top: 0,
-            right: 0,
+            left: 0,
             height: '100vh',
             width: desktopMenuOpen ? 280 : 0,
             flexShrink: 0,
             backgroundColor: 'var(--color-surface)',
-            borderLeft: desktopMenuOpen ? '1px solid var(--color-border)' : 'none',
+            borderRight: desktopMenuOpen ? '1px solid var(--color-border)' : 'none',
             boxShadow: desktopMenuOpen ? 'var(--shadow-sm)' : 'none',
             transition: 'width 0.3s ease-in-out, border 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
             overflow: 'hidden',
@@ -493,20 +493,21 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           sx={{
             position: 'fixed',
             top: 20,
-            right: desktopMenuOpen ? 300 : 20,
+            left: 20,
             zIndex: theme.zIndex.drawer + 2,
-            backgroundColor: 'var(--color-primary)',
-            color: 'white',
-            width: 56,
-            height: 56,
-            boxShadow: 'var(--shadow-md)',
-            transition: 'all 0.3s ease-in-out',
-            border: '2px solid rgba(255, 255, 255, 0.2)',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            color: 'var(--color-text-secondary)',
+            width: 40,
+            height: 40,
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.2s ease-in-out',
+            border: '1px solid rgba(0, 0, 0, 0.1)',
+            backdropFilter: 'blur(10px)',
             '&:hover': {
-              backgroundColor: 'var(--color-primary-dark)',
+              backgroundColor: 'rgba(255, 255, 255, 1)',
+              color: 'var(--color-primary)',
               transform: 'scale(1.05)',
-              boxShadow: 'var(--shadow-lg)',
-              border: '2px solid rgba(255, 255, 255, 0.4)'
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
             },
             '&:active': {
               transform: 'scale(0.95)'
@@ -514,7 +515,7 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           }}
           aria-label={desktopMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
         >
-          <MenuIcon />
+          <MenuIcon sx={{ fontSize: '1.2rem' }} />
         </IconButton>
       )}
 

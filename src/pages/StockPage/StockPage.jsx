@@ -28,6 +28,7 @@ import AjustePosicionModal from '../../features/stock/ui/AjustePosicionModal';
 import RemitoSalidaDesdePosicionModal from '../../features/salida/ui/RemitoSalidaDesdePosicionModal/RemitoSalidaDesdePosicionModal';
 import { AdicionRapidaPosicion } from '../../components/AdicionRapidaPosicion';
 import { apiClient } from '../../config/api';
+import { ExportReporteStockButton } from '../../shared/ui/ExportReporteStockButton';
 
 const getPosLabel = (posicion) => {
   if (!posicion) return 'Posición';
@@ -48,6 +49,10 @@ export const StockPage = () => {
   const [error, setError] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [search, setSearch] = useState('');
+  
+  // Estados para el reporte de stock
+  const [reporteStockData, setReporteStockData] = useState([]);
+  const [loadingReporte, setLoadingReporte] = useState(false);
   
   // Estados para los modales de acciones
   const [anchorEl, setAnchorEl] = useState(null);
@@ -79,6 +84,65 @@ export const StockPage = () => {
     };
     fetchData();
     return () => { isMounted = false; };
+  }, []);
+
+  // Función para obtener datos del reporte de stock desde consulta rápida
+  const fetchReporteStock = async () => {
+    try {
+      setLoadingReporte(true);
+      const data = await stockApi.getConsultaRapidaAgrupado();
+      
+      // Transformar los datos para el formato del Excel
+      const transformedData = [];
+      
+      data.forEach(posicion => {
+        if (posicion.items && posicion.items.length > 0) {
+          posicion.items.forEach(item => {
+            if (item.partidas && item.partidas.length > 0) {
+              item.partidas.forEach(partida => {
+                if (partida.kilos > 0) { // Solo items con stock positivo
+                  // Debug: ver la estructura de partida
+                  console.log('🔍 Estructura de partida:', JSON.stringify(partida, null, 2));
+                  
+                  // Intentar diferentes formas de acceder al número de partida
+                  const numeroPartida = partida.partida?.numeroPartida || 
+                                      partida.numeroPartida || 
+                                      partida.partida?.id || 
+                                      'Sin número';
+                  
+                  transformedData.push({
+                    itemDescripcion: `${item.item?.categoria || 'Sin categoría'} - ${item.item?.descripcion || 'Sin descripción'}`,
+                    numeroPartida: numeroPartida,
+                    proveedor: item.item?.proveedor?.nombre || 'Sin proveedor',
+                    posicion: posicion.posicion?.rack 
+                      ? `Rack: ${posicion.posicion.rack}, Fila: ${posicion.posicion.fila}, Nivel: ${posicion.posicion.AB}`
+                      : `Pasillo: ${posicion.posicion?.numeroPasillo || 'Sin pasillo'}`,
+                    kilos: Math.round(partida.kilos * 100) / 100,
+                    unidades: partida.unidades || 0
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+      
+      setReporteStockData(transformedData);
+    } catch (err) {
+      console.error('Error al obtener reporte de stock:', err);
+      setNotification({
+        open: true,
+        message: 'Error al obtener datos para el reporte de stock',
+        severity: 'error'
+      });
+    } finally {
+      setLoadingReporte(false);
+    }
+  };
+
+  // Cargar datos del reporte al montar el componente
+  useEffect(() => {
+    fetchReporteStock();
   }, []);
 
   const filteredData = useMemo(() => {
@@ -352,11 +416,35 @@ export const StockPage = () => {
 
   return (
     <AppLayout user={user} pageTitle="Stock" onLogout={() => navigate('/depositoDW_v2/')}> 
+      {/* Header con título y botón de exportar */}
+      <Box sx={{ 
+        p: isMobile ? 2 : 4,
+        pb: 0
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: 2
+        }}>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            Stock por Posición
+          </Typography>
+          <ExportReporteStockButton 
+            data={reporteStockData} 
+            disabled={loadingReporte || !reporteStockData.length}
+            filename="reporte-stock-consolidado"
+            sheetName="Stock Consolidado"
+          />
+        </Box>
+      </Box>
+
       <Box sx={{ 
         display: 'flex', 
         gap: 2, 
         p: isMobile ? 2 : 4,
-        height: 'calc(100vh - 64px)',
+        pt: 0,
+        height: 'calc(100vh - 120px)',
         overflow: 'hidden'
       }}>
         {/* Panel izquierdo - Lista de posiciones */}

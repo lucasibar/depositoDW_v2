@@ -15,7 +15,8 @@ import {
 import { 
   Refresh as RefreshIcon,
   Add as AddIcon,
-  Dashboard as DashboardIcon
+  Dashboard as DashboardIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
 import { authService } from '../../services/authService';
 import { dashboardComprasService } from '../../services/dashboardComprasService';
@@ -36,6 +37,7 @@ export const DashboardComprasPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [descargando, setDescargando] = useState(false);
 
   useEffect(() => {
     const currentUser = authService.getUser();
@@ -102,6 +104,45 @@ export const DashboardComprasPage = () => {
     window.location.href = '/depositoDW_v2/login';
   };
 
+  const handleDescargarStock = async () => {
+    try {
+      setDescargando(true);
+      const blob = await dashboardComprasService.descargarReporteStockExcel();
+      
+      // Crear URL del blob y descargar
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generar nombre de archivo con fecha actual
+      const fecha = new Date().toISOString().split('T')[0];
+      link.download = `reporte-stock-${fecha}.xlsx`;
+      
+      // Simular click para descargar
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Limpiar URL
+      window.URL.revokeObjectURL(url);
+      
+      setSnackbar({
+        open: true,
+        message: 'Reporte de stock descargado exitosamente',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error descargando reporte:', error);
+      setSnackbar({
+        open: true,
+        message: 'Error al descargar el reporte de stock',
+        severity: 'error'
+      });
+    } finally {
+      setDescargando(false);
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -146,12 +187,22 @@ export const DashboardComprasPage = () => {
           padding={isMobile ? "compact" : "normal"}
           sx={{ mb: isMobile ? 2 : 4 }}
         >
-          {/* Botón de refresh */}
+          {/* Botones de acción */}
           <Box sx={{ 
             display: 'flex', 
             justifyContent: 'flex-end', 
+            gap: 2,
             mb: 3 
           }}>
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              onClick={handleDescargarStock}
+              disabled={descargando || loading}
+              sx={{ borderRadius: 2 }}
+            >
+              {descargando ? 'Descargando...' : 'Descargar Stock'}
+            </Button>
             <Button
               variant="outlined"
               startIcon={<RefreshIcon />}

@@ -95,6 +95,19 @@ class DashboardComprasService {
       throw error;
     }
   }
+
+  // Descargar reporte de stock consolidado en Excel
+  async descargarReporteStockExcel() {
+    try {
+      const response = await apiClient.get('/movimientos/reporte-stock-excel', {
+        responseType: 'blob' // Importante para archivos binarios
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error descargando reporte de stock:', error);
+      throw error;
+    }
+  }
 }
 
 export const dashboardComprasService = new DashboardComprasService();
