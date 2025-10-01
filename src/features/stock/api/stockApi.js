@@ -112,5 +112,98 @@ export const stockApi = {
       console.error('Error al buscar materiales por item ID:', error);
       throw error;
     }
+  },
+
+  // Adición rápida
+  adicionRapida: async (adicionData) => {
+    try {
+      console.log('🌐 stockApi: Enviando adición rápida a:', `${API_BASE_URL}/movimientos/adicion-rapida`);
+      console.log('📦 stockApi: Datos enviados:', adicionData);
+      
+      const response = await fetch(`${API_BASE_URL}/movimientos/adicion-rapida`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(adicionData),
+      });
+      
+      console.log('📡 stockApi: Respuesta del servidor:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ stockApi: Error del servidor:', errorData);
+        throw new Error(errorData.message || 'Error en adición rápida');
+      }
+      
+      const result = await response.json();
+      console.log('✅ stockApi: Adición rápida exitosa:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ stockApi: Error en adición rápida:', error);
+      throw error;
+    }
+  },
+
+  // Ajuste de stock
+  ajusteStock: async (ajusteData) => {
+    try {
+      console.log('🌐 stockApi: Enviando ajuste de stock a:', `${API_BASE_URL}/movimientos/ajuste-stock`);
+      console.log('📦 stockApi: Datos enviados:', ajusteData);
+      
+      const response = await fetch(`${API_BASE_URL}/movimientos/ajuste-stock`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(ajusteData),
+      });
+      
+      console.log('📡 stockApi: Respuesta del servidor:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ stockApi: Error del servidor:', errorData);
+        throw new Error(errorData.message || 'Error en ajuste de stock');
+      }
+      
+      const result = await response.json();
+      console.log('✅ stockApi: Ajuste de stock exitoso:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ stockApi: Error en ajuste de stock:', error);
+      throw error;
+    }
+  },
+
+  // Movimiento interno
+  movimientoInterno: async (movimientoData) => {
+    try {
+      console.log('🌐 stockApi: Enviando movimiento interno a:', `${API_BASE_URL}/movimientos/movimiento-interno`);
+      console.log('📦 stockApi: Datos enviados:', movimientoData);
+      
+      const response = await fetch(`${API_BASE_URL}/movimientos/movimiento-interno`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(movimientoData),
+      });
+      
+      console.log('📡 stockApi: Respuesta del servidor:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ stockApi: Error del servidor:', errorData);
+        throw new Error(errorData.message || 'Error en movimiento interno');
+      }
+      
+      const result = await response.json();
+      console.log('✅ stockApi: Movimiento interno exitoso:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ stockApi: Error en movimiento interno:', error);
+      throw error;
+    }
   }
 }; 
