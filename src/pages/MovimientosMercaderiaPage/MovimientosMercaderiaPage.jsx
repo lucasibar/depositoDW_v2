@@ -24,8 +24,9 @@ import {
   SwapHoriz as SwapHorizIcon,
   Info as InfoIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
 import { authService } from '../../services/authService';
 
 // Componentes
@@ -40,6 +41,7 @@ const MovimientosMercaderiaPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const currentUser = authService.getUser();
@@ -141,10 +143,12 @@ const MovimientosMercaderiaPage = () => {
             <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
               Movimientos de Mercadería
             </Typography>
-            <Tooltip title="Actualizar datos">
-              <IconButton 
-                onClick={handleRefresh} 
-                disabled={refreshing}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <PageNavigationMenu user={user} currentPath={location.pathname} />
+              <Tooltip title="Actualizar datos">
+                <IconButton 
+                  onClick={handleRefresh} 
+                  disabled={refreshing}
                 sx={{ 
                   backgroundColor: 'var(--color-primary)', 
                   color: 'white',
@@ -154,6 +158,7 @@ const MovimientosMercaderiaPage = () => {
                 <RefreshIcon />
               </IconButton>
             </Tooltip>
+            </Box>
           </Box>
 
           {/* Estadísticas principales */}

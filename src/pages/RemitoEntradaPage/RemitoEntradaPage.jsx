@@ -8,15 +8,17 @@ import {
   useMediaQuery,
   Alert
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { selectRemitosLoading, selectRemitosError } from '../../features/remitos/model/selectors';
 import { CreateRemitoEntradaForm } from '../../widgets/remitos/CreateRemitoEntradaForm/CreateRemitoEntradaForm';
 
 export const RemitoEntradaPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
@@ -50,26 +52,34 @@ export const RemitoEntradaPage = () => {
       <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
         {/* Header solo en desktop */}
         {!isMobile && (
-          <Box sx={{ mb: 4 }}>
-            <Typography 
-              variant="h3" 
-              sx={{ 
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                mb: 0.5
-              }}
-            >
-              Remito Entrada
-            </Typography>
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: 'var(--color-text-secondary)',
-                mb: 3
-              }}
-            >
-              Crear y gestionar remitos de entrada de mercadería
-            </Typography>
+          <Box sx={{ 
+            mb: 4,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Box>
+              <Typography 
+                variant="h3" 
+                sx={{ 
+                  fontWeight: 700,
+                  color: 'var(--color-text-primary)',
+                  mb: 0.5
+                }}
+              >
+                Remito Entrada
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'var(--color-text-secondary)',
+                  mb: 3
+                }}
+              >
+                Crear y gestionar remitos de entrada de mercadería
+              </Typography>
+            </Box>
+            <PageNavigationMenu user={user} currentPath={location.pathname} />
           </Box>
         )}
 

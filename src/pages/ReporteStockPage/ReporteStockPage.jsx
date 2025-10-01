@@ -18,13 +18,15 @@ import {
 } from '@mui/material';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
 import { checkAuthentication, handleLogout } from '../../features/stock/utils/navigationUtils';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
 import { useReporteStock } from '../../features/movimientos/hooks/useReporteStock';
 import { ExportReporteStockButton } from '../../shared/ui/ExportReporteStockButton';
 
 export const ReporteStockPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -66,26 +68,36 @@ export const ReporteStockPage = () => {
         boxSizing: 'border-box'
       }}>
         {/* Header */}
-        <Box sx={{ mb: isMobile ? 2 : 4 }}>
-          <Typography 
-            variant={isMobile ? "h5" : isTablet ? "h4" : "h3"} 
-            sx={{ 
-              fontWeight: 700,
-              color: 'var(--color-text-primary)',
-              mb: 0.5
-            }}
-          >
-            Reporte de Stock Consolidado
-          </Typography>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: 'var(--color-text-secondary)',
-              mb: isMobile ? 1 : 3
-            }}
-          >
-            Stock consolidado por partida, item y posición con cálculo de kilos totales
-          </Typography>
+        <Box sx={{ 
+          mb: isMobile ? 2 : 4,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start'
+        }}>
+          <Box>
+            <Typography 
+              variant={isMobile ? "h5" : isTablet ? "h4" : "h3"} 
+              sx={{ 
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                mb: 0.5
+              }}
+            >
+              Reporte de Stock Consolidado
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'var(--color-text-secondary)',
+                mb: isMobile ? 1 : 3
+              }}
+            >
+              Stock consolidado por partida, item y posición con cálculo de kilos totales
+            </Typography>
+          </Box>
+          {!isMobile && (
+            <PageNavigationMenu user={user} currentPath={location.pathname} />
+          )}
         </Box>
 
         {/* Controles */}

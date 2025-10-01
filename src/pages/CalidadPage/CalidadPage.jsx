@@ -17,6 +17,8 @@ import { fetchPartidasEnCuarentena } from '../../features/partidas/model/slice';
 import { authService } from '../../services/authService';
 import { SearchBar } from '../../shared/ui/SearchBar/SearchBar';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
+import { useLocation } from 'react-router-dom';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { 
   PartidaCard, 
@@ -35,6 +37,7 @@ export const CalidadPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
   
   const { partidasEnCuarentena, partidasAprobadas, status, error } = useSelector(state => state.partidas);
   const [tabValue, setTabValue] = useState(0);
@@ -210,26 +213,34 @@ export const CalidadPage = () => {
       >
         {/* Header solo en desktop */}
         {!isMobile && (
-          <Box sx={{ mb: 4 }}>
-            <Typography 
-              variant="h3" 
-              sx={{ 
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                mb: 0.5
-              }}
-            >
-              Calidad
-            </Typography>
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: 'var(--color-text-secondary)',
-                mb: 3
-              }}
-            >
-              Gestión de partidas en cuarentena y aprobadas
-            </Typography>
+          <Box sx={{ 
+            mb: 4,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Box>
+              <Typography 
+                variant="h3" 
+                sx={{ 
+                  fontWeight: 700,
+                  color: 'var(--color-text-primary)',
+                  mb: 0.5
+                }}
+              >
+                Calidad
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'var(--color-text-secondary)',
+                  mb: 3
+                }}
+              >
+                Gestión de partidas en cuarentena y aprobadas
+              </Typography>
+            </Box>
+            <PageNavigationMenu user={user} currentPath={location.pathname} />
           </Box>
         )}
 

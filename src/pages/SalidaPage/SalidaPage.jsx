@@ -18,6 +18,8 @@ import {
 import { authService } from '../../services/authService';
 import { useAuth } from '../../hooks/useAuth';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
+import { useLocation } from 'react-router-dom';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { GenerarSalidaTab } from './components/GenerarSalidaTab/GenerarSalidaTab';
 import { GestionSalidaTab } from './components/GestionSalidaTab/GestionSalidaTab';
@@ -44,6 +46,7 @@ export const SalidaPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
   
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
@@ -78,26 +81,36 @@ export const SalidaPage = () => {
         boxSizing: 'border-box'
       }}>
         {/* Header */}
-        <Box sx={{ mb: isMobile ? 2 : 4 }}>
-          <Typography 
-            variant={isMobile ? "h5" : isTablet ? "h4" : "h3"} 
-            sx={{ 
-              fontWeight: 700,
-              color: 'var(--color-text-primary)',
-              mb: 0.5
-            }}
-          >
-            Gestión de Salidas
-          </Typography>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: 'var(--color-text-secondary)',
-              mb: isMobile ? 1 : 3
-            }}
-          >
-            Genera salidas rápidas y gestiona el inventario de salidas
-          </Typography>
+        <Box sx={{ 
+          mb: isMobile ? 2 : 4,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start'
+        }}>
+          <Box>
+            <Typography 
+              variant={isMobile ? "h5" : isTablet ? "h4" : "h3"} 
+              sx={{ 
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                mb: 0.5
+              }}
+            >
+              Gestión de Salidas
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'var(--color-text-secondary)',
+                mb: isMobile ? 1 : 3
+              }}
+            >
+              Genera salidas rápidas y gestiona el inventario de salidas
+            </Typography>
+          </Box>
+          {!isMobile && (
+            <PageNavigationMenu user={user} currentPath={location.pathname} />
+          )}
         </Box>
 
         {/* Tabs mejorados */}

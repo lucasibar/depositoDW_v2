@@ -39,8 +39,9 @@ import { useAdicionRapida } from '../../features/adicionesRapidas/hooks/useAdici
 import AutocompleteSelect from '../../shared/ui/AutocompleteSelect';
 import LoadingInfo from '../../shared/ui/LoadingInfo';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
 import { authService } from '../../services/authService';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { API_CONFIG } from '../../config/api';
 
 // Categorías disponibles para nuevos items
@@ -77,6 +78,7 @@ const CompactInput = ({ label, value, onChange, type = "text" }) => (
 export const AdicionRapidaPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const registros = useSelector(selectAdicionesRapidas);
   const proveedores = useSelector(selectProveedores);
   const items = useSelector(selectItems);
@@ -361,9 +363,17 @@ export const AdicionRapidaPage = () => {
         boxSizing: 'border-box',
         minHeight: '100vh'
       }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Adición Rápida
-          </Typography>
+          <Box sx={{ 
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 3
+          }}>
+            <Typography variant="h4" component="h1">
+              Adición Rápida
+            </Typography>
+            <PageNavigationMenu user={user} currentPath={location.pathname} />
+          </Box>
           
           {/* Formulario de entrada */}
           <LoadingInfo loading={loading} error={error}>

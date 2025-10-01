@@ -13,9 +13,10 @@ import {
   ShoppingCart as ShoppingCartIcon,
   Assignment as AssignmentIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { GenerarOrdenPedidoTab } from './components/GenerarOrdenPedidoTab/GenerarOrdenPedidoTab';
 import { OrdenesPedidoTab } from './components/OrdenesPedidoTab/OrdenesPedidoTab';
@@ -48,6 +49,7 @@ const TABS = [
 
 export const ZonaPickingPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
@@ -98,26 +100,34 @@ export const ZonaPickingPage = () => {
       <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
         {/* Header solo en desktop */}
         {!isMobile && (
-          <Box sx={{ mb: 4 }}>
-            <Typography 
-              variant="h3" 
-              sx={{ 
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                mb: 0.5
-              }}
-            >
-              Zona Picking
-            </Typography>
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: 'var(--color-text-secondary)',
-                mb: 3
-              }}
-            >
-              Gestión de órdenes de pedido y picking por fecha
-            </Typography>
+          <Box sx={{ 
+            mb: 4,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Box>
+              <Typography 
+                variant="h3" 
+                sx={{ 
+                  fontWeight: 700,
+                  color: 'var(--color-text-primary)',
+                  mb: 0.5
+                }}
+              >
+                Zona Picking
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'var(--color-text-secondary)',
+                  mb: 3
+                }}
+              >
+                Gestión de órdenes de pedido y picking por fecha
+              </Typography>
+            </Box>
+            <PageNavigationMenu user={user} currentPath={location.pathname} />
           </Box>
         )}
 

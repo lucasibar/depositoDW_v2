@@ -21,6 +21,8 @@ import {
 import { authService } from '../../services/authService';
 import { dashboardComprasService } from '../../services/dashboardComprasService';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
+import { useLocation } from 'react-router-dom';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { DashboardComprasCard } from '../../components/DashboardComprasCard/DashboardComprasCard';
 import { ConfiguracionTarjetaModal } from '../../components/ConfiguracionTarjetaModal/ConfiguracionTarjetaModal';
@@ -29,6 +31,7 @@ export const DashboardComprasPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
   
   const [user, setUser] = useState(null);
   const [tarjetas, setTarjetas] = useState([]);
@@ -152,8 +155,13 @@ export const DashboardComprasPage = () => {
       <Container maxWidth="xl" sx={{ py: isMobile ? 2 : 4 }}>
         {/* Header */}
         {!isMobile && (
-          <Box sx={{ mb: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <Box sx={{ 
+            mb: 4,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <DashboardIcon sx={{ fontSize: '2.5rem', color: 'primary.main' }} />
               <Box>
                 <Typography 
@@ -177,6 +185,7 @@ export const DashboardComprasPage = () => {
                 </Typography>
               </Box>
             </Box>
+            <PageNavigationMenu user={user} currentPath={location.pathname} />
           </Box>
         )}
 

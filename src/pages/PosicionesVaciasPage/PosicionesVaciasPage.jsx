@@ -37,8 +37,9 @@ import {
 import OccupationProgressCircle from '../../shared/ui/OccupationProgressCircle';
 import MovimientosInternosPesadosCard from '../../shared/ui/MovimientosInternosPesadosCard';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
 import { checkAuthentication, handleLogout } from '../../features/stock/utils/navigationUtils';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './PosicionesVaciasPage.css';
 
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -53,6 +54,7 @@ const StyledCard = styled(Card)(({ theme }) => ({
 
 const PosicionesVaciasPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Estados del usuario y autenticación
   const [user, setUser] = useState(null);
@@ -190,13 +192,22 @@ const PosicionesVaciasPage = () => {
     <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Dashboard Depósito">
       <Box sx={{ p: 3 }}>
         {/* Header */}
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Typography variant="h3" component="h1" gutterBottom color="primary">
-            📦 Posiciones Vacías
-          </Typography>
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            Depósito - Inventario de Espacios Disponibles
-          </Typography>
+        <Box sx={{ 
+          mb: 4, 
+          textAlign: 'center',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h3" component="h1" gutterBottom color="primary">
+              📦 Posiciones Vacías
+            </Typography>
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              Depósito - Inventario de Espacios Disponibles
+            </Typography>
+          </Box>
+          <PageNavigationMenu user={user} currentPath={location.pathname} />
         </Box>
 
       {/* Contador Grande de Posiciones Cargadas */}
