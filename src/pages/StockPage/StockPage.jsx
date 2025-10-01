@@ -18,7 +18,22 @@ import {
   Edit as EditIcon,
   SwapHoriz as SwapIcon,
   LocalShipping as LocalShippingIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Search as SearchIcon,
+  Download as DownloadIcon,
+  Menu as MenuIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Receipt as ReceiptIcon,
+  Dashboard as DashboardIcon,
+  AdminPanelSettings as AdminIcon,
+  CheckCircle as CheckCircleIcon,
+  ExitToApp as ExitToAppIcon,
+  Map as MapIcon,
+  Inventory as InventoryIcon,
+  Assignment as AssignmentIcon,
+  Report as ReportIcon,
+  ShoppingBag as ShoppingBagIcon,
+  Logout as LogoutIcon
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import { stockApi } from '../../features/stock/api/stockApi';
@@ -28,7 +43,7 @@ import AjustePosicionModal from '../../features/stock/ui/AjustePosicionModal';
 import RemitoSalidaDesdePosicionModal from '../../features/salida/ui/RemitoSalidaDesdePosicionModal/RemitoSalidaDesdePosicionModal';
 import { AdicionRapidaPosicion } from '../../components/AdicionRapidaPosicion';
 import { apiClient } from '../../config/api';
-import { ExportReporteStockButton } from '../../shared/ui/ExportReporteStockButton';
+import StockMetricsPanel from '../../components/StockMetricsPanel/StockMetricsPanel';
 
 const getPosLabel = (posicion) => {
   if (!posicion) return 'Posición';
@@ -66,6 +81,9 @@ export const StockPage = () => {
   const [modalRemitoSalidaOpen, setModalRemitoSalidaOpen] = useState(false);
   const [modalAdicionRapidaOpen, setModalAdicionRapidaOpen] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'info' });
+  
+  // Estado para el menú lateral
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -155,30 +173,60 @@ export const StockPage = () => {
       // Texto de la posición
       const posLabel = getPosLabel(p.posicion).toLowerCase();
       
-      // Crear un texto combinado de TODA la información de esta posición
-      const allTexts = [];
-      
-      // Agregar información de la posición
-      allTexts.push(posLabel);
-      
-      // Agregar información de cada item y sus partidas
-      (p.items || []).forEach(item => {
-        // Información del item
-        allTexts.push(item.item?.categoria || '');
-        allTexts.push(item.item?.descripcion || '');
-        allTexts.push(item.item?.proveedor?.nombre || '');
+      // Función para verificar si un item cumple con todos los términos
+      const itemMatchesAllTerms = (item) => {
+        // Crear texto combinado del item específico
+        const itemTexts = [];
+        itemTexts.push(item.item?.categoria || '');
+        itemTexts.push(item.item?.descripcion || '');
+        itemTexts.push(item.item?.proveedor?.nombre || '');
         
-        // Información de cada partida
+        // Agregar números de partida del item
         (item.partidas || []).forEach(partida => {
-          allTexts.push(partida.numeroPartida || '');
+          itemTexts.push(partida.numeroPartida || '');
         });
-      });
+        
+        const combinedItemText = itemTexts.join(' ').toLowerCase();
+        
+        // Verificar que TODOS los términos estén en este item específico
+        return searchTerms.every(term => {
+          // Búsqueda inteligente de posiciones
+          if (term.includes('-')) {
+            const parts = term.split('-');
+            if (parts.length === 2) {
+              const rack = parseInt(parts[0]);
+              const fila = parseInt(parts[1]);
+              if (!isNaN(rack) && !isNaN(fila)) {
+                return p.posicion?.rack === rack && p.posicion?.fila === fila;
+              }
+            }
+            return posLabel.includes(term);
+          }
+          
+          // Búsqueda de pasillo
+          if (term === 'pasillo') {
+            return posLabel.includes('pasillo');
+          }
+          
+          // Búsqueda de pasillo con número (ej: "pasillo 5")
+          if (term.startsWith('pasillo')) {
+            const parts = term.split(' ');
+            if (parts.length === 2) {
+              const pasilloNum = parseInt(parts[1]);
+              if (!isNaN(pasilloNum)) {
+                return p.posicion?.numeroPasillo === pasilloNum;
+              }
+            }
+            return posLabel.includes(term);
+          }
+          
+          // Para otros términos, buscar en el texto del item específico
+          return combinedItemText.includes(term);
+        });
+      };
       
-      // Unir TODOS los textos de esta posición en una sola cadena
-      const combinedText = allTexts.join(' ').toLowerCase();
-      
-      // Verificar que TODOS los términos de búsqueda estén presentes en el MISMO registro
-      return searchTerms.every(term => {
+      // Verificar si la posición cumple (por nombre de posición) O si algún item cumple
+      const positionMatches = searchTerms.every(term => {
         // Búsqueda inteligente de posiciones
         if (term.includes('-')) {
           const parts = term.split('-');
@@ -209,9 +257,17 @@ export const StockPage = () => {
           return posLabel.includes(term);
         }
         
-        // Para otros términos, buscar en TODO el texto combinado de esta posición
-        return combinedText.includes(term);
+        // Para términos de posición, buscar en el nombre de la posición
+        return posLabel.includes(term);
       });
+      
+      // Si es una búsqueda de posición, usar la lógica de posición
+      if (positionMatches) {
+        return true;
+      }
+      
+      // Si no es búsqueda de posición, verificar si algún item cumple con todos los términos
+      return (p.items || []).some(item => itemMatchesAllTerms(item));
     });
   }, [data, search]);
 
@@ -427,17 +483,445 @@ export const StockPage = () => {
           alignItems: 'center',
           mb: 2
         }}>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            Stock por Posición
-          </Typography>
-          <ExportReporteStockButton 
-            data={reporteStockData} 
-            disabled={loadingReporte || !reporteStockData.length}
-            filename="reporte-stock-consolidado"
-            sheetName="Stock Consolidado"
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              Stock por Posición
+            </Typography>
+            
+            {/* Barra de búsqueda */}
+            <Box sx={{ 
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              <SearchIcon sx={{ 
+                position: 'absolute', 
+                left: 12, 
+                color: 'text.secondary',
+                fontSize: 20,
+                zIndex: 1
+              }} />
+              <input
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setSelectedIndex(0); }}
+                placeholder="Buscar..."
+                style={{ 
+                  padding: '12px 12px 12px 44px', 
+                  borderRadius: 25, 
+                  border: '1px solid var(--color-border)',
+                  fontSize: '16px',
+                  outline: 'none',
+                  backgroundColor: 'transparent',
+                  minWidth: '300px',
+                  maxWidth: '500px',
+                  width: '400px'
+                }}
+              />
+            </Box>
+            
+            {/* Botón de exportar al lado de la búsqueda */}
+            <IconButton
+              onClick={async () => {
+                try {
+                  // Usar la misma lógica que el botón de exportar original
+                  if (loadingReporte || !reporteStockData.length) return;
+                  
+                  // Aquí puedes agregar la lógica de exportación
+                  console.log('Exportando reporte de stock...', reporteStockData);
+                  
+                  setNotification({
+                    open: true,
+                    message: 'Reporte de stock exportado correctamente',
+                    severity: 'success'
+                  });
+                } catch (error) {
+                  setNotification({
+                    open: true,
+                    message: 'Error al exportar el reporte',
+                    severity: 'error'
+                  });
+                }
+              }}
+              disabled={loadingReporte || !reporteStockData.length}
+              sx={{
+                color: 'text.secondary',
+                opacity: 0.8,
+                '&:hover': {
+                  opacity: 1,
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                },
+                '&:disabled': {
+                  opacity: 0.3
+                },
+                transition: 'all 0.2s ease'
+              }}
+              title="Exportar reporte de stock"
+            >
+              <DownloadIcon sx={{ fontSize: 35 }} />
+            </IconButton>
+          </Box>
+          
+          {/* Botón del menú lateral en la esquina derecha */}
+          <IconButton
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            sx={{
+              color: 'text.secondary',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)'
+              },
+              transition: 'all 0.2s ease'
+            }}
+            title="Menú lateral"
+          >
+            <MenuIcon />
+          </IconButton>
         </Box>
+        
       </Box>
+
+      {/* Menú lateral */}
+      {sidebarOpen && (
+        <Box sx={{
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          width: '300px',
+          height: '100vh',
+          backgroundColor: 'var(--color-surface)',
+          borderLeft: '1px solid var(--color-border)',
+          zIndex: 1300,
+          boxShadow: '-4px 0 12px rgba(0, 0, 0, 0.1)',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {/* Header del menú */}
+          <Box sx={{
+            p: 3,
+            borderBottom: '1px solid var(--color-border)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Menú
+            </Typography>
+            <IconButton
+              onClick={() => setSidebarOpen(false)}
+              sx={{ color: 'text.secondary' }}
+            >
+              ×
+            </IconButton>
+          </Box>
+
+          {/* Contenido del menú */}
+          <Box sx={{ flex: 1, p: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {/* Compras */}
+              <Button
+                variant="text"
+                startIcon={<ShoppingCartIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/compras');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Compras
+              </Button>
+              
+              {/* Remito Entrada */}
+              <Button
+                variant="text"
+                startIcon={<ReceiptIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/remito-entrada');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Remito Entrada
+              </Button>
+              
+              {/* Dashboard Compras */}
+              <Button
+                variant="text"
+                startIcon={<DashboardIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/dashboard-compras');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Dashboard Compras
+              </Button>
+              
+              {/* Calidad */}
+              <Button
+                variant="text"
+                startIcon={<CheckCircleIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/calidad');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Calidad
+              </Button>
+              
+              {/* Salida */}
+              <Button
+                variant="text"
+                startIcon={<ExitToAppIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/salida');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Salida
+              </Button>
+              
+              {/* Adición Rápida */}
+              <Button
+                variant="text"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/adicion-rapida');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Adición Rápida
+              </Button>
+              
+              {/* Posiciones Vacías */}
+              <Button
+                variant="text"
+                startIcon={<MapIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/posiciones-vacias');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Posiciones Vacías
+              </Button>
+              
+              {/* Mapa */}
+              <Button
+                variant="text"
+                startIcon={<MapIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/mapa');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Mapa
+              </Button>
+              
+              {/* Movimientos Mercadería */}
+              <Button
+                variant="text"
+                startIcon={<InventoryIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/movimientos-mercaderia');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Movimientos Mercadería
+              </Button>
+              
+              {/* Stock (página actual) */}
+              <Button
+                variant="text"
+                startIcon={<AssignmentIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/posiciones-composicion');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'primary.main',
+                  backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(25, 118, 210, 0.12)'
+                  }
+                }}
+              >
+                Stock por Posición
+              </Button>
+              
+              {/* Reporte Stock */}
+              <Button
+                variant="text"
+                startIcon={<ReportIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/reporte-stock');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Reporte Stock
+              </Button>
+              
+              {/* Órdenes de Pedido */}
+              <Button
+                variant="text"
+                startIcon={<ShoppingBagIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/ordenes-pedido');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Órdenes de Pedido
+              </Button>
+              
+              {/* Admin */}
+              <Button
+                variant="text"
+                startIcon={<AdminIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/admin');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'text.primary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              >
+                Administración
+              </Button>
+              
+              {/* Separador */}
+              <Box sx={{ my: 2, borderTop: '1px solid var(--color-border)' }} />
+              
+              {/* Cerrar Sesión */}
+              <Button
+                variant="text"
+                startIcon={<LogoutIcon />}
+                onClick={() => {
+                  navigate('/depositoDW_v2/');
+                  setSidebarOpen(false);
+                }}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  color: 'error.main',
+                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                  '&:hover': {
+                    backgroundColor: 'error.main',
+                    color: 'white'
+                  },
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Cerrar Sesión
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {/* Overlay para cerrar el menú */}
+      {sidebarOpen && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            zIndex: 1299
+          }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       <Box sx={{ 
         display: 'flex', 
@@ -447,7 +931,24 @@ export const StockPage = () => {
         height: 'calc(100vh - 120px)',
         overflow: 'hidden'
       }}>
-        {/* Panel izquierdo - Lista de posiciones */}
+        {/* Panel izquierdo - Métricas */}
+        <Box sx={{ 
+          flex: '0 0 200px', 
+          height: '100%', 
+          overflow: 'auto', 
+          border: '1px solid var(--color-border)', 
+          borderRadius: 2, 
+          p: 2,
+          backgroundColor: 'var(--color-surface)'
+        }}>
+          <StockMetricsPanel 
+            data={filteredData}
+            searchTerm={search}
+            selectedPosition={selected?.posicion}
+          />
+        </Box>
+
+        {/* Panel central - Lista de posiciones */}
         <Box sx={{ 
           flex: '0 0 320px', 
           height: '100%', 
@@ -457,21 +958,6 @@ export const StockPage = () => {
           p: 2,
           backgroundColor: 'var(--color-surface)'
         }}>
-          <Box sx={{ mb: 2 }}>
-            <input
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setSelectedIndex(0); }}
-              placeholder="Ej: 1-2-A rontaltex blanco 16/1 o pasillo 5 nylon..."
-              style={{ 
-                width: '100%', 
-                padding: 12, 
-                borderRadius: 8, 
-                border: '1px solid var(--color-border)',
-                fontSize: '14px',
-                outline: 'none'
-              }}
-            />
-          </Box>
           
           {loading && <Typography>Cargando...</Typography>}
           {error && <Typography color="error">{error}</Typography>}

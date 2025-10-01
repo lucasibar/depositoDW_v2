@@ -38,7 +38,6 @@ import { getRoleColor, getRoleLabel } from '../../../features/stock/utils/userUt
 
 const AppLayout = ({ children, user, onLogout, pageTitle }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
@@ -68,9 +67,6 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleDesktopMenuToggle = () => {
-    setDesktopMenuOpen(!desktopMenuOpen);
-  };
 
   const handleNavigation = (path) => {
     navigate(path);
@@ -442,28 +438,6 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
         </AppBar>
       )}
 
-      {/* Sidebar para desktop */}
-      {!isMobile && (
-        <Box
-          component="nav"
-          sx={{ 
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            height: '100vh',
-            width: desktopMenuOpen ? 280 : 0,
-            flexShrink: 0,
-            backgroundColor: 'var(--color-surface)',
-            borderRight: desktopMenuOpen ? '1px solid var(--color-border)' : 'none',
-            boxShadow: desktopMenuOpen ? 'var(--shadow-sm)' : 'none',
-            transition: 'width 0.3s ease-in-out, border 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-            overflow: 'hidden',
-            zIndex: theme.zIndex.drawer
-          }}
-        >
-          {desktopMenuOpen && drawer}
-        </Box>
-      )}
 
       {/* Drawer móvil */}
       {isMobile && (
@@ -486,38 +460,6 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
         </Drawer>
       )}
 
-      {/* Botón hamburguesa flotante para desktop */}
-      {!isMobile && (
-        <IconButton
-          onClick={handleDesktopMenuToggle}
-          sx={{
-            position: 'fixed',
-            top: 20,
-            left: 20,
-            zIndex: theme.zIndex.drawer + 2,
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            color: 'var(--color-text-secondary)',
-            width: 40,
-            height: 40,
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            transition: 'all 0.2s ease-in-out',
-            border: '1px solid rgba(0, 0, 0, 0.1)',
-            backdropFilter: 'blur(10px)',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 1)',
-              color: 'var(--color-primary)',
-              transform: 'scale(1.05)',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-            },
-            '&:active': {
-              transform: 'scale(0.95)'
-            }
-          }}
-          aria-label={desktopMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
-        >
-          <MenuIcon sx={{ fontSize: '1.2rem' }} />
-        </IconButton>
-      )}
 
       {/* Contenido principal */}
       <Box
