@@ -17,9 +17,10 @@ import {
   Assessment as AssessmentIcon,
   List as ListIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { OrdenesCompraTab } from './components/OrdenesCompraTab/OrdenesCompraTab';
 import { PresupuestoTab } from './components/PresupuestoTab/PresupuestoTab';
@@ -52,6 +53,7 @@ const TABS = [
 
 export const ComprasPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -93,26 +95,34 @@ export const ComprasPage = () => {
       <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
         {/* Header solo en desktop */}
         {!isMobile && (
-          <Box sx={{ mb: 4 }}>
-            <Typography 
-              variant="h3" 
-              sx={{ 
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                mb: 0.5
-              }}
-            >
-              Compras
-            </Typography>
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: 'var(--color-text-secondary)',
-                mb: 3
-              }}
-            >
-              Gestión integral de compras, stock y presupuestos
-            </Typography>
+          <Box sx={{ 
+            mb: 4,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Box>
+              <Typography 
+                variant="h3" 
+                sx={{ 
+                  fontWeight: 700,
+                  color: 'var(--color-text-primary)',
+                  mb: 0.5
+                }}
+              >
+                Compras
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'var(--color-text-secondary)',
+                  mb: 3
+                }}
+              >
+                Gestión integral de compras, stock y presupuestos
+              </Typography>
+            </Box>
+            <PageNavigationMenu user={user} currentPath={location.pathname} />
           </Box>
         )}
 

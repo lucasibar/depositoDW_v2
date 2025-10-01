@@ -439,6 +439,7 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
       )}
 
 
+
       {/* Drawer móvil */}
       {isMobile && (
         <Drawer

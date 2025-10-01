@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Box, 
   Typography, 
@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
 import { authService } from '../../services/authService';
 import { userService } from '../../services/userService';
 import NotificacionesPanel from '../../features/notificaciones/ui/NotificacionesPanel';
@@ -39,6 +40,7 @@ export const AdminPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
 
   useEffect(() => {
     const currentUser = authService.getUser();
@@ -286,26 +288,36 @@ export const AdminPage = () => {
         boxSizing: 'border-box'
       }}>
         {/* Header compacto */}
-        <Box sx={{ mb: isMobile ? 2 : 4 }}>
-          <Typography 
-            variant={isMobile ? "h5" : isTablet ? "h4" : "h3"} 
-            sx={{ 
-              fontWeight: 700,
-              color: 'var(--color-text-primary)',
-              mb: 0.5
-            }}
-          >
-            Administración
-          </Typography>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: 'var(--color-text-secondary)',
-              mb: isMobile ? 1 : 3
-            }}
-          >
-            Gestiona usuarios, configuración y reportes
-          </Typography>
+        <Box sx={{ 
+          mb: isMobile ? 2 : 4,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start'
+        }}>
+          <Box>
+            <Typography 
+              variant={isMobile ? "h5" : isTablet ? "h4" : "h3"} 
+              sx={{ 
+                fontWeight: 700,
+                color: 'var(--color-text-primary)',
+                mb: 0.5
+              }}
+            >
+              Administración
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'var(--color-text-secondary)',
+                mb: isMobile ? 1 : 3
+              }}
+            >
+              Gestiona usuarios, configuración y reportes
+            </Typography>
+          </Box>
+          {!isMobile && (
+            <PageNavigationMenu user={user} currentPath={location.pathname} />
+          )}
         </Box>
 
         {/* Tabs compactos */}

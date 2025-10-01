@@ -20,20 +20,7 @@ import {
   LocalShipping as LocalShippingIcon,
   Add as AddIcon,
   Search as SearchIcon,
-  Download as DownloadIcon,
-  Menu as MenuIcon,
-  ShoppingCart as ShoppingCartIcon,
-  Receipt as ReceiptIcon,
-  Dashboard as DashboardIcon,
-  AdminPanelSettings as AdminIcon,
-  CheckCircle as CheckCircleIcon,
-  ExitToApp as ExitToAppIcon,
-  Map as MapIcon,
-  Inventory as InventoryIcon,
-  Assignment as AssignmentIcon,
-  Report as ReportIcon,
-  ShoppingBag as ShoppingBagIcon,
-  Logout as LogoutIcon
+  Download as DownloadIcon
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import { stockApi } from '../../features/stock/api/stockApi';
@@ -44,6 +31,10 @@ import RemitoSalidaDesdePosicionModal from '../../features/salida/ui/RemitoSalid
 import { AdicionRapidaPosicion } from '../../components/AdicionRapidaPosicion';
 import { apiClient } from '../../config/api';
 import StockMetricsPanel from '../../components/StockMetricsPanel/StockMetricsPanel';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
+import { useLocation } from 'react-router-dom';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const getPosLabel = (posicion) => {
   if (!posicion) return 'Posición';
@@ -55,6 +46,7 @@ const getPosLabel = (posicion) => {
 
 export const StockPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useSelector(state => state.auth.user);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -82,8 +74,6 @@ export const StockPage = () => {
   const [modalAdicionRapidaOpen, setModalAdicionRapidaOpen] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'info' });
   
-  // Estado para el menú lateral
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -468,6 +458,127 @@ export const StockPage = () => {
     }
   };
 
+  // Función para exportar el reporte de stock a Excel
+  const handleExportStock = async () => {
+    try {
+      setLoadingReporte(true);
+      
+      // Obtener los datos de consulta rápida
+      const stockData = await stockApi.getConsultaRapidaAgrupado();
+      
+      if (!stockData || stockData.length === 0) {
+        setNotification({
+          open: true,
+          message: 'No hay datos para exportar',
+          severity: 'warning'
+        });
+        return;
+      }
+
+      // Transformar los datos para Excel
+      const excelData = [];
+      
+      stockData.forEach((posicion) => {
+        if (posicion.items && posicion.items.length > 0) {
+          posicion.items.forEach((item) => {
+            if (item.partidas && item.partidas.length > 0) {
+              item.partidas.forEach((partida) => {
+                excelData.push({
+                  'Nº': excelData.length + 1,
+                  'Item (Categoría - Descripción)': `${item.item?.categoria || ''} - ${item.item?.descripcion || ''}`,
+                  'Número de Partida': partida.numeroPartida || '',
+                  'Proveedor': item.item?.proveedor?.nombre || '',
+                  'Posición': getPosLabel(posicion.posicion),
+                  'Kilos': Number(partida.kilos || 0).toFixed(2),
+                  'Unidades': Number(partida.unidades || 0),
+                  'Fecha Exportación': new Date().toLocaleDateString('es-ES'),
+                  'Hora Exportación': new Date().toLocaleTimeString('es-ES')
+                });
+              });
+            }
+          });
+        }
+      });
+
+      // Crear el workbook y worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      // Ajustar el ancho de las columnas
+      const columnWidths = [
+        { wch: 5 },   // Nº
+        { wch: 60 },  // Item (Categoría - Descripción)
+        { wch: 20 },  // Número de Partida
+        { wch: 30 },  // Proveedor
+        { wch: 40 },  // Posición
+        { wch: 12 },  // Kilos
+        { wch: 12 },  // Unidades
+        { wch: 15 },  // Fecha Exportación
+        { wch: 15 }   // Hora Exportación
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Agregar información del reporte
+      const reportInfo = [
+        ['REPORTE DE STOCK CONSOLIDADO'],
+        [''],
+        [`Fecha de generación: ${new Date().toLocaleDateString('es-ES')}`],
+        [`Hora de generación: ${new Date().toLocaleTimeString('es-ES')}`],
+        [`Total de registros: ${excelData.length}`],
+        [''],
+        ['RESUMEN:'],
+        [`- Items con stock: ${excelData.length}`],
+        [`- Total kilos: ${excelData.reduce((sum, item) => sum + parseFloat(item['Kilos']), 0).toFixed(2)}`],
+        [`- Total unidades: ${excelData.reduce((sum, item) => sum + parseInt(item['Unidades']), 0)}`],
+        [''],
+        ['NOTA: Este reporte muestra el stock consolidado por partida, item y posición.'],
+        ['Los kilos se calculan sumando entradas y restando salidas según el tipo de movimiento.'],
+        ['']
+      ];
+
+      // Agregar la información del reporte al inicio
+      XLSX.utils.sheet_add_aoa(worksheet, reportInfo, { origin: 'A1' });
+
+      // Agregar el worksheet al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Stock Consolidado');
+
+      // Generar el archivo
+      const excelBuffer = XLSX.write(workbook, { 
+        bookType: 'xlsx', 
+        type: 'array' 
+      });
+
+      // Crear el blob y descargar
+      const blob = new Blob([excelBuffer], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      
+      // Agregar fecha al nombre del archivo
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `reporte-stock-consolidado_${date}.xlsx`;
+      
+      saveAs(blob, filename);
+
+      console.log(`✅ Reporte de stock exportado: ${filename} con ${excelData.length} registros`);
+      
+      setNotification({
+        open: true,
+        message: `Reporte de stock exportado exitosamente: ${filename} (${excelData.length} registros)`,
+        severity: 'success'
+      });
+
+    } catch (error) {
+      console.error('❌ Error al exportar reporte de stock:', error);
+      setNotification({
+        open: true,
+        message: 'Error al exportar el reporte de stock',
+        severity: 'error'
+      });
+    } finally {
+      setLoadingReporte(false);
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -521,28 +632,8 @@ export const StockPage = () => {
             
             {/* Botón de exportar al lado de la búsqueda */}
             <IconButton
-              onClick={async () => {
-                try {
-                  // Usar la misma lógica que el botón de exportar original
-                  if (loadingReporte || !reporteStockData.length) return;
-                  
-                  // Aquí puedes agregar la lógica de exportación
-                  console.log('Exportando reporte de stock...', reporteStockData);
-                  
-                  setNotification({
-                    open: true,
-                    message: 'Reporte de stock exportado correctamente',
-                    severity: 'success'
-                  });
-                } catch (error) {
-                  setNotification({
-                    open: true,
-                    message: 'Error al exportar el reporte',
-                    severity: 'error'
-                  });
-                }
-              }}
-              disabled={loadingReporte || !reporteStockData.length}
+              onClick={handleExportStock}
+              disabled={loadingReporte}
               sx={{
                 color: 'text.secondary',
                 opacity: 0.8,
@@ -555,373 +646,18 @@ export const StockPage = () => {
                 },
                 transition: 'all 0.2s ease'
               }}
-              title="Exportar reporte de stock"
+              title="Exportar reporte de stock consolidado"
             >
               <DownloadIcon sx={{ fontSize: 35 }} />
             </IconButton>
           </Box>
           
           {/* Botón del menú lateral en la esquina derecha */}
-          <IconButton
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            sx={{
-              color: 'text.secondary',
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)'
-              },
-              transition: 'all 0.2s ease'
-            }}
-            title="Menú lateral"
-          >
-            <MenuIcon />
-          </IconButton>
+          <PageNavigationMenu user={user} currentPath={location.pathname} />
         </Box>
         
       </Box>
 
-      {/* Menú lateral */}
-      {sidebarOpen && (
-        <Box sx={{
-          position: 'fixed',
-          top: 0,
-          right: 0,
-          width: '300px',
-          height: '100vh',
-          backgroundColor: 'var(--color-surface)',
-          borderLeft: '1px solid var(--color-border)',
-          zIndex: 1300,
-          boxShadow: '-4px 0 12px rgba(0, 0, 0, 0.1)',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          {/* Header del menú */}
-          <Box sx={{
-            p: 3,
-            borderBottom: '1px solid var(--color-border)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Menú
-            </Typography>
-            <IconButton
-              onClick={() => setSidebarOpen(false)}
-              sx={{ color: 'text.secondary' }}
-            >
-              ×
-            </IconButton>
-          </Box>
-
-          {/* Contenido del menú */}
-          <Box sx={{ flex: 1, p: 2 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {/* Compras */}
-              <Button
-                variant="text"
-                startIcon={<ShoppingCartIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/compras');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Compras
-              </Button>
-              
-              {/* Remito Entrada */}
-              <Button
-                variant="text"
-                startIcon={<ReceiptIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/remito-entrada');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Remito Entrada
-              </Button>
-              
-              {/* Dashboard Compras */}
-              <Button
-                variant="text"
-                startIcon={<DashboardIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/dashboard-compras');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Dashboard Compras
-              </Button>
-              
-              {/* Calidad */}
-              <Button
-                variant="text"
-                startIcon={<CheckCircleIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/calidad');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Calidad
-              </Button>
-              
-              {/* Salida */}
-              <Button
-                variant="text"
-                startIcon={<ExitToAppIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/salida');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Salida
-              </Button>
-              
-              {/* Adición Rápida */}
-              <Button
-                variant="text"
-                startIcon={<AddIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/adicion-rapida');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Adición Rápida
-              </Button>
-              
-              {/* Posiciones Vacías */}
-              <Button
-                variant="text"
-                startIcon={<MapIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/posiciones-vacias');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Posiciones Vacías
-              </Button>
-              
-              {/* Mapa */}
-              <Button
-                variant="text"
-                startIcon={<MapIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/mapa');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Mapa
-              </Button>
-              
-              {/* Movimientos Mercadería */}
-              <Button
-                variant="text"
-                startIcon={<InventoryIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/movimientos-mercaderia');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Movimientos Mercadería
-              </Button>
-              
-              {/* Stock (página actual) */}
-              <Button
-                variant="text"
-                startIcon={<AssignmentIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/posiciones-composicion');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'primary.main',
-                  backgroundColor: 'rgba(25, 118, 210, 0.08)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(25, 118, 210, 0.12)'
-                  }
-                }}
-              >
-                Stock por Posición
-              </Button>
-              
-              {/* Reporte Stock */}
-              <Button
-                variant="text"
-                startIcon={<ReportIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/reporte-stock');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Reporte Stock
-              </Button>
-              
-              {/* Órdenes de Pedido */}
-              <Button
-                variant="text"
-                startIcon={<ShoppingBagIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/ordenes-pedido');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Órdenes de Pedido
-              </Button>
-              
-              {/* Admin */}
-              <Button
-                variant="text"
-                startIcon={<AdminIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/admin');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'text.primary',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                  }
-                }}
-              >
-                Administración
-              </Button>
-              
-              {/* Separador */}
-              <Box sx={{ my: 2, borderTop: '1px solid var(--color-border)' }} />
-              
-              {/* Cerrar Sesión */}
-              <Button
-                variant="text"
-                startIcon={<LogoutIcon />}
-                onClick={() => {
-                  navigate('/depositoDW_v2/');
-                  setSidebarOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  color: 'error.main',
-                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                  '&:hover': {
-                    backgroundColor: 'error.main',
-                    color: 'white'
-                  },
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                Cerrar Sesión
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-      )}
-
-      {/* Overlay para cerrar el menú */}
-      {sidebarOpen && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            backgroundColor: 'rgba(0, 0, 0, 0.3)',
-            zIndex: 1299
-          }}
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
 
       <Box sx={{ 
         display: 'flex', 
