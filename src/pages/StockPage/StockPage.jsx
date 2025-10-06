@@ -32,17 +32,11 @@ import { AdicionRapidaPosicion } from '../../components/AdicionRapidaPosicion';
 import { apiClient } from '../../config/api';
 import StockMetricsPanel from '../../components/StockMetricsPanel/StockMetricsPanel';
 import PageNavigationMenu from '../../components/PageNavigationMenu';
+import MobileStockView from '../../components/MobileStockView/MobileStockView';
 import { useLocation } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-
-const getPosLabel = (posicion) => {
-  if (!posicion) return 'Posición';
-  if (posicion.rack && posicion.fila && posicion.AB) return `${posicion.rack}-${posicion.fila}-${posicion.AB}`;
-  if (posicion.numeroPasillo) return `Pasillo ${posicion.numeroPasillo}`;
-  if (posicion.entrada === true) return 'Entrada';
-  return 'Posición';
-};
+import { getPosLabel } from '../../utils/posicionUtils';
 
 export const StockPage = () => {
   const navigate = useNavigate();
@@ -580,6 +574,112 @@ export const StockPage = () => {
   };
 
   if (!user) return null;
+
+  // Si es móvil, usar la vista móvil
+  if (isMobile) {
+    return (
+      <>
+        <MobileStockView
+          data={data}
+          loading={loading}
+          error={error}
+          search={search}
+          setSearch={setSearch}
+          selectedIndex={selectedIndex}
+          setSelectedIndex={setSelectedIndex}
+          onExportStock={handleExportStock}
+          loadingReporte={loadingReporte}
+          onMenuOpen={handleMenuOpen}
+          itemMatchesSearch={itemMatchesSearch}
+          onAbrirModalAdicionRapida={handleAbrirModalAdicionRapida}
+        />
+
+        {/* Modales para vista móvil */}
+        <MovimientoInterno
+          open={movimientoInternoOpen}
+          onClose={() => {
+            setMovimientoInternoOpen(false);
+            limpiarDatosSeleccionados();
+          }}
+          itemSeleccionado={selectedItem}
+          posicionOrigen={selectedPosicion}
+          onMovimientoCompletado={handleMovimientoCompletado}
+        />
+
+        <AjustePosicionModal
+          open={modalAjusteOpen}
+          onClose={() => {
+            setModalAjusteOpen(false);
+            limpiarDatosSeleccionados();
+          }}
+          material={selectedItem}
+          onAjusteExitoso={handleAjusteExitoso}
+        />
+
+        <RemitoSalidaDesdePosicionModal
+          open={modalRemitoSalidaOpen}
+          onClose={() => {
+            setModalRemitoSalidaOpen(false);
+            limpiarDatosSeleccionados();
+          }}
+          resultado={selectedItem}
+          posicionActual={selectedPosicion}
+          onSubmit={handleRemitoSalidaExitoso}
+        />
+
+        <AdicionRapidaPosicion
+          open={modalAdicionRapidaOpen}
+          onClose={handleCerrarModalAdicionRapida}
+          posicion={selectedPosicion}
+          onSubmit={handleAdicionRapidaExitoso}
+        />
+
+        {/* Menú de acciones */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+        >
+          <MenuItem onClick={handleAjustar}>
+            <EditIcon sx={{ mr: 1 }} />
+            Ajustar
+          </MenuItem>
+          <MenuItem onClick={handleMover}>
+            <SwapIcon sx={{ mr: 1 }} />
+            Mover
+          </MenuItem>
+          <MenuItem onClick={handleRemitoSalida}>
+            <LocalShippingIcon sx={{ mr: 1 }} />
+            Remito Salida
+          </MenuItem>
+        </Menu>
+
+        {/* Snackbar para notificaciones */}
+        <Snackbar
+          open={notification.open}
+          autoHideDuration={6000}
+          onClose={handleCloseNotification}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert
+            onClose={handleCloseNotification}
+            severity={notification.severity}
+            sx={{ width: '100%' }}
+          >
+            {notification.message}
+          </Alert>
+        </Snackbar>
+      </>
+    );
+  }
 
   return (
     <AppLayout user={user} pageTitle="Stock" onLogout={() => navigate('/depositoDW_v2/')}> 
