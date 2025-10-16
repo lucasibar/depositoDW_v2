@@ -26,6 +26,7 @@ import { useLocation } from 'react-router-dom';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { DashboardComprasCard } from '../../components/DashboardComprasCard/DashboardComprasCard';
 import { ConfiguracionTarjetaModal } from '../../components/ConfiguracionTarjetaModal/ConfiguracionTarjetaModal';
+import * as XLSX from 'xlsx';
 
 export const DashboardComprasPage = () => {
   const theme = useTheme();
@@ -41,6 +42,7 @@ export const DashboardComprasPage = () => {
   const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [descargando, setDescargando] = useState(false);
+  const [descargandoFiltrado, setDescargandoFiltrado] = useState(false);
 
   useEffect(() => {
     const currentUser = authService.getUser();
@@ -110,9 +112,45 @@ export const DashboardComprasPage = () => {
   const handleDescargarStock = async () => {
     try {
       setDescargando(true);
-      const blob = await dashboardComprasService.descargarReporteStockExcel();
+      const response = await dashboardComprasService.descargarReporteStockExcel();
       
-      // Crear URL del blob y descargar
+      if (!response.success || !response.data) {
+        throw new Error('Error en la respuesta del servidor');
+      }
+      
+      // Preparar datos para Excel
+      const datosExcel = response.data.map(item => ({
+        'Descripción del Item': item.itemDescripcion,
+        'Número de Partida': item.numeroPartida,
+        'Proveedor': item.proveedor,
+        'Posición': item.posicion,
+        'Kilos': item.kilos,
+        'Unidades': item.unidades
+      }));
+      
+      // Crear libro de trabajo
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(datosExcel);
+      
+      // Ajustar ancho de columnas
+      const colWidths = [
+        { wch: 50 }, // Descripción del Item
+        { wch: 20 }, // Número de Partida
+        { wch: 30 }, // Proveedor
+        { wch: 40 }, // Posición
+        { wch: 15 }, // Kilos
+        { wch: 15 }  // Unidades
+      ];
+      ws['!cols'] = colWidths;
+      
+      // Agregar hoja al libro
+      XLSX.utils.book_append_sheet(wb, ws, 'Reporte de Stock');
+      
+      // Generar archivo Excel
+      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      
+      // Crear blob y descargar
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -143,6 +181,89 @@ export const DashboardComprasPage = () => {
       });
     } finally {
       setDescargando(false);
+    }
+  };
+
+  const handleDescargarStockFiltrado = async () => {
+    try {
+      setDescargandoFiltrado(true);
+      const response = await dashboardComprasService.descargarReporteStockExcel();
+      
+      if (!response.success || !response.data) {
+        throw new Error('Error en la respuesta del servidor');
+      }
+      
+      // Filtrar solo registros con Número de Partida de 10 o más dígitos
+      const datosFiltrados = response.data.filter(item => {
+        const numeroPartida = item.numeroPartida || '';
+        // Contar solo dígitos en el número de partida
+        const digitos = numeroPartida.replace(/\D/g, '').length;
+        return digitos >= 10;
+      });
+      
+      // Preparar datos para Excel
+      const datosExcel = datosFiltrados.map(item => ({
+        'Descripción del Item': item.itemDescripcion,
+        'Número de Partida': item.numeroPartida,
+        'Proveedor': item.proveedor,
+        'Posición': item.posicion,
+        'Kilos': item.kilos,
+        'Unidades': item.unidades
+      }));
+      
+      // Crear libro de trabajo
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(datosExcel);
+      
+      // Ajustar ancho de columnas
+      const colWidths = [
+        { wch: 50 }, // Descripción del Item
+        { wch: 20 }, // Número de Partida
+        { wch: 30 }, // Proveedor
+        { wch: 40 }, // Posición
+        { wch: 15 }, // Kilos
+        { wch: 15 }  // Unidades
+      ];
+      ws['!cols'] = colWidths;
+      
+      // Agregar hoja al libro
+      XLSX.utils.book_append_sheet(wb, ws, 'Reporte de Stock Filtrado');
+      
+      // Generar archivo Excel
+      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      
+      // Crear blob y descargar
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generar nombre de archivo con fecha actual
+      const fecha = new Date().toISOString().split('T')[0];
+      link.download = `reporte-stock-filtrado-${fecha}.xlsx`;
+      
+      // Simular click para descargar
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Limpiar URL
+      window.URL.revokeObjectURL(url);
+      
+      setSnackbar({
+        open: true,
+        message: `Reporte de stock filtrado descargado exitosamente (${datosFiltrados.length} registros)`,
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error descargando reporte filtrado:', error);
+      setSnackbar({
+        open: true,
+        message: 'Error al descargar el reporte de stock filtrado',
+        severity: 'error'
+      });
+    } finally {
+      setDescargandoFiltrado(false);
     }
   };
 
@@ -207,10 +328,19 @@ export const DashboardComprasPage = () => {
               variant="outlined"
               startIcon={<DownloadIcon />}
               onClick={handleDescargarStock}
-              disabled={descargando || loading}
+              disabled={descargando || descargandoFiltrado || loading}
               sx={{ borderRadius: 2 }}
             >
               {descargando ? 'Descargando...' : 'Descargar Stock'}
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              onClick={handleDescargarStockFiltrado}
+              disabled={descargando || descargandoFiltrado || loading}
+              sx={{ borderRadius: 2 }}
+            >
+              {descargandoFiltrado ? 'Descargando...' : 'Stock Filtrado (10+ dígitos)'}
             </Button>
             <Button
               variant="outlined"
