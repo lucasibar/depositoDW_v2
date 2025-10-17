@@ -193,12 +193,12 @@ export const DashboardComprasPage = () => {
         throw new Error('Error en la respuesta del servidor');
       }
       
-      // Filtrar solo registros con Número de Partida de 10 o más dígitos
+      // Filtrar solo registros con Número de Partida de 11 o más dígitos
       const datosFiltrados = response.data.filter(item => {
         const numeroPartida = item.numeroPartida || '';
         // Contar solo dígitos en el número de partida
         const digitos = numeroPartida.replace(/\D/g, '').length;
-        return digitos >= 10;
+        return digitos >= 11;
       });
       
       // Preparar datos para Excel
@@ -229,6 +229,55 @@ export const DashboardComprasPage = () => {
       // Agregar hoja al libro
       XLSX.utils.book_append_sheet(wb, ws, 'Reporte de Stock Filtrado');
       
+      // Crear tabla dinámica de kilos totales por partida
+      const resumenPorPartida = {};
+      datosFiltrados.forEach(item => {
+        const numeroPartida = item.numeroPartida || 'Sin partida';
+        const kilos = parseFloat(item.kilos) || 0;
+        
+        if (!resumenPorPartida[numeroPartida]) {
+          resumenPorPartida[numeroPartida] = {
+            numeroPartida: numeroPartida,
+            descripcion: item.itemDescripcion || 'Sin descripción',
+            material: item.itemDescripcion ? item.itemDescripcion.split(' - ')[0] : 'Sin material',
+            kilosTotales: 0,
+            cantidadRegistros: 0
+          };
+        }
+        
+        resumenPorPartida[numeroPartida].kilosTotales += kilos;
+        resumenPorPartida[numeroPartida].cantidadRegistros += 1;
+      });
+      
+      // Convertir a array y ordenar por kilos totales (descendente)
+      const resumenArray = Object.values(resumenPorPartida)
+        .sort((a, b) => b.kilosTotales - a.kilosTotales);
+      
+      // Preparar datos para la hoja de resumen
+      const datosResumen = resumenArray.map(item => ({
+        'Número de Partida': item.numeroPartida,
+        'Material': item.material,
+        'Descripción': item.descripcion,
+        'Kilos Totales': item.kilosTotales,
+        'Cantidad de Registros': item.cantidadRegistros
+      }));
+      
+      // Crear hoja de resumen
+      const wsResumen = XLSX.utils.json_to_sheet(datosResumen);
+      
+      // Ajustar ancho de columnas para la hoja de resumen
+      const colWidthsResumen = [
+        { wch: 25 }, // Número de Partida
+        { wch: 30 }, // Material
+        { wch: 50 }, // Descripción
+        { wch: 20 }, // Kilos Totales
+        { wch: 25 }  // Cantidad de Registros
+      ];
+      wsResumen['!cols'] = colWidthsResumen;
+      
+      // Agregar hoja de resumen al libro
+      XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen por Partida');
+      
       // Generar archivo Excel
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
       
@@ -240,7 +289,7 @@ export const DashboardComprasPage = () => {
       
       // Generar nombre de archivo con fecha actual
       const fecha = new Date().toISOString().split('T')[0];
-      link.download = `reporte-stock-filtrado-${fecha}.xlsx`;
+      link.download = `reporte-importaciones-${fecha}.xlsx`;
       
       // Simular click para descargar
       document.body.appendChild(link);
@@ -252,14 +301,14 @@ export const DashboardComprasPage = () => {
       
       setSnackbar({
         open: true,
-        message: `Reporte de stock filtrado descargado exitosamente (${datosFiltrados.length} registros)`,
+        message: `Reporte de importaciones descargado exitosamente (${datosFiltrados.length} registros)`,
         severity: 'success'
       });
     } catch (error) {
       console.error('Error descargando reporte filtrado:', error);
       setSnackbar({
         open: true,
-        message: 'Error al descargar el reporte de stock filtrado',
+        message: 'Error al descargar el reporte de importaciones',
         severity: 'error'
       });
     } finally {
@@ -340,7 +389,7 @@ export const DashboardComprasPage = () => {
               disabled={descargando || descargandoFiltrado || loading}
               sx={{ borderRadius: 2 }}
             >
-              {descargandoFiltrado ? 'Descargando...' : 'Stock Filtrado (10+ dígitos)'}
+              {descargandoFiltrado ? 'Descargando...' : 'Importaciones'}
             </Button>
             <Button
               variant="outlined"
