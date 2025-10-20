@@ -13,7 +13,8 @@ import {
   Add as AddIcon,
   ExitToApp as ExitToAppIcon,
   History as HistoryIcon,
-  Receipt as ReceiptIcon
+  Receipt as ReceiptIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import { authService } from '../../services/authService';
 import { useAuth } from '../../hooks/useAuth';
@@ -23,6 +24,7 @@ import { useLocation } from 'react-router-dom';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { GenerarSalidaTab } from './components/GenerarSalidaTab/GenerarSalidaTab';
 import { GestionSalidaTab } from './components/GestionSalidaTab/GestionSalidaTab';
+import ConsultarRemitosSalidaTab from './components/ConsultarRemitosSalidaTab/ConsultarRemitosSalidaTab';
 
 // Datos de las pestañas con iconos y contadores
 const TABS = [
@@ -39,6 +41,13 @@ const TABS = [
     icon: <HistoryIcon />,
     component: GestionSalidaTab,
     color: 'success'
+  },
+  { 
+    id: 'consultar-remitos', 
+    label: 'Consultar Remitos', 
+    icon: <SearchIcon />,
+    component: ConsultarRemitosSalidaTab,
+    color: 'info'
   }
 ];
 
@@ -54,7 +63,8 @@ export const SalidaPage = () => {
   // Estados para contadores (se pueden conectar con Redux más adelante)
   const [tabCounts, setTabCounts] = useState({
     'generar-salida': 0,
-    'gestion-salida': 0
+    'gestion-salida': 0,
+    'consultar-remitos': 0
   });
 
   const handleTabChange = (event, newValue) => {
