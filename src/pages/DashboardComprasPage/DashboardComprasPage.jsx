@@ -118,15 +118,65 @@ export const DashboardComprasPage = () => {
         throw new Error('Error en la respuesta del servidor');
       }
       
+      // Función para extraer componentes de la posición
+      const extraerComponentesPosicion = (posicion) => {
+        if (!posicion) {
+          return { rack: '', fila: '', pasillo: '', nivel: '' };
+        }
+        
+        console.log('Procesando posición:', posicion); // Debug
+        
+        // Inicializar valores
+        let rack = '';
+        let fila = '';
+        let pasillo = '';
+        let nivel = '';
+        
+        // Buscar Rack con formato "Rack: X"
+        const rackMatch = posicion.match(/Rack:\s*(\d+)/i);
+        if (rackMatch) {
+          rack = rackMatch[1];
+        }
+        
+        // Buscar Fila con formato "Fila: X"
+        const filaMatch = posicion.match(/Fila:\s*([A-Za-z0-9]+)/i);
+        if (filaMatch) {
+          fila = filaMatch[1];
+        }
+        
+        // Buscar Nivel con formato "Nivel: X"
+        const nivelMatch = posicion.match(/Nivel:\s*([A-Za-z0-9]+)/i);
+        if (nivelMatch) {
+          nivel = nivelMatch[1];
+        }
+        
+        // Buscar Pasillo con formato "Pasillo: X"
+        const pasilloMatch = posicion.match(/Pasillo:\s*(\d+)/i);
+        if (pasilloMatch) {
+          pasillo = pasilloMatch[1];
+        }
+        
+        console.log('Componentes extraídos:', { rack, fila, pasillo, nivel }); // Debug
+        
+        return { rack, fila, pasillo, nivel };
+      };
+
       // Preparar datos para Excel
-      const datosExcel = response.data.map(item => ({
-        'Descripción del Item': item.itemDescripcion,
-        'Número de Partida': item.numeroPartida,
-        'Proveedor': item.proveedor,
-        'Posición': item.posicion,
-        'Kilos': item.kilos,
-        'Unidades': item.unidades
-      }));
+      const datosExcel = response.data.map(item => {
+        const componentes = extraerComponentesPosicion(item.posicion);
+        
+        return {
+          'Descripción del Item': item.itemDescripcion,
+          'Número de Partida': item.numeroPartida,
+          'Proveedor': item.proveedor,
+          'Rack': componentes.rack,
+          'Fila': componentes.fila,
+          'Pasillo': componentes.pasillo,
+          'Nivel (AB)': componentes.nivel,
+          'Kilos': item.kilos,
+          'Unidades': item.unidades
+        };
+      });
       
       // Crear libro de trabajo
       const wb = XLSX.utils.book_new();
@@ -137,7 +187,10 @@ export const DashboardComprasPage = () => {
         { wch: 50 }, // Descripción del Item
         { wch: 20 }, // Número de Partida
         { wch: 30 }, // Proveedor
-        { wch: 40 }, // Posición
+        { wch: 10 }, // Rack
+        { wch: 10 }, // Fila
+        { wch: 10 }, // Pasillo
+        { wch: 12 }, // Nivel (AB)
         { wch: 15 }, // Kilos
         { wch: 15 }  // Unidades
       ];
