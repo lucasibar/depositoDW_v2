@@ -229,54 +229,115 @@ export const DashboardComprasPage = () => {
       // Agregar hoja al libro
       XLSX.utils.book_append_sheet(wb, ws, 'Reporte de Stock Filtrado');
       
-      // Crear tabla dinámica de kilos totales por partida
-      const resumenPorPartida = {};
+      // HOJA 1: Resumen por partida y posición
+      const resumenPorPartidaPosicion = {};
       datosFiltrados.forEach(item => {
         const numeroPartida = item.numeroPartida || 'Sin partida';
-        const kilos = parseFloat(item.kilos) || 0;
+        const posicion = item.posicion || 'Sin posición';
+        const key = `${numeroPartida}_${posicion}`;
         
-        if (!resumenPorPartida[numeroPartida]) {
-          resumenPorPartida[numeroPartida] = {
+        if (!resumenPorPartidaPosicion[key]) {
+          resumenPorPartidaPosicion[key] = {
             numeroPartida: numeroPartida,
+            posicion: posicion,
             descripcion: item.itemDescripcion || 'Sin descripción',
             material: item.itemDescripcion ? item.itemDescripcion.split(' - ')[0] : 'Sin material',
             kilosTotales: 0,
+            unidadesTotales: 0,
             cantidadRegistros: 0
           };
         }
         
-        resumenPorPartida[numeroPartida].kilosTotales += kilos;
-        resumenPorPartida[numeroPartida].cantidadRegistros += 1;
+        resumenPorPartidaPosicion[key].kilosTotales += parseFloat(item.kilos) || 0;
+        resumenPorPartidaPosicion[key].unidadesTotales += parseInt(item.unidades) || 0;
+        resumenPorPartidaPosicion[key].cantidadRegistros += 1;
       });
       
       // Convertir a array y ordenar por kilos totales (descendente)
-      const resumenArray = Object.values(resumenPorPartida)
+      const resumenPartidaPosicionArray = Object.values(resumenPorPartidaPosicion)
         .sort((a, b) => b.kilosTotales - a.kilosTotales);
       
-      // Preparar datos para la hoja de resumen
-      const datosResumen = resumenArray.map(item => ({
+      // HOJA 2: Resumen por partida y combinación de material + descripción
+      const resumenPorPartidaMaterialDescripcion = {};
+      datosFiltrados.forEach(item => {
+        const numeroPartida = item.numeroPartida || 'Sin partida';
+        const material = item.itemDescripcion ? item.itemDescripcion.split(' - ')[0] : 'Sin material';
+        const descripcion = item.itemDescripcion || 'Sin descripción';
+        const key = `${numeroPartida}_${material}_${descripcion}`;
+        
+        if (!resumenPorPartidaMaterialDescripcion[key]) {
+          resumenPorPartidaMaterialDescripcion[key] = {
+            numeroPartida: numeroPartida,
+            material: material,
+            descripcion: descripcion,
+            kilosTotales: 0,
+            unidadesTotales: 0,
+            cantidadRegistros: 0
+          };
+        }
+        
+        resumenPorPartidaMaterialDescripcion[key].kilosTotales += parseFloat(item.kilos) || 0;
+        resumenPorPartidaMaterialDescripcion[key].unidadesTotales += parseInt(item.unidades) || 0;
+        resumenPorPartidaMaterialDescripcion[key].cantidadRegistros += 1;
+      });
+      
+      // Convertir a array y ordenar por kilos totales (descendente)
+      const resumenPartidaMaterialDescripcionArray = Object.values(resumenPorPartidaMaterialDescripcion)
+        .sort((a, b) => b.kilosTotales - a.kilosTotales);
+      
+      // Preparar datos para la hoja 1: Por partida y posición
+      const datosHoja1 = resumenPartidaPosicionArray.map(item => ({
+        'Número de Partida': item.numeroPartida,
+        'Posición': item.posicion,
+        'Material': item.material,
+        'Descripción': item.descripcion,
+        'Kilos Totales': item.kilosTotales,
+        'Unidades Totales': item.unidadesTotales,
+        'Cantidad de Registros': item.cantidadRegistros
+      }));
+      
+      // Preparar datos para la hoja 2: Por partida y combinación material + descripción
+      const datosHoja2 = resumenPartidaMaterialDescripcionArray.map(item => ({
         'Número de Partida': item.numeroPartida,
         'Material': item.material,
         'Descripción': item.descripcion,
         'Kilos Totales': item.kilosTotales,
+        'Unidades Totales': item.unidadesTotales,
         'Cantidad de Registros': item.cantidadRegistros
       }));
       
-      // Crear hoja de resumen
-      const wsResumen = XLSX.utils.json_to_sheet(datosResumen);
+      // Crear hoja 1: Por partida y posición
+      const wsHoja1 = XLSX.utils.json_to_sheet(datosHoja1);
       
-      // Ajustar ancho de columnas para la hoja de resumen
-      const colWidthsResumen = [
+      // Ajustar ancho de columnas para la hoja 1
+      const colWidthsHoja1 = [
+        { wch: 25 }, // Número de Partida
+        { wch: 40 }, // Posición
+        { wch: 30 }, // Material
+        { wch: 50 }, // Descripción
+        { wch: 20 }, // Kilos Totales
+        { wch: 20 }, // Unidades Totales
+        { wch: 25 }  // Cantidad de Registros
+      ];
+      wsHoja1['!cols'] = colWidthsHoja1;
+      
+      // Crear hoja 2: Por partida y material
+      const wsHoja2 = XLSX.utils.json_to_sheet(datosHoja2);
+      
+      // Ajustar ancho de columnas para la hoja 2
+      const colWidthsHoja2 = [
         { wch: 25 }, // Número de Partida
         { wch: 30 }, // Material
         { wch: 50 }, // Descripción
         { wch: 20 }, // Kilos Totales
+        { wch: 20 }, // Unidades Totales
         { wch: 25 }  // Cantidad de Registros
       ];
-      wsResumen['!cols'] = colWidthsResumen;
+      wsHoja2['!cols'] = colWidthsHoja2;
       
-      // Agregar hoja de resumen al libro
-      XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen por Partida');
+      // Agregar hojas al libro
+      XLSX.utils.book_append_sheet(wb, wsHoja1, 'Por Partida y Posicion');
+      XLSX.utils.book_append_sheet(wb, wsHoja2, 'Por Partida y Material-Desc');
       
       // Generar archivo Excel
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
@@ -301,7 +362,7 @@ export const DashboardComprasPage = () => {
       
       setSnackbar({
         open: true,
-        message: `Reporte de importaciones descargado exitosamente (${datosFiltrados.length} registros)`,
+        message: `Reporte de importaciones descargado exitosamente (${datosFiltrados.length} registros) - Incluye resumen por partida y posición, y por partida y combinación material-descripción`,
         severity: 'success'
       });
     } catch (error) {
