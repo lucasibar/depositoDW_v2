@@ -20,7 +20,8 @@ import {
   Report as ReportIcon,
   ShoppingBag as ShoppingBagIcon,
   Logout as LogoutIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Timeline as TimelineIcon
 } from '@mui/icons-material';
 
 const PageNavigationMenu = ({ user, currentPath }) => {
@@ -252,6 +253,46 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   }}
                 >
                   Mapa
+                </Button>
+              )}
+              
+              {/* Mapa de Chequeos por Tiempo */}
+              {(user?.role === 'admin' || user?.role === 'deposito') && (
+                <Button
+                  variant="text"
+                  startIcon={<TimelineIcon />}
+                  onClick={() => handleNavigation('/depositoDW_v2/mapa-chequeos-tiempo')}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textAlign: 'left',
+                    color: isCurrentPage('/depositoDW_v2/mapa-chequeos-tiempo') ? 'primary.main' : 'text.primary',
+                    backgroundColor: isCurrentPage('/depositoDW_v2/mapa-chequeos-tiempo') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: isCurrentPage('/depositoDW_v2/mapa-chequeos-tiempo') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                    }
+                  }}
+                >
+                  Mapa Chequeos por Tiempo
+                </Button>
+              )}
+              
+              {/* Dashboard de Tareas */}
+              {(user?.role === 'admin' || user?.role === 'deposito') && (
+                <Button
+                  variant="text"
+                  startIcon={<AssignmentIcon />}
+                  onClick={() => handleNavigation('/depositoDW_v2/dashboard-tareas')}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textAlign: 'left',
+                    color: isCurrentPage('/depositoDW_v2/dashboard-tareas') ? 'primary.main' : 'text.primary',
+                    backgroundColor: isCurrentPage('/depositoDW_v2/dashboard-tareas') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: isCurrentPage('/depositoDW_v2/dashboard-tareas') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                    }
+                  }}
+                >
+                  Dashboard de Tareas
                 </Button>
               )}
               

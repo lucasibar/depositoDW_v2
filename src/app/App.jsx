@@ -12,7 +12,8 @@ import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
 import { AdicionRapidaPage } from '../pages/AdicionRapidaPage/AdicionRapidaPage';
 import { ReporteStockPage } from '../pages/ReporteStockPage/ReporteStockPage';
 import PosicionesVaciasPage from '../pages/PosicionesVaciasPage';
-import MapaPage from '../pages/MapaPage';
+import MapaChequeoTiempoPage from '../pages/MapaChequeoTiempoPage/MapaChequeoTiempoPage';
+import DashboardTareasPage from '../pages/DashboardTareasPage/DashboardTareasPage';
 import MovimientosMercaderiaPage from '../pages/MovimientosMercaderiaPage';
 import { ZonaPickingPage } from '../pages/ZonaPickingPage/ZonaPickingPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
@@ -130,13 +131,24 @@ export const App = () => {
           } 
         />
         
-        {/* Ruta de Mapa - Accesible para deposito y admin */}
+        {/* Ruta de Dashboard de Tareas - Accesible para deposito y admin */}
         <Route 
           exact 
-          path="/depositoDW_v2/mapa" 
+          path="/depositoDW_v2/dashboard-tareas" 
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
-              <MapaPage />
+              <DashboardTareasPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Mapa de Chequeos por Tiempo - Accesible para deposito y admin */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/mapa-chequeos-tiempo" 
+          element={
+            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
+              <MapaChequeoTiempoPage />
             </RoleProtectedRoute>
           } 
         />
