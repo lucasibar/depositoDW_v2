@@ -1,1 +1,0 @@
-export { RemitosListTab } from './RemitosListTab'; 

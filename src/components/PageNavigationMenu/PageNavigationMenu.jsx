@@ -20,7 +20,6 @@ import {
   Report as ReportIcon,
   ShoppingBag as ShoppingBagIcon,
   Logout as LogoutIcon,
-  Add as AddIcon,
   Timeline as TimelineIcon
 } from '@mui/icons-material';
 
@@ -96,25 +95,6 @@ const PageNavigationMenu = ({ user, currentPath }) => {
           {/* Contenido del menú */}
           <Box sx={{ flex: 1, p: 2 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {/* Compras */}
-              {(user?.role === 'admin' || user?.role === 'compras') && (
-                <Button
-                  variant="text"
-                  startIcon={<ShoppingCartIcon />}
-                  onClick={() => handleNavigation('/depositoDW_v2/compras')}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                    color: isCurrentPage('/depositoDW_v2/compras') ? 'primary.main' : 'text.primary',
-                    backgroundColor: isCurrentPage('/depositoDW_v2/compras') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: isCurrentPage('/depositoDW_v2/compras') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
-                >
-                  Compras
-                </Button>
-              )}
               
               {/* Remito Entrada */}
               {(user?.role === 'admin' || user?.role === 'compras') && (
@@ -196,45 +176,7 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                 </Button>
               )}
               
-              {/* Adición Rápida */}
-              {(user?.role === 'admin' || user?.role === 'deposito' || user?.role === 'usuario') && (
-                <Button
-                  variant="text"
-                  startIcon={<AddIcon />}
-                  onClick={() => handleNavigation('/depositoDW_v2/adicion-rapida')}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                    color: isCurrentPage('/depositoDW_v2/adicion-rapida') ? 'primary.main' : 'text.primary',
-                    backgroundColor: isCurrentPage('/depositoDW_v2/adicion-rapida') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: isCurrentPage('/depositoDW_v2/adicion-rapida') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
-                >
-                  Adición Rápida
-                </Button>
-              )}
               
-              {/* Posiciones Vacías */}
-              {(user?.role === 'admin' || user?.role === 'deposito') && (
-                <Button
-                  variant="text"
-                  startIcon={<MapIcon />}
-                  onClick={() => handleNavigation('/depositoDW_v2/posiciones-vacias')}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                    color: isCurrentPage('/depositoDW_v2/posiciones-vacias') ? 'primary.main' : 'text.primary',
-                    backgroundColor: isCurrentPage('/depositoDW_v2/posiciones-vacias') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: isCurrentPage('/depositoDW_v2/posiciones-vacias') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
-                >
-                  Posiciones Vacías
-                </Button>
-              )}
               
               {/* Mapa */}
               {(user?.role === 'admin' || user?.role === 'deposito') && (
@@ -296,25 +238,6 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                 </Button>
               )}
               
-              {/* Movimientos Mercadería */}
-              {(user?.role === 'admin' || user?.role === 'deposito') && (
-                <Button
-                  variant="text"
-                  startIcon={<InventoryIcon />}
-                  onClick={() => handleNavigation('/depositoDW_v2/movimientos-mercaderia')}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                    color: isCurrentPage('/depositoDW_v2/movimientos-mercaderia') ? 'primary.main' : 'text.primary',
-                    backgroundColor: isCurrentPage('/depositoDW_v2/movimientos-mercaderia') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: isCurrentPage('/depositoDW_v2/movimientos-mercaderia') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
-                >
-                  Movimientos Mercadería
-                </Button>
-              )}
               
               {/* Stock */}
               {(user?.role === 'admin' || user?.role === 'deposito') && (
@@ -336,25 +259,6 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                 </Button>
               )}
               
-              {/* Reporte Stock */}
-              {(user?.role === 'admin' || user?.role === 'compras' || user?.role === 'deposito') && (
-                <Button
-                  variant="text"
-                  startIcon={<ReportIcon />}
-                  onClick={() => handleNavigation('/depositoDW_v2/reporte-stock')}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                    color: isCurrentPage('/depositoDW_v2/reporte-stock') ? 'primary.main' : 'text.primary',
-                    backgroundColor: isCurrentPage('/depositoDW_v2/reporte-stock') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: isCurrentPage('/depositoDW_v2/reporte-stock') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
-                >
-                  Reporte Stock
-                </Button>
-              )}
               
               {/* Órdenes de Pedido */}
               {(user?.role === 'admin' || user?.role === 'compras' || user?.role === 'deposito') && (

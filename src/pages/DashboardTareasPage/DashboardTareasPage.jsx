@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import { useTareasPendientes } from '../../hooks/useTareasPendientes';
 import ChequeoPosicionModal from '../../components/MapaDeposito/ChequeoPosicionModal';
+import MovimientosRecomendadosTab from '../MovimientosMercaderiaPage/components/MovimientosRecomendadosTab';
 
 const DashboardTareasPage = () => {
   const {
@@ -293,13 +294,13 @@ const DashboardTareasPage = () => {
           </Paper>
         </Grid>
 
-        {/* Movimientos pendientes */}
+        {/* Movimientos recomendados */}
         <Grid item xs={12} lg={6}>
           <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
               <MoveToInbox sx={{ mr: 1, color: 'var(--color-primary)' }} />
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Movimientos Pendientes
+                Movimientos Recomendados
               </Typography>
               <Badge 
                 badgeContent={movimientosPendientes.length} 
@@ -308,76 +309,11 @@ const DashboardTareasPage = () => {
               />
             </Box>
 
-            {movimientosPendientes.length === 0 ? (
-              <Alert severity="success">
-                No hay movimientos pendientes en este momento.
-              </Alert>
-            ) : (
-              <Box sx={{ maxHeight: '500px', overflowY: 'auto' }}>
-                {movimientosPendientes.map((movimiento) => {
-                  const prioridad = calcularPrioridadMovimiento(movimiento);
-                  const colorPrioridad = obtenerColorPrioridad(prioridad);
-                  
-                  return (
-                    <Card key={movimiento.id} sx={{ mb: 2, border: `2px solid ${colorPrioridad}` }}>
-                      <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                            {movimiento.tipo?.replace('_', ' ').toUpperCase() || 'MOVIMIENTO'}
-                          </Typography>
-                          <Chip 
-                            label={prioridad.toUpperCase()} 
-                            size="small"
-                            sx={{ 
-                              backgroundColor: colorPrioridad, 
-                              color: 'white',
-                              fontWeight: 600
-                            }}
-                          />
-                        </Box>
-                        
-                        <Typography variant="body2" sx={{ mb: 1 }}>
-                          <strong>Origen:</strong> {movimiento.origen}
-                        </Typography>
-                        
-                        <Typography variant="body2" sx={{ mb: 1 }}>
-                          <strong>Destino:</strong> {movimiento.destino}
-                        </Typography>
-                        
-                        <Typography variant="body2" sx={{ mb: 1 }}>
-                          <strong>Item:</strong> {movimiento.item}
-                        </Typography>
-                        
-                        <Typography variant="body2" sx={{ mb: 1 }}>
-                          <strong>Cantidad:</strong> {movimiento.cantidad}
-                        </Typography>
-                        
-                        <Typography variant="body2" color="text.secondary">
-                          Creado: {formatFechaMovimiento(movimiento.fechaCreacion)}
-                        </Typography>
-                      </CardContent>
-                      
-                      <CardActions>
-                        <Button 
-                          size="small" 
-                          variant="outlined"
-                          startIcon={<Assignment />}
-                        >
-                          Ver Detalles
-                        </Button>
-                        <Button 
-                          size="small" 
-                          variant="contained"
-                          startIcon={<TrendingUp />}
-                        >
-                          Ejecutar
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  );
-                })}
-              </Box>
-            )}
+            <MovimientosRecomendadosTab 
+              movimientosRecomendados={movimientosPendientes}
+              estadisticas={estadisticas}
+              onRefresh={obtenerTareasPendientes}
+            />
           </Paper>
         </Grid>
       </Grid>

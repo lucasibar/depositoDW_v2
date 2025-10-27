@@ -1,1 +1,0 @@
-export { AdicionRapidaPage } from './AdicionRapidaPage';

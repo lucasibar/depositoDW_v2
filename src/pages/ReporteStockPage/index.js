@@ -1,1 +1,0 @@
-export { ReporteStockPage } from './ReporteStockPage';

@@ -35,36 +35,14 @@ export const useTareasPendientes = () => {
         return diasTranscurridos > 7; // Más de 7 días sin chequeo
       });
 
-      // Obtener movimientos pendientes (esto dependerá de tu API)
+      // Obtener movimientos recomendados
       let movimientosPendientes = [];
       try {
-        const movimientosResponse = await apiClient.get('/movimientos/pendientes');
+        const movimientosResponse = await apiClient.get('/posiciones/recomendaciones-movimientos');
         movimientosPendientes = movimientosResponse.data || [];
       } catch (err) {
-        console.warn('No se pudieron obtener movimientos pendientes:', err);
-        // Si no existe el endpoint, usar datos mock
-        movimientosPendientes = [
-          {
-            id: 1,
-            tipo: 'movimiento_interno',
-            origen: 'Rack 1-1-A',
-            destino: 'Rack 2-1-B',
-            item: 'Material ABC',
-            cantidad: 10,
-            fechaCreacion: new Date().toISOString(),
-            prioridad: 'alta'
-          },
-          {
-            id: 2,
-            tipo: 'reubicacion',
-            origen: 'Rack 3-2-C',
-            destino: 'Rack 1-3-A',
-            item: 'Material XYZ',
-            cantidad: 5,
-            fechaCreacion: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            prioridad: 'media'
-          }
-        ];
+        console.warn('No se pudieron obtener movimientos recomendados:', err);
+        movimientosPendientes = [];
       }
 
       // Calcular estadísticas

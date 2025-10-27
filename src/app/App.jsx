@@ -3,18 +3,14 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
 import Login from '../pages/Login/Login';
 
-import { ComprasPage } from '../pages/ComprasPage/ComprasPage';
 import { RemitoEntradaPage } from '../pages/RemitoEntradaPage/RemitoEntradaPage';
 import { DashboardComprasPage } from '../pages/DashboardComprasPage/DashboardComprasPage';
 import { AdminPage } from '../pages/AdminPage/AdminPage';
 import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
 import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
-import { AdicionRapidaPage } from '../pages/AdicionRapidaPage/AdicionRapidaPage';
-import { ReporteStockPage } from '../pages/ReporteStockPage/ReporteStockPage';
-import PosicionesVaciasPage from '../pages/PosicionesVaciasPage';
+import MapaPage from '../pages/MapaPage';
 import MapaChequeoTiempoPage from '../pages/MapaChequeoTiempoPage/MapaChequeoTiempoPage';
 import DashboardTareasPage from '../pages/DashboardTareasPage/DashboardTareasPage';
-import MovimientosMercaderiaPage from '../pages/MovimientosMercaderiaPage';
 import { ZonaPickingPage } from '../pages/ZonaPickingPage/ZonaPickingPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 import StockPage from '../pages/StockPage/StockPage';
@@ -41,18 +37,6 @@ export const App = () => {
     <div className="App">
       <Routes>
 
-        
-        {/* Ruta de Compras - Accesible solo para compras y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/compras" 
-          element={
-            <RoleProtectedRoute allowedRoles={['compras', 'admin']}>
-              <ComprasPage />
-            </RoleProtectedRoute>
-          } 
-        />
-        
         {/* Ruta de Remito Entrada - Accesible solo para compras y admin */}
         <Route 
           exact 
@@ -108,29 +92,6 @@ export const App = () => {
           } 
         />
         
-        {/* Ruta de Adición Rápida - Accesible para deposito, usuario, admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/adicion-rapida" 
-          element={
-            <RoleProtectedRoute allowedRoles={['deposito', 'usuario', 'admin']}>
-              <AdicionRapidaPage />
-            </RoleProtectedRoute>
-          } 
-        />
-        
-        
-        {/* Ruta de Posiciones Vacías - Accesible para deposito y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/posiciones-vacias" 
-          element={
-            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
-              <PosicionesVaciasPage />
-            </RoleProtectedRoute>
-          } 
-        />
-        
         {/* Ruta de Dashboard de Tareas - Accesible para deposito y admin */}
         <Route 
           exact 
@@ -138,6 +99,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <DashboardTareasPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Mapa - Accesible para deposito y admin */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/mapa" 
+          element={
+            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
+              <MapaPage />
             </RoleProtectedRoute>
           } 
         />
@@ -153,17 +125,6 @@ export const App = () => {
           } 
         />
         
-        {/* Ruta de Movimientos Mercadería - Accesible para deposito y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/movimientos-mercaderia" 
-          element={
-            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
-              <MovimientosMercaderiaPage />
-            </RoleProtectedRoute>
-          } 
-        />
-        
 
         {/* Ruta de Stock - Accesible para deposito y admin */}
         <Route 
@@ -172,17 +133,6 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <StockPage />
-            </RoleProtectedRoute>
-          } 
-        />
-        
-        {/* Ruta de Reporte Stock Consolidado - Accesible para compras, admin y deposito */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/reporte-stock" 
-          element={
-            <RoleProtectedRoute allowedRoles={['compras', 'admin', 'deposito']}>
-              <ReporteStockPage />
             </RoleProtectedRoute>
           } 
         />
