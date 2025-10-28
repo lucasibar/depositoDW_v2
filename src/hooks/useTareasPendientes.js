@@ -53,10 +53,12 @@ export const useTareasPendientes = () => {
         return diasTranscurridos > 30; // Más de 30 días
       }).length;
 
-      const movimientosUrgentes = movimientosPendientes.filter(mov => 
-        mov.prioridad === 'alta' || 
-        (new Date() - new Date(mov.fechaCreacion)) > 7 * 24 * 60 * 60 * 1000
-      ).length;
+      const movimientosUrgentes = Array.isArray(movimientosPendientes) 
+        ? movimientosPendientes.filter(mov => 
+            mov.prioridad === 'alta' || 
+            (new Date() - new Date(mov.fechaCreacion)) > 7 * 24 * 60 * 60 * 1000
+          ).length
+        : 0;
 
       setTareas({
         posicionesParaChequear,
@@ -64,7 +66,7 @@ export const useTareasPendientes = () => {
         estadisticas: {
           totalPosicionesChequeo: posicionesParaChequear.length,
           posicionesUrgentes,
-          movimientosPendientes: movimientosPendientes.length,
+          movimientosPendientes: Array.isArray(movimientosPendientes) ? movimientosPendientes.length : 0,
           movimientosUrgentes
         }
       });
