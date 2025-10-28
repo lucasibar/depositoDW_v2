@@ -14,6 +14,7 @@ import DashboardTareasPage from '../pages/DashboardTareasPage/DashboardTareasPag
 import { ZonaPickingPage } from '../pages/ZonaPickingPage/ZonaPickingPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 import StockPage from '../pages/StockPage/StockPage';
+import { ReporteConsumoPage } from '../pages/ReporteConsumoPage/ReporteConsumoPage';
 
 
 import { useAuthSync } from '../features/auth/hooks/useAuthSync';
@@ -144,6 +145,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['compras', 'admin', 'deposito']}>
               <ZonaPickingPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Reporte de Consumo - Accesible para admin y deposito */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/reporte-consumo" 
+          element={
+            <RoleProtectedRoute allowedRoles={['admin', 'deposito']}>
+              <ReporteConsumoPage />
             </RoleProtectedRoute>
           } 
         />

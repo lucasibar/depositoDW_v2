@@ -20,7 +20,8 @@ import {
   Report as ReportIcon,
   ShoppingBag as ShoppingBagIcon,
   Logout as LogoutIcon,
-  Timeline as TimelineIcon
+  Timeline as TimelineIcon,
+  BarChart as BarChartIcon
 } from '@mui/icons-material';
 
 const PageNavigationMenu = ({ user, currentPath }) => {
@@ -277,6 +278,26 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   }}
                 >
                   Órdenes de Pedido
+                </Button>
+              )}
+              
+              {/* Reporte de Consumo */}
+              {(user?.role === 'admin' || user?.role === 'deposito') && (
+                <Button
+                  variant="text"
+                  startIcon={<BarChartIcon />}
+                  onClick={() => handleNavigation('/depositoDW_v2/reporte-consumo')}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textAlign: 'left',
+                    color: isCurrentPage('/depositoDW_v2/reporte-consumo') ? 'primary.main' : 'text.primary',
+                    backgroundColor: isCurrentPage('/depositoDW_v2/reporte-consumo') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: isCurrentPage('/depositoDW_v2/reporte-consumo') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                    }
+                  }}
+                >
+                  Reporte de Consumo
                 </Button>
               )}
               
