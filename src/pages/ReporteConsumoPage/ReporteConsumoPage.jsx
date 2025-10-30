@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
-import PageNavigationMenu from '../../components/PageNavigationMenu';
 import { ListaMateriales } from '../../components/ReporteConsumo/ListaMateriales';
 import { GraficoConsumo } from '../../components/ReporteConsumo/GraficoConsumo';
 import { reporteConsumoService } from '../../services/reporteConsumoService';
@@ -13,7 +11,6 @@ import './ReporteConsumoPage.css';
  * Página principal del reporte de consumo
  */
 export const ReporteConsumoPage = () => {
-  const location = useLocation();
   const [user, setUser] = useState(null);
 
   // Estados para fechas
@@ -137,16 +134,16 @@ export const ReporteConsumoPage = () => {
     setUnificar(e.target.checked);
   };
 
+  const handleLogout = () => {
+    authService.logout();
+    window.location.href = '/depositoDW_v2/';
+  };
+
   return (
     <AppLayout
-      title="Reporte de Consumo"
-      subtitle="Analiza el consumo de materiales por período de tiempo"
-      actions={
-        <PageNavigationMenu 
-          user={user} 
-          currentPath={location.pathname} 
-        />
-      }
+      user={user}
+      onLogout={handleLogout}
+      pageTitle="Reporte de Consumo"
     >
       <Box sx={{ p: 3 }}>
         {error && (
