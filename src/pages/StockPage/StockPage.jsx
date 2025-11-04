@@ -1,30 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  IconButton,
-  Menu,
-  MenuItem,
-  Chip,
-  useTheme,
-  useMediaQuery,
-  Snackbar,
-  Alert
-} from '@mui/material';
-import { 
-  MoreVert as MoreVertIcon,
-  Edit as EditIcon,
-  SwapHoriz as SwapIcon,
-  LocalShipping as LocalShippingIcon,
-  Add as AddIcon,
-  Search as SearchIcon,
-  Download as DownloadIcon
-} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Button, IconButton, Menu, MenuItem, Chip, useTheme, useMediaQuery, Snackbar, Alert} from '@mui/material';
+import { MoreVert as MoreVertIcon, Edit as EditIcon, SwapHoriz as SwapIcon, LocalShipping as LocalShippingIcon, Add as AddIcon, Search as SearchIcon, Download as DownloadIcon } from '@mui/icons-material';
+import { getPosLabel } from '../../utils/posicionUtils';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import { stockApi } from '../../features/stock/api/stockApi';
-import { useNavigate } from 'react-router-dom';
 import MovimientoInterno from '../../components/MovimientoInterno/MovimientoInterno';
 import AjustePosicionModal from '../../features/stock/ui/AjustePosicionModal';
 import RemitoSalidaDesdePosicionModal from '../../features/salida/ui/RemitoSalidaDesdePosicionModal/RemitoSalidaDesdePosicionModal';
@@ -36,7 +17,6 @@ import MobileStockView from '../../components/MobileStockView/MobileStockView';
 import { useLocation } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import { getPosLabel } from '../../utils/posicionUtils';
 
 export const StockPage = () => {
   const navigate = useNavigate();
@@ -44,7 +24,7 @@ export const StockPage = () => {
   const user = useSelector(state => state.auth.user);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
+  
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

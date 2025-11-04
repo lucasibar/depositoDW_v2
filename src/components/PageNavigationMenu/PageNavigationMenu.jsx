@@ -13,14 +13,11 @@ import {
   Dashboard as DashboardIcon,
   AdminPanelSettings as AdminIcon,
   CheckCircle as CheckCircleIcon,
-  ExitToApp as ExitToAppIcon,
   Map as MapIcon,
   Inventory as InventoryIcon,
   Assignment as AssignmentIcon,
   Report as ReportIcon,
-  ShoppingBag as ShoppingBagIcon,
   Logout as LogoutIcon,
-  Timeline as TimelineIcon,
   BarChart as BarChartIcon
 } from '@mui/icons-material';
 
@@ -157,26 +154,6 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                 </Button>
               )}
               
-              {/* Salida */}
-              {(user?.role === 'admin' || user?.role === 'salida') && (
-                <Button
-                  variant="text"
-                  startIcon={<ExitToAppIcon />}
-                  onClick={() => handleNavigation('/depositoDW_v2/salida')}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                    color: isCurrentPage('/depositoDW_v2/salida') ? 'primary.main' : 'text.primary',
-                    backgroundColor: isCurrentPage('/depositoDW_v2/salida') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: isCurrentPage('/depositoDW_v2/salida') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
-                >
-                  Salida
-                </Button>
-              )}
-              
               
               
               {/* Mapa */}
@@ -196,46 +173,6 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   }}
                 >
                   Mapa
-                </Button>
-              )}
-              
-              {/* Mapa de Chequeos por Tiempo */}
-              {(user?.role === 'admin' || user?.role === 'deposito') && (
-                <Button
-                  variant="text"
-                  startIcon={<TimelineIcon />}
-                  onClick={() => handleNavigation('/depositoDW_v2/mapa-chequeos-tiempo')}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                    color: isCurrentPage('/depositoDW_v2/mapa-chequeos-tiempo') ? 'primary.main' : 'text.primary',
-                    backgroundColor: isCurrentPage('/depositoDW_v2/mapa-chequeos-tiempo') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: isCurrentPage('/depositoDW_v2/mapa-chequeos-tiempo') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
-                >
-                  Mapa Chequeos por Tiempo
-                </Button>
-              )}
-              
-              {/* Dashboard de Tareas */}
-              {(user?.role === 'admin' || user?.role === 'deposito') && (
-                <Button
-                  variant="text"
-                  startIcon={<AssignmentIcon />}
-                  onClick={() => handleNavigation('/depositoDW_v2/dashboard-tareas')}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                    color: isCurrentPage('/depositoDW_v2/dashboard-tareas') ? 'primary.main' : 'text.primary',
-                    backgroundColor: isCurrentPage('/depositoDW_v2/dashboard-tareas') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: isCurrentPage('/depositoDW_v2/dashboard-tareas') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
-                >
-                  Dashboard de Tareas
                 </Button>
               )}
               
@@ -260,26 +197,6 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                 </Button>
               )}
               
-              
-              {/* Órdenes de Pedido */}
-              {(user?.role === 'admin' || user?.role === 'compras' || user?.role === 'deposito') && (
-                <Button
-                  variant="text"
-                  startIcon={<ShoppingBagIcon />}
-                  onClick={() => handleNavigation('/depositoDW_v2/ordenes-pedido')}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textAlign: 'left',
-                    color: isCurrentPage('/depositoDW_v2/ordenes-pedido') ? 'primary.main' : 'text.primary',
-                    backgroundColor: isCurrentPage('/depositoDW_v2/ordenes-pedido') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: isCurrentPage('/depositoDW_v2/ordenes-pedido') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
-                >
-                  Órdenes de Pedido
-                </Button>
-              )}
               
               {/* Reporte de Consumo */}
               {(user?.role === 'admin' || user?.role === 'deposito') && (

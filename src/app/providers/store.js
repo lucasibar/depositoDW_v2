@@ -10,7 +10,6 @@ import partidasReducer from '../../features/partidas/model/slice';
 import historialReducer from '../../features/salida/model/historialSlice';
 import adicionesRapidasReducer from '../../features/adicionesRapidas/model/slice';
 import salidaReducer from '../../features/salida/model/salidaSlice';
-import ordenesPedidoReducer from '../../features/ordenesPedido/model/slice';
 
 export const store = configureStore({
   reducer: {
@@ -25,6 +24,5 @@ export const store = configureStore({
     historial: historialReducer,
     adicionesRapidas: adicionesRapidasReducer,
     salida: salidaReducer,
-    ordenesPedido: ordenesPedidoReducer,
   },
 }); 

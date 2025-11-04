@@ -22,9 +22,7 @@ import {
 import { 
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  ShoppingCart as ShoppingCartIcon,
   CheckCircle as CheckCircleIcon,
-  ExitToApp as ExitToAppIcon,
   Logout as LogoutIcon,
   Settings as SettingsIcon,
   Assessment as AssessmentIcon,
@@ -54,12 +52,11 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     if (path.includes('/compras')) return 'Compras';
     if (path.includes('/remito-entrada')) return 'Remito Entrada';
     if (path.includes('/calidad')) return 'Calidad';
-    if (path.includes('/salida')) return 'Salida';
     if (path.includes('/admin')) return 'Dashboard';
     if (path.includes('/reportes')) return 'Reportes';
     if (path.includes('/mapa')) return 'Mapa del Depósito';
+    if (path.includes('/chequeo-posiciones')) return 'Chequeo de Posiciones';
     if (path.includes('/movimientos-mercaderia')) return 'Movimientos Mercadería';
-    if (path.includes('/ordenes-pedido')) return 'Órdenes de Pedido';
     return 'Der Will';
   };
 
@@ -96,12 +93,6 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           show: user?.role === 'admin' || user?.role === 'compras'
         },
         {
-          label: 'Salida',
-          path: '/depositoDW_v2/salida',
-          icon: <ExitToAppIcon />,
-          show: user?.role === 'admin'
-        },
-        {
           label: 'Stock',
           path: '/depositoDW_v2/posiciones-composicion',
           icon: <WarehouseIcon />,
@@ -112,12 +103,6 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           path: '/depositoDW_v2/movimientos-mercaderia',
           icon: <SwapHorizIcon />,
           show: user?.role === 'admin' || user?.role === 'deposito'
-        },
-        {
-          label: 'Órdenes de Pedido',
-          path: '/depositoDW_v2/ordenes-pedido',
-          icon: <ShoppingCartIcon />,
-          show: user?.role === 'admin' || user?.role === 'compras' || user?.role === 'deposito'
         },
         {
           label: 'Calidad',
@@ -152,6 +137,12 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           label: 'Mapa',
           path: '/depositoDW_v2/mapa',
           icon: <MapIcon />,
+          show: user?.role === 'admin' || user?.role === 'deposito'
+        },
+        {
+          label: 'Chequeo de Posiciones',
+          path: '/depositoDW_v2/chequeo-posiciones',
+          icon: <CheckCircleIcon />,
           show: user?.role === 'admin' || user?.role === 'deposito'
         },
         {

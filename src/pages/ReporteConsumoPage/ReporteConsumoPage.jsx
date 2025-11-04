@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
+import PageNavigationMenu from '../../components/PageNavigationMenu/PageNavigationMenu';
 import { ListaMateriales } from '../../components/ReporteConsumo/ListaMateriales';
 import { GraficoConsumo } from '../../components/ReporteConsumo/GraficoConsumo';
 import { reporteConsumoService } from '../../services/reporteConsumoService';
@@ -12,6 +14,7 @@ import './ReporteConsumoPage.css';
  */
 export const ReporteConsumoPage = () => {
   const [user, setUser] = useState(null);
+  const location = useLocation();
 
   // Estados para fechas
   const [fechaDesde, setFechaDesde] = useState('');
@@ -146,6 +149,19 @@ export const ReporteConsumoPage = () => {
       pageTitle="Reporte de Consumo"
     >
       <Box sx={{ p: 3 }}>
+        {/* Título de la página */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
+              Reporte de Consumo
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              Analiza el consumo de materiales en un rango de fechas
+            </Typography>
+          </Box>
+          <PageNavigationMenu user={user} currentPath={location.pathname} />
+        </Box>
+
         {error && (
           <Box sx={{ mb: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
             <Typography color="error" variant="body2">
@@ -153,8 +169,6 @@ export const ReporteConsumoPage = () => {
             </Typography>
           </Box>
         )}
-
-
 
         {/* Contenido principal */}
         <Box sx={{ 

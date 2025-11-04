@@ -7,15 +7,11 @@ import { RemitoEntradaPage } from '../pages/RemitoEntradaPage/RemitoEntradaPage'
 import { DashboardComprasPage } from '../pages/DashboardComprasPage/DashboardComprasPage';
 import { AdminPage } from '../pages/AdminPage/AdminPage';
 import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
-import { SalidaPage } from '../pages/SalidaPage/SalidaPage';
 import MapaPage from '../pages/MapaPage';
-import MapaChequeoTiempoPage from '../pages/MapaChequeoTiempoPage/MapaChequeoTiempoPage';
-import DashboardTareasPage from '../pages/DashboardTareasPage/DashboardTareasPage';
-import { ZonaPickingPage } from '../pages/ZonaPickingPage/ZonaPickingPage';
 import RoleProtectedRoute from '../components/RoleProtectedRoute';
 import StockPage from '../pages/StockPage/StockPage';
 import { ReporteConsumoPage } from '../pages/ReporteConsumoPage/ReporteConsumoPage';
-
+import ChecklistChequeoPage from '../pages/ChecklistChequeoPage/ChecklistChequeoPage';
 
 import { useAuthSync } from '../features/auth/hooks/useAuthSync';
 import { setStore } from '../services/authService';
@@ -82,28 +78,6 @@ export const App = () => {
           } 
         />
         
-        {/* Ruta de Salida - Accesible para salida y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/salida" 
-          element={
-            <RoleProtectedRoute allowedRoles={['salida', 'admin']}>
-              <SalidaPage />
-            </RoleProtectedRoute>
-          } 
-        />
-        
-        {/* Ruta de Dashboard de Tareas - Accesible para deposito y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/dashboard-tareas" 
-          element={
-            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
-              <DashboardTareasPage />
-            </RoleProtectedRoute>
-          } 
-        />
-        
         {/* Ruta de Mapa - Accesible para deposito y admin */}
         <Route 
           exact 
@@ -115,17 +89,16 @@ export const App = () => {
           } 
         />
         
-        {/* Ruta de Mapa de Chequeos por Tiempo - Accesible para deposito y admin */}
+        {/* Ruta de Chequeo de Posiciones - Accesible para deposito y admin */}
         <Route 
           exact 
-          path="/depositoDW_v2/mapa-chequeos-tiempo" 
+          path="/depositoDW_v2/chequeo-posiciones" 
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
-              <MapaChequeoTiempoPage />
+              <ChecklistChequeoPage />
             </RoleProtectedRoute>
           } 
         />
-        
 
         {/* Ruta de Stock - Accesible para deposito y admin */}
         <Route 
@@ -137,18 +110,6 @@ export const App = () => {
             </RoleProtectedRoute>
           } 
         />
-        
-        {/* Ruta de Órdenes de Pedido - Accesible para compras, admin y deposito */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/ordenes-pedido" 
-          element={
-            <RoleProtectedRoute allowedRoles={['compras', 'admin', 'deposito']}>
-              <ZonaPickingPage />
-            </RoleProtectedRoute>
-          } 
-        />
-        
         {/* Ruta de Reporte de Consumo - Accesible para admin y deposito */}
         <Route 
           exact 
