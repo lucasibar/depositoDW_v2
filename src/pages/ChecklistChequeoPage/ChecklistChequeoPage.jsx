@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Typography, Paper, Chip, CircularProgress, Divider } from '@mui/material';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Box, Typography, Paper, Chip, CircularProgress, Divider, TextField, MenuItem, Button, Snackbar, Alert } from '@mui/material';
+import { useLocation } from 'react-router-dom';
+import PageNavigationMenu from '../../components/PageNavigationMenu';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import { useChequeosConTiempo } from '../../hooks/useChequeosConTiempo';
 import { authService } from '../../services/authService';
@@ -33,7 +35,13 @@ export const ChecklistChequeoPage = () => {
     obtenerPosicionesConChequeos,
     calcularEstadoChequeo,
     obtenerColorPorEstado,
+    registrarChequeo,
   } = useChequeosConTiempo();
+
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('todos');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const location = useLocation();
 
   useEffect(() => {
     const currentUser = authService.getUser();
@@ -46,12 +54,96 @@ export const ChecklistChequeoPage = () => {
     window.location.href = '/depositoDW_v2/';
   };
 
+  const estados = [
+    { value: 'todos', label: 'Todos' },
+    { value: 'reciente', label: estadoALabel['reciente'] },
+    { value: 'semana', label: estadoALabel['semana'] },
+    { value: 'dos-semanas', label: estadoALabel['dos-semanas'] },
+    { value: 'mes', label: estadoALabel['mes'] },
+    { value: 'sin-chequeo', label: estadoALabel['sin-chequeo'] },
+  ];
+
+  const posicionesFiltradas = useMemo(() => {
+    const normalize = (s) => (s || '')
+      .toString()
+      .toLowerCase()
+      .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const stripNonAlnum = (s) => normalize(s).replace(/[^a-z0-9]/g, '');
+
+    const qRaw = normalize(busqueda);
+    const tokens = qRaw ? qRaw.split(/\s+/).filter(Boolean) : [];
+    const qStripped = stripNonAlnum(qRaw);
+    return posiciones.filter((pos) => {
+      const rack = normalize(pos.rack);
+      const fila = normalize(pos.fila);
+      const ab = normalize(pos.AB || pos.ab || pos.nivel);
+      const pasillo = normalize(pos.numeroPasillo || pos.pasillo);
+      const nombreVisible = normalize(pos.nombre || `${rack || ''}-${fila || ''}-${ab || ''}`);
+      const variantes = [
+        nombreVisible,
+        `${rack}-${fila}-${ab}`,
+        `${pasillo}-${rack}-${fila}-${ab}`,
+        `${rack}${fila}${ab}`,
+        `${pasillo}${rack}${fila}${ab}`,
+        [rack, fila, ab, pasillo].filter(Boolean).join(' '),
+      ].filter(Boolean);
+      const variantesStripped = variantes.map(stripNonAlnum);
+      const estado = calcularEstadoChequeo(pos.ultimo_chequeo || pos.ultimoChequeo);
+      const coincideEstado = filtroEstado === 'todos' || estado === filtroEstado;
+      const coincideTexto = !qRaw 
+        || tokens.some(t => variantes.some(v => v.includes(t)))
+        || (!!qStripped && variantesStripped.some(v => v.includes(qStripped)));
+      return coincideTexto && coincideEstado;
+    });
+  }, [posiciones, busqueda, filtroEstado, calcularEstadoChequeo]);
+
+  const handleMarcarChequeado = async (posicionId) => {
+    const nombre = user?.name || 'Usuario';
+    const res = await registrarChequeo(posicionId, nombre);
+    if (res.ok) {
+      setSnackbar({ open: true, message: 'Chequeo registrado', severity: 'success' });
+    } else {
+      setSnackbar({ open: true, message: res.error || 'Error al registrar chequeo', severity: 'error' });
+    }
+  };
+
   return (
     <AppLayout user={user} onLogout={handleLogout} pageTitle="Chequeo de Posiciones">
       <Box sx={{ p: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>
-          Chequeo de Posiciones
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+            Chequeo de Posiciones
+          </Typography>
+          <PageNavigationMenu user={user} currentPath={location.pathname} />
+        </Box>
+        
+
+        {/* Controles de filtro */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+          <TextField
+            label="Buscar posición"
+            placeholder="rack-fila-nivel-pasillo"
+            size="small"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+          <TextField
+            select
+            label="Estado"
+            size="small"
+            value={filtroEstado}
+            onChange={(e) => setFiltroEstado(e.target.value)}
+            sx={{ minWidth: 200 }}
+          >
+            {estados.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+            ))}
+          </TextField>
+          <Button variant="outlined" onClick={() => { setBusqueda(''); setFiltroEstado('todos'); }}>Limpiar filtros</Button>
+        </Box>
 
         {/* Leyenda */}
         <Box sx={{ display: 'flex', gap: 1.5, mb: 3, flexWrap: 'wrap' }}>
@@ -103,15 +195,15 @@ export const ChecklistChequeoPage = () => {
             </Box>
           )}
 
-          {!loading && !error && posiciones.length === 0 && (
+          {!loading && !error && posicionesFiltradas.length === 0 && (
             <Box sx={{ p: 3, textAlign: 'center' }}>
               <Typography color="text.secondary">No hay posiciones para mostrar</Typography>
             </Box>
           )}
 
-          {!loading && !error && posiciones.length > 0 && (
+          {!loading && !error && posicionesFiltradas.length > 0 && (
             <Box>
-              {posiciones.map((pos, index) => {
+              {posicionesFiltradas.map((pos, index) => {
                 const estado = calcularEstadoChequeo(pos.ultimo_chequeo || pos.ultimoChequeo);
                 const color = obtenerColorPorEstado(estado);
                 const nombrePosicion = pos.nombre || `${pos.rack ?? ''}-${pos.fila ?? ''}-${pos.AB ?? ''}`;
@@ -124,7 +216,7 @@ export const ChecklistChequeoPage = () => {
                     <Box sx={{ 
                       display: { xs: 'flex', md: 'grid' },
                       flexDirection: { xs: 'column', md: 'row' },
-                      gridTemplateColumns: { md: '200px 1fr 200px 200px' },
+                      gridTemplateColumns: { md: '200px 1fr 200px 200px 180px' },
                       gap: { xs: 1, md: 2 },
                       p: 2,
                       alignItems: { xs: 'flex-start', md: 'center' },
@@ -200,14 +292,33 @@ export const ChecklistChequeoPage = () => {
                           {proximoChequeo ? formatFechaChequeo(proximoChequeo) : 'No definido'}
                         </Typography>
                       </Box>
+                      <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleMarcarChequeado(pos.id)}
+                        >
+                          Marcar chequeado
+                        </Button>
+                      </Box>
                     </Box>
-                    {index < posiciones.length - 1 && <Divider />}
+                    {index < posicionesFiltradas.length - 1 && <Divider />}
                   </Box>
                 );
               })}
             </Box>
           )}
         </Paper>
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={2500}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Box>
     </AppLayout>
   );

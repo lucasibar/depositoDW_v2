@@ -23,6 +23,18 @@ export const useChequeosConTiempo = () => {
     }
   };
 
+  const registrarChequeo = async (posicionId, nombre) => {
+    try {
+      await apiClient.post(`/posiciones/${posicionId}/chequeo`, { nombre });
+      await obtenerPosicionesConChequeos();
+      return { ok: true };
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 'Error al registrar el chequeo';
+      console.error('Error al registrar chequeo:', err);
+      return { ok: false, error: errorMessage };
+    }
+  };
+
   const calcularEstadoChequeo = (fechaUltimoChequeo) => {
     if (!fechaUltimoChequeo) {
       return 'sin-chequeo';
@@ -76,6 +88,7 @@ export const useChequeosConTiempo = () => {
     obtenerPosicionesConChequeos,
     calcularEstadoChequeo,
     obtenerColorPorEstado,
-    obtenerDescripcionEstado
+    obtenerDescripcionEstado,
+    registrarChequeo
   };
 };
