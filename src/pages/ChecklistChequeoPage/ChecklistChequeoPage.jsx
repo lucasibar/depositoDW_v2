@@ -17,6 +17,20 @@ const estadoALabel = {
 const formatFechaChequeo = (fecha) => {
   if (!fecha) return 'Nunca';
   const date = new Date(fecha);
+  if (isNaN(date.getTime())) return 'Nunca';
+  return date.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+const formatFechaProximoChequeo = (fecha) => {
+  if (!fecha) return 'No definido';
+  const date = new Date(fecha);
+  if (isNaN(date.getTime())) return 'No definido';
   return date.toLocaleDateString('es-ES', {
     day: '2-digit',
     month: '2-digit',
@@ -81,10 +95,14 @@ export const ChecklistChequeoPage = () => {
       const fila = normalize(pos.fila);
       const ab = normalize(pos.AB || pos.ab || pos.nivel);
       const pasillo = normalize(pos.numeroPasillo || pos.pasillo);
-      const nombreVisible = normalize(pos.nombre || `${rack || ''}-${fila || ''}-${ab || ''}`);
+      // Construir nombre visible igual que en la renderización (ignorar pos.nombre que puede tener nombre de usuario)
+      const nombreVisible = pos.numeroPasillo 
+        ? normalize(`Pasillo ${pos.numeroPasillo}`)
+        : normalize(`${rack || ''}-${fila || ''}-${ab || ''}`);
       const variantes = [
         nombreVisible,
         `${rack}-${fila}-${ab}`,
+        pasillo ? `pasillo ${pasillo}` : '',
         `${pasillo}-${rack}-${fila}-${ab}`,
         `${rack}${fila}${ab}`,
         `${pasillo}${rack}${fila}${ab}`,
@@ -206,8 +224,14 @@ export const ChecklistChequeoPage = () => {
               {posicionesFiltradas.map((pos, index) => {
                 const estado = calcularEstadoChequeo(pos.ultimo_chequeo || pos.ultimoChequeo);
                 const color = obtenerColorPorEstado(estado);
-                const nombrePosicion = pos.nombre || `${pos.rack ?? ''}-${pos.fila ?? ''}-${pos.AB ?? ''}`;
-                const chequeadoPor = pos.chequeadoPor || pos.chequeado_por || pos.nombreChequeo || pos.nombre_chequeo || 'N/A';
+                // Siempre construir el nombre de posición desde rack-fila-AB (ignorar pos.nombre que puede tener el nombre del usuario)
+                const nombrePosicion = pos.numeroPasillo 
+                  ? `Pasillo ${pos.numeroPasillo}`
+                  : `${pos.rack ?? ''}-${pos.fila ?? ''}-${pos.AB ?? ''}`;
+                // El nombre de quien chequeó está en pos.nombre cuando hay chequeo
+                const chequeadoPor = pos.ultimo_chequeo || pos.ultimoChequeo 
+                  ? (pos.nombre || pos.chequeadoPor || pos.chequeado_por || pos.nombreChequeo || pos.nombre_chequeo || 'N/A')
+                  : 'N/A';
                 const ultimoChequeo = pos.ultimo_chequeo || pos.ultimoChequeo || null;
                 const proximoChequeo = pos.proximoChequeo || pos.proximo_chequeo || null; // Campo que agregarán después
 
@@ -289,7 +313,7 @@ export const ChecklistChequeoPage = () => {
                           fontSize: '0.9rem',
                           fontStyle: proximoChequeo ? 'normal' : 'italic'
                         }}>
-                          {proximoChequeo ? formatFechaChequeo(proximoChequeo) : 'No definido'}
+                          {formatFechaProximoChequeo(proximoChequeo)}
                         </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
