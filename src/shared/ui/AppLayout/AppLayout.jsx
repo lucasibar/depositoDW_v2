@@ -29,7 +29,8 @@ import {
   Warehouse as WarehouseIcon,
   Map as MapIcon,
   SwapHoriz as SwapHorizIcon,
-  Receipt as ReceiptIcon
+  Receipt as ReceiptIcon,
+  LocalShipping as LocalShippingIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getRoleColor, getRoleLabel } from '../../../features/stock/utils/userUtils';
@@ -56,6 +57,7 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
     if (path.includes('/reportes')) return 'Reportes';
     if (path.includes('/mapa')) return 'Mapa del Depósito';
     if (path.includes('/chequeo-posiciones')) return 'Chequeo de Posiciones';
+    if (path.includes('/remitos-salida')) return 'Remitos de Salida';
     if (path.includes('/movimientos-mercaderia')) return 'Movimientos Mercadería';
     return 'Der Will';
   };
@@ -143,6 +145,12 @@ const AppLayout = ({ children, user, onLogout, pageTitle }) => {
           label: 'Chequeo de Posiciones',
           path: '/depositoDW_v2/chequeo-posiciones',
           icon: <CheckCircleIcon />,
+          show: user?.role === 'admin' || user?.role === 'deposito'
+        },
+        {
+          label: 'Remitos de Salida',
+          path: '/depositoDW_v2/remitos-salida',
+          icon: <LocalShippingIcon />,
           show: user?.role === 'admin' || user?.role === 'deposito'
         },
         {

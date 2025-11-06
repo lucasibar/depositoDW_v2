@@ -12,6 +12,7 @@ import RoleProtectedRoute from '../components/RoleProtectedRoute';
 import StockPage from '../pages/StockPage/StockPage';
 import { ReporteConsumoPage } from '../pages/ReporteConsumoPage/ReporteConsumoPage';
 import ChecklistChequeoPage from '../pages/ChecklistChequeoPage/ChecklistChequeoPage';
+import RemitosSalidaPage from '../pages/RemitosSalidaPage/RemitosSalidaPage';
 
 import { useAuthSync } from '../features/auth/hooks/useAuthSync';
 import { setStore } from '../services/authService';
@@ -117,6 +118,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['admin', 'deposito']}>
               <ReporteConsumoPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Remitos de Salida - Accesible para deposito y admin */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/remitos-salida" 
+          element={
+            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
+              <RemitosSalidaPage />
             </RoleProtectedRoute>
           } 
         />

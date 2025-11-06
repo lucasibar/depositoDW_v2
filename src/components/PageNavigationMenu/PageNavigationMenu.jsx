@@ -18,7 +18,8 @@ import {
   Assignment as AssignmentIcon,
   Report as ReportIcon,
   Logout as LogoutIcon,
-  BarChart as BarChartIcon
+  BarChart as BarChartIcon,
+  LocalShipping as LocalShippingIcon
 } from '@mui/icons-material';
 
 const PageNavigationMenu = ({ user, currentPath }) => {
@@ -235,6 +236,26 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   }}
                 >
                   Reporte de Consumo
+                </Button>
+              )}
+              
+              {/* Remitos de Salida */}
+              {(user?.role === 'admin' || user?.role === 'deposito') && (
+                <Button
+                  variant="text"
+                  startIcon={<LocalShippingIcon />}
+                  onClick={() => handleNavigation('/depositoDW_v2/remitos-salida')}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textAlign: 'left',
+                    color: isCurrentPage('/depositoDW_v2/remitos-salida') ? 'primary.main' : 'text.primary',
+                    backgroundColor: isCurrentPage('/depositoDW_v2/remitos-salida') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: isCurrentPage('/depositoDW_v2/remitos-salida') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                    }
+                  }}
+                >
+                  Remitos de Salida
                 </Button>
               )}
               

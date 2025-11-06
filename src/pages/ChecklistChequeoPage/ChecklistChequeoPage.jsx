@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Typography, Paper, Chip, CircularProgress, Divider, TextField, MenuItem, Button, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, Paper, Chip, CircularProgress, Divider, TextField, MenuItem, Button, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import PageNavigationMenu from '../../components/PageNavigationMenu';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
@@ -56,6 +56,9 @@ export const ChecklistChequeoPage = () => {
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const location = useLocation();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [nombreChequeador, setNombreChequeador] = useState('');
+  const [posicionSeleccionada, setPosicionSeleccionada] = useState(null);
 
   useEffect(() => {
     const currentUser = authService.getUser();
@@ -118,11 +121,32 @@ export const ChecklistChequeoPage = () => {
     });
   }, [posiciones, busqueda, filtroEstado, calcularEstadoChequeo]);
 
-  const handleMarcarChequeado = async (posicionId) => {
-    const nombre = user?.name || 'Usuario';
-    const res = await registrarChequeo(posicionId, nombre);
+  const abrirModalChequeo = (pos) => {
+    setPosicionSeleccionada(pos);
+    setNombreChequeador(user?.name || '');
+    setModalOpen(true);
+  };
+
+  const cerrarModalChequeo = () => {
+    setModalOpen(false);
+    setNombreChequeador('');
+    setPosicionSeleccionada(null);
+  };
+
+  const confirmarChequeo = async () => {
+    if (!posicionSeleccionada?.id) {
+      setSnackbar({ open: true, message: 'Posición no válida', severity: 'error' });
+      return;
+    }
+    const nombre = (nombreChequeador || '').trim();
+    if (!nombre) {
+      setSnackbar({ open: true, message: 'Ingresá un nombre', severity: 'warning' });
+      return;
+    }
+    const res = await registrarChequeo(posicionSeleccionada.id, nombre);
     if (res.ok) {
       setSnackbar({ open: true, message: 'Chequeo registrado', severity: 'success' });
+      cerrarModalChequeo();
     } else {
       setSnackbar({ open: true, message: res.error || 'Error al registrar chequeo', severity: 'error' });
     }
@@ -185,7 +209,7 @@ export const ChecklistChequeoPage = () => {
           {/* Header de la tabla */}
           <Box sx={{ 
             display: { xs: 'none', md: 'grid' }, 
-            gridTemplateColumns: '200px 1fr 200px 200px',
+            gridTemplateColumns: '200px 1fr 200px 200px 180px',
             gap: 2,
             p: 2,
             backgroundColor: '#f5f5f5',
@@ -199,6 +223,7 @@ export const ChecklistChequeoPage = () => {
             <Typography>Chequeado por</Typography>
             <Typography>Último chequeo</Typography>
             <Typography>Próximo chequeo</Typography>
+            <Typography></Typography>
           </Box>
 
           {loading && (
@@ -320,7 +345,7 @@ export const ChecklistChequeoPage = () => {
                         <Button
                           variant="contained"
                           size="small"
-                          onClick={() => handleMarcarChequeado(pos.id)}
+                          onClick={() => abrirModalChequeo(pos)}
                         >
                           Marcar chequeado
                         </Button>
@@ -343,6 +368,27 @@ export const ChecklistChequeoPage = () => {
             {snackbar.message}
           </Alert>
         </Snackbar>
+
+        {/* Modal ingreso de nombre del chequeador */}
+        <Dialog open={modalOpen} onClose={cerrarModalChequeo} maxWidth="xs" fullWidth>
+          <DialogTitle>Confirmar Chequeo</DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+              <TextField
+                label="Nombre de quien chequea"
+                value={nombreChequeador}
+                onChange={(e) => setNombreChequeador(e.target.value)}
+                autoFocus
+                fullWidth
+                placeholder="Ingresá el nombre"
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={cerrarModalChequeo}>Cancelar</Button>
+            <Button variant="contained" onClick={confirmarChequeo}>Guardar</Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </AppLayout>
   );
