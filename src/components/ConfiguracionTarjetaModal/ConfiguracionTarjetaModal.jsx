@@ -89,32 +89,43 @@ export const ConfiguracionTarjetaModal = ({
     }
 
     try {
-      // Obtener todos los proveedores para buscar los items
+      setLoadingItems(true);
+      // 1) Obtener todos los proveedores una sola vez
       const proveedoresData = await dashboardComprasService.obtenerProveedores();
-      const itemsConfiguradosData = [];
 
-      // Buscar cada item en todos los proveedores
-      for (const itemId of itemIds) {
-        for (const proveedor of proveedoresData) {
+      // 2) Traer los items de TODOS los proveedores en paralelo (una sola vuelta)
+      const itemsPorProveedor = await Promise.all(
+        proveedoresData.map(async (prov) => {
           try {
-            const itemsProveedor = await dashboardComprasService.obtenerItemsPorProveedor(proveedor.id);
-            const item = itemsProveedor.find(i => i.id === itemId);
-            if (item) {
-              itemsConfiguradosData.push({
-                ...item,
-                proveedor: proveedor
-              });
-              break; // Encontramos el item, salimos del loop de proveedores
-            }
-          } catch (error) {
-            console.error(`Error buscando item ${itemId} en proveedor ${proveedor.id}:`, error);
+            const lista = await dashboardComprasService.obtenerItemsPorProveedor(prov.id);
+            return { proveedor: prov, items: Array.isArray(lista) ? lista : [] };
+          } catch (e) {
+            console.warn('No se pudieron obtener items para proveedor', prov.id, e);
+            return { proveedor: prov, items: [] };
+          }
+        })
+      );
+
+      // 3) Construir un índice itemId -> { item, proveedor }
+      const itemIdToInfo = new Map();
+      for (const { proveedor, items } of itemsPorProveedor) {
+        for (const it of items) {
+          if (it?.id) {
+            itemIdToInfo.set(it.id, { ...it, proveedor });
           }
         }
       }
 
+      // 4) Mapear los itemIds configurados a su info rápidamente
+      const itemsConfiguradosData = itemIds
+        .map(id => itemIdToInfo.get(id))
+        .filter(Boolean);
+
       setItemsConfigurados(itemsConfiguradosData);
     } catch (error) {
       console.error('Error cargando items configurados:', error);
+    } finally {
+      setLoadingItems(false);
     }
   };
 
