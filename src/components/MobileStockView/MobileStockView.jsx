@@ -14,7 +14,6 @@ import {
   ArrowBack as ArrowBackIcon,
   Analytics as AnalyticsIcon,
   Search as SearchIcon,
-  Download as DownloadIcon,
   Add as AddIcon,
   MoreVert as MoreVertIcon
 } from '@mui/icons-material';
@@ -29,8 +28,6 @@ const MobileStockView = ({
   setSearch, 
   selectedIndex, 
   setSelectedIndex,
-  onExportStock,
-  loadingReporte,
   // Props para acciones de items
   onMenuOpen,
   itemMatchesSearch,
@@ -376,21 +373,6 @@ const MobileStockView = ({
               title="Ver métricas"
             >
               <AnalyticsIcon />
-            </IconButton>
-            
-            {/* Botón de exportar */}
-            <IconButton
-              onClick={onExportStock}
-              disabled={loadingReporte}
-              sx={{
-                color: 'text.secondary',
-                '&:hover': {
-                  backgroundColor: 'var(--color-divider)'
-                }
-              }}
-              title="Exportar reporte"
-            >
-              <DownloadIcon />
             </IconButton>
           </Box>
         </Box>
