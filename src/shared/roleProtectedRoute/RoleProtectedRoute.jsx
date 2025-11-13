@@ -1,29 +1,15 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { authService } from '../services/authService';
+import { authService } from '../../services/auth/authService';
 
 const RoleProtectedRoute = ({ children, allowedRoles }) => {
   const isAuthenticated = authService.isAuthenticated();
   const user = authService.getUser();
 
-  // Debug logging
-  console.log('RoleProtectedRoute Debug:', {
-    isAuthenticated,
-    user,
-    allowedRoles,
-    currentPath: window.location.pathname
-  });
-
   // Si no está autenticado, redirigir al login
   if (!isAuthenticated) {
     console.log('No autenticado, redirigiendo al login');
-    return <Navigate to="/depositoDW_v2/" replace />;
-  }
-
-  // Si no tiene rol o el rol no está permitido, redirigir a la página correspondiente
-  if (!user || !user.role) {
-    console.log('Usuario sin rol, redirigiendo al login');
-    return <Navigate to="/depositoDW_v2/" replace />;
+    return <Navigate to="/depositoDW_v2/login" replace />;
   }
 
   // Verificar si el rol del usuario está permitido
@@ -40,8 +26,6 @@ const RoleProtectedRoute = ({ children, allowedRoles }) => {
       case 'salida':
         return <Navigate to="/depositoDW_v2/salida" replace />;
       case 'deposito':
-      case 'usuario':
-        return <Navigate to="/depositoDW_v2/deposito" replace />;
       default:
         return <Navigate to="/depositoDW_v2/deposito" replace />;
     }

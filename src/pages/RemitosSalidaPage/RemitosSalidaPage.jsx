@@ -33,7 +33,7 @@ import { useLocation } from 'react-router-dom';
 import PageNavigationMenu from '../../components/PageNavigationMenu';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import { useRemitosSalida } from '../../hooks/useRemitosSalida';
-import { authService } from '../../services/authService';
+import { authService } from '../../services/auth/authService';
 
 const formatFecha = (fecha) => {
   if (!fecha) return 'N/A';

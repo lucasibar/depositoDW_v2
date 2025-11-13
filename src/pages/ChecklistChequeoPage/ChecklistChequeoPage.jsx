@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import PageNavigationMenu from '../../components/PageNavigationMenu';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import { useChequeosConTiempo } from '../../hooks/useChequeosConTiempo';
-import { authService } from '../../services/authService';
+import { authService } from '../../services/auth/authService';
 
 const estadoALabel = {
   'reciente': 'hace poco',

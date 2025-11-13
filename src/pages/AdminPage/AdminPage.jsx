@@ -27,7 +27,7 @@ import {
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import PageNavigationMenu from '../../components/PageNavigationMenu';
-import { authService } from '../../services/authService';
+import { authService } from '../../services/auth/authService';
 import { userService } from '../../services/userService';
 import NotificacionesPanel from '../../features/notificaciones/ui/NotificacionesPanel';
 

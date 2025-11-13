@@ -1,5 +1,4 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from '../../features/auth/model/authSlice';
 import notificacionesReducer from '../../features/notificaciones/model/notificacionesSlice';
 import stockReducer from '../../features/stock/model/slice';
 import comprasReducer from '../../features/compras/model/slice';
@@ -13,7 +12,6 @@ import salidaReducer from '../../features/salida/model/salidaSlice';
 
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
     notificaciones: notificacionesReducer,
     stock: stockReducer,
     compras: comprasReducer,

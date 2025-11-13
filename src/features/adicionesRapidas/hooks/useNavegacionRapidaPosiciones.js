@@ -2,7 +2,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { setNavegacionRapidaPosiciones, limpiarNavegacionRapidaPosiciones } from '../model/slice';
 import { selectNavegacionRapidaPosiciones } from '../model/selectors';
-import { authService } from '../../../services/authService';
+import { authService } from '../../../services/auth/authService';
 
 export const useNavegacionRapidaPosiciones = () => {
   const dispatch = useDispatch();

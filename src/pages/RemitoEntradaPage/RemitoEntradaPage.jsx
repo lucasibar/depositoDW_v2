@@ -9,7 +9,7 @@ import {
   Alert
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { authService } from '../../services/authService';
+import { authService } from '../../services/auth/authService';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import PageNavigationMenu from '../../components/PageNavigationMenu';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';

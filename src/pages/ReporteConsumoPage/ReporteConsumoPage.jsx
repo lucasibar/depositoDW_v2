@@ -6,7 +6,7 @@ import PageNavigationMenu from '../../components/PageNavigationMenu/PageNavigati
 import { ListaMateriales } from '../../components/ReporteConsumo/ListaMateriales';
 import { GraficoConsumo } from '../../components/ReporteConsumo/GraficoConsumo';
 import { reporteConsumoService } from '../../services/reporteConsumoService';
-import { authService } from '../../services/authService';
+import { authService } from '../../services/auth/authService';
 import './ReporteConsumoPage.css';
 
 /**

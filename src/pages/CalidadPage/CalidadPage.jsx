@@ -14,7 +14,7 @@ import {
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { fetchPartidasEnCuarentena } from '../../features/partidas/model/slice';
-import { authService } from '../../services/authService';
+import { authService } from '../../services/auth/authService';
 import { SearchBar } from '../../shared/ui/SearchBar/SearchBar';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import PageNavigationMenu from '../../components/PageNavigationMenu';

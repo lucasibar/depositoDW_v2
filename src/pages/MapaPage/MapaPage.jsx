@@ -2,13 +2,20 @@ import React from 'react';
 import { Box, Typography, Paper, Grid } from '@mui/material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import PageNavigationMenu from '../../components/PageNavigationMenu';
-import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import MapDeposito from './components/MapDeposito';
+import { useAuth } from '../../hooks/useAuth';
 
 const MapaPage = () => {
-  const user = useSelector(state => state.auth.user);
+  const { user, isLoading } = useAuth();
   const location = useLocation();
+
+  if (isLoading) {
+    return null;
+  }
+  if (!user) {
+    return null;
+  }
 
   return (
     <AppLayout user={user} pageTitle="Mapa del Depósito">

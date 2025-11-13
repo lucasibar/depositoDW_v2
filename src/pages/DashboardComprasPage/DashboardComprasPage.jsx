@@ -18,7 +18,7 @@ import {
   Dashboard as DashboardIcon,
   Download as DownloadIcon
 } from '@mui/icons-material';
-import { authService } from '../../services/authService';
+import { authService } from '../../services/auth/authService';
 import { dashboardComprasService } from '../../services/dashboardComprasService';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import PageNavigationMenu from '../../components/PageNavigationMenu';

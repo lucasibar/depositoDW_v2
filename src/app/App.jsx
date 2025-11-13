@@ -1,35 +1,19 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Route, Routes, Navigate } from "react-router-dom";
-import { useSelector } from 'react-redux';
-import Login from '../pages/Login/Login';
+import RoleProtectedRoute from '../shared/roleProtectedRoute/RoleProtectedRoute';
 
+import LoginPage from '../pages/LoginPage/LoginPage';
 import { RemitoEntradaPage } from '../pages/RemitoEntradaPage/RemitoEntradaPage';
 import { DashboardComprasPage } from '../pages/DashboardComprasPage/DashboardComprasPage';
 import { AdminPage } from '../pages/AdminPage/AdminPage';
 import { CalidadPage } from '../pages/CalidadPage/CalidadPage';
 import MapaPage from '../pages/MapaPage';
-import RoleProtectedRoute from '../components/RoleProtectedRoute';
 import StockPage from '../pages/StockPage/StockPage';
 import { ReporteConsumoPage } from '../pages/ReporteConsumoPage/ReporteConsumoPage';
 import ChecklistChequeoPage from '../pages/ChecklistChequeoPage/ChecklistChequeoPage';
 import RemitosSalidaPage from '../pages/RemitosSalidaPage/RemitosSalidaPage';
 
-import { useAuthSync } from '../features/auth/hooks/useAuthSync';
-import { setStore } from '../services/authService';
-
 export const App = () => {
-  const user = useSelector(state => state.auth.user);
-  
-  // Sincronizar auth con localStorage
-  useAuthSync();
-
-  useEffect(() => {
-    // Inicializar servicios cuando el store esté disponible
-    import('../app/providers/store').then(({ store }) => {
-      // Configurar el store en authService
-      setStore(store);
-    });
-  }, [user]);
 
   return (
     <div className="App">
@@ -134,10 +118,10 @@ export const App = () => {
         />
         
         {/* Ruta de Login */}
-        <Route path="/depositoDW_v2/" element={<Login />} />
+        <Route path="/depositoDW_v2/login" element={<LoginPage />} />
         
         {/* Redirección por defecto */}
-        <Route path="*" element={<Navigate to="/depositoDW_v2/" replace />} />
+        <Route path="*" element={<Navigate to="/depositoDW_v2/login" replace />} />
       </Routes>
       
 

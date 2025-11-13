@@ -1,15 +1,30 @@
-import { useState, useEffect } from 'react';
-import { authService } from '../services/authService';
+import { useState, useEffect, useCallback } from 'react';
+import { authService } from '../services/auth/authService';
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const refreshUser = useCallback(() => {
     const currentUser = authService.getUser();
     setUser(currentUser);
-    setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    refreshUser();
+    setIsLoading(false);
+
+    const handleStorageChange = (event) => {
+      if (event.key === 'user' || event.key === 'token') {
+        refreshUser();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [refreshUser]);
 
   const logout = () => {
     authService.logout();
@@ -19,6 +34,7 @@ export const useAuth = () => {
   return {
     user,
     isLoading,
-    logout
+    logout,
+    refreshUser,
   };
 }; 

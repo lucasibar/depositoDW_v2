@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, IconButton, Menu, MenuItem, Chip, useTheme, useMediaQuery, Snackbar, Alert} from '@mui/material';
 import { MoreVert as MoreVertIcon, Edit as EditIcon, SwapHoriz as SwapIcon, LocalShipping as LocalShippingIcon, Add as AddIcon, Search as SearchIcon, Download as DownloadIcon } from '@mui/icons-material';
@@ -15,13 +14,14 @@ import StockMetricsPanel from '../../components/StockMetricsPanel/StockMetricsPa
 import PageNavigationMenu from '../../components/PageNavigationMenu';
 import MobileStockView from '../../components/MobileStockView/MobileStockView';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
 export const StockPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = useSelector(state => state.auth.user);
+  const { user, isLoading } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
@@ -552,6 +552,10 @@ export const StockPage = () => {
       setLoadingReporte(false);
     }
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   if (!user) return null;
 
