@@ -1,0 +1,28 @@
+.formContainer {
+  padding: 16px;
+}
+
+.formField {
+  margin-bottom: 16px;
+}
+
+.errorMessage {
+  color: #d32f2f;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.loadingSpinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.submitButton {
+  margin-top: 16px;
+}
+
+.cancelButton {
+  margin-right: 8px;
+} 

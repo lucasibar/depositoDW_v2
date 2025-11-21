@@ -1,0 +1,47 @@
+.card {
+  background: white;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.title {
+  margin: 0 0 12px 0 !important;
+  color: #333 !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.details {
+  font-size: 14px;
+  color: #666;
+}
+
+.details p {
+  margin: 4px 0;
+}
+
+.stock {
+  border-left: 4px solid #28a745;
+}
+
+.deposito {
+  border-left: 4px solid #007bff;
+}
+
+.compras {
+  border-left: 4px solid #ffc107;
+}

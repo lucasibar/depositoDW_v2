@@ -1,0 +1,1 @@
+export { ReporteConsumoPage } from './ReporteConsumoPage';

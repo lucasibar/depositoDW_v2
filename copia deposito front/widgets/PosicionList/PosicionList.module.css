@@ -1,0 +1,30 @@
+.posicionList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 48px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Cuando las cartas están expandidas, ajustar el grid */
+.posicionList:has(.expanded) {
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .posicionList {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+  
+  .posicionList:has(.expanded) {
+    grid-template-columns: 1fr;
+  }
+} 

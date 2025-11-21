@@ -1,0 +1,1 @@
+export { ModalAgregarCliente } from './ModalAgregarCliente';

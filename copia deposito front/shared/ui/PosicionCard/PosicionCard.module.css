@@ -1,0 +1,133 @@
+.card {
+  background: white;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card.expanded {
+  max-width: 600px;
+  min-height: 300px;
+  border-color: #007bff;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.title {
+  margin: 0 !important;
+  color: #333 !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  flex: 1;
+}
+
+.expandIndicator {
+  color: #007bff;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.expandIndicator:hover {
+  color: #0056b3;
+  transform: scale(1.1);
+}
+
+.details {
+  font-size: 14px;
+  color: #666;
+}
+
+.details p {
+  margin: 4px 0;
+}
+
+.itemsList {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+}
+
+.item {
+  font-size: 12px;
+  margin: 2px 0;
+  color: #555;
+  padding: 4px 0;
+}
+
+.itemTitle {
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px 0;
+  font-size: 13px;
+}
+
+.itemDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  color: #666;
+  margin-left: 16px;
+}
+
+.itemDetails span {
+  background: #f8f9fa;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.moreItems {
+  font-size: 12px;
+  color: #007bff;
+  font-style: italic;
+  margin: 4px 0 0 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.moreItems:hover {
+  color: #0056b3;
+}
+
+/* Estilos para cuando la carta está expandida */
+.expanded .item {
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 8px;
+  margin: 8px 0;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.expanded .item:hover {
+  background: #e9ecef;
+  border-color: #007bff;
+}
+
+.expanded .itemDetails {
+  margin-left: 0;
+  margin-top: 4px;
+} 
