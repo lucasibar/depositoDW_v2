@@ -1,66 +1,63 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
-  Alert,
-  Box,
   Button,
-  CircularProgress,
   IconButton,
   InputAdornment,
   TextField
 } from '@mui/material';
-import {
-  Lock as LockIcon,
-  Person as PersonIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon
-} from '@mui/icons-material';
+import { Lock, Person, Visibility, VisibilityOff } from '@mui/icons-material';
 import { buttonStyles, textFieldStyles } from '../../styles/login/loginStyles';
+import { authService } from '../../services/auth/authService';
+import { useNavigate } from 'react-router-dom';
+import LoadingButton from '../../shared/loading/LoadingButton';
+import { roleRedirect } from '../../utils/routes';
 
-const LoginForm = ({
-  formData,
-  loading,
-  error,
-  onChange,
-  onSubmit
-}) => {
 
+const LoginForm = () => {
+
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = ({ target }) => {
+    setFormData((prevData) => ({ ...prevData, [target.name]: target.value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await authService.login(formData.username, formData.password);
+      const redirectPath = roleRedirect[response.role];
+      
+      if (!redirectPath) {throw new Error('Rol no válido')}
+      
+      navigate(redirectPath);
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   const [showPassword, setShowPassword] = useState(false);
-
-  const handleTogglePassword = useCallback(() => {
-    setShowPassword((prevState) => !prevState);
-  }, []);
-
-  const passwordAdornment = useMemo(
-    () => (
-      <InputAdornment position="end">
-        <IconButton
-          aria-label="alternar visibilidad de la contraseña"
-          onClick={handleTogglePassword}
-          edge="end"
-          sx={{ color: 'var(--color-text-secondary)' }}
-        >
-          {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-        </IconButton>
-      </InputAdornment>
-    ),
-    [showPassword, handleTogglePassword]
-  );
+  const handleTogglePassword = useCallback(() => {setShowPassword((prevState) => !prevState)}, []);
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={handleSubmit}>
       <TextField
         fullWidth
         label="Usuario"
         name="username"
         value={formData.username}
-        onChange={onChange}
+        onChange={handleChange}
         margin="normal"
         required
         disabled={loading}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <PersonIcon sx={{ color: 'var(--color-text-secondary)' }} />
+              <Person sx={{ color: 'var(--color-text-secondary)' }} />
             </InputAdornment>
           )
         }}
@@ -73,52 +70,44 @@ const LoginForm = ({
         name="password"
         type={showPassword ? 'text' : 'password'}
         value={formData.password}
-        onChange={onChange}
+        onChange={handleChange}
         margin="normal"
         required
         disabled={loading}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <LockIcon sx={{ color: 'var(--color-text-secondary)' }} />
+              <Lock sx={{ color: 'var(--color-text-secondary)' }} />
             </InputAdornment>
           ),
-          endAdornment: passwordAdornment
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                aria-label="alternar visibilidad de la contraseña"
+                onClick={handleTogglePassword}
+                edge="end"
+                sx={{ color: 'var(--color-text-secondary)' }}
+              >
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          )
         }}
         sx={textFieldStyles}
       />
 
-      {error && (
-        <Alert
-          severity="error"
-          sx={{
-            mt: 3,
-            borderRadius: 'var(--border-radius-md)',
-            '& .MuiAlert-icon': {
-              color: 'var(--color-error)'
-            }
-          }}
-        >
-          {error}
-        </Alert>
-      )}
 
-      <Button
-        type="submit"
+
+      <Button type="submit"
         fullWidth
         variant="contained"
         disabled={loading}
         size="large"
         sx={buttonStyles}
       >
-        {loading ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <CircularProgress size={20} sx={{ color: 'white' }} />
-            <span>Iniciando sesión...</span>
-          </Box>
-        ) : (
-          'Iniciar Sesión'
-        )}
+        <LoadingButton loading={loading} loadingText="Iniciando sesión...">
+          Iniciar Sesión
+        </LoadingButton>
       </Button>
     </form>
   );

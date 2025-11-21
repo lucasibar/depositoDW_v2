@@ -1,10 +1,9 @@
 import React from 'react';
 import { Route, Routes, Navigate } from "react-router-dom";
-import { ReporteConsumoPage } from '../pages/ReporteConsumoPage/ReporteConsumoPage';
 
-import StockPage from '../pages/StockPage/StockPage';
-import LoginPage from '../pages/LoginPage/LoginPage';
-
+import StockPage from '../pages/StockPage';
+import LoginPage from '../pages/LoginPage';
+import RoleProtectedRoute from '../shared/roleProtectedRoute/RoleProtectedRoute'
 export const App = () => {
 
   return (
@@ -12,7 +11,7 @@ export const App = () => {
       <Routes>
       <Route 
           exact 
-          path="/depositoDW_v2/posiciones-composicion" 
+          path="/depositoDW_v2/deposito" 
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <StockPage />
