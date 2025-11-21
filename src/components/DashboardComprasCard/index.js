@@ -1,1 +1,0 @@
-export { DashboardComprasCard } from './DashboardComprasCard';

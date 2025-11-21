@@ -1,1 +1,0 @@
-export { ConfiguracionTarjetaModal } from './ConfiguracionTarjetaModal';

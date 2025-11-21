@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -20,17 +20,22 @@ const LoginForm = ({
   formData,
   loading,
   error,
-  showPassword,
   onChange,
-  onSubmit,
-  onTogglePassword
+  onSubmit
 }) => {
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleTogglePassword = useCallback(() => {
+    setShowPassword((prevState) => !prevState);
+  }, []);
+
   const passwordAdornment = useMemo(
     () => (
       <InputAdornment position="end">
         <IconButton
           aria-label="alternar visibilidad de la contraseña"
-          onClick={onTogglePassword}
+          onClick={handleTogglePassword}
           edge="end"
           sx={{ color: 'var(--color-text-secondary)' }}
         >
@@ -38,7 +43,7 @@ const LoginForm = ({
         </IconButton>
       </InputAdornment>
     ),
-    [showPassword, onTogglePassword]
+    [showPassword, handleTogglePassword]
   );
 
   return (

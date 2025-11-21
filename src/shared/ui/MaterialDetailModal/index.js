@@ -1,1 +1,0 @@
-export { MaterialDetailModal } from './MaterialDetailModal';
