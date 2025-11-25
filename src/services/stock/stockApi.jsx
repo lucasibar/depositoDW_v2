@@ -2,25 +2,27 @@ const API_BASE_URL = 'https://derwill-deposito-backend.onrender.com';
 
 
 export const stockApi = {
-   // Obtener todos los movimientos
-  getAllMovimientos: async () => {
+  // Obtener movimientos de consulta rápida consolidados
+  getMovimientosConsultaRapida: async () => {
+    const endpoint = `${API_BASE_URL}/movimientos-consulta-rapida/stock-consolidado`;
     try {
-      console.log('🌐 stockApi: Haciendo petición a:', `${API_BASE_URL}/movimientos/all`);
-      const response = await fetch(`${API_BASE_URL}/movimientos/all`);
-      console.log('📡 stockApi: Respuesta del servidor:', response.status, response.statusText);
-      
+      console.log('🌐 stockApi: Consultando movimientos consulta rápida en:', endpoint);
+      const response = await fetch(endpoint);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ stockApi: Error del servidor:', errorText);
-        throw new Error(`Error al obtener todos los movimientos: ${response.status} ${response.statusText}`);
+        console.error('❌ stockApi: Error en consulta rápida:', errorText);
+        throw new Error(
+          `Error al obtener movimientos consulta rápida: ${response.status} ${response.statusText}`
+        );
       }
-      
+
       const data = await response.json();
-      console.log('✅ stockApi: Datos de movimientos recibidos:', data);
-      console.log('✅ stockApi: Cantidad de grupos de movimientos:', data?.length);
+      console.log('✅ stockApi: Movimientos consulta rápida recibidos:', data?.length);
+      console.log(data[0])
       return data;
     } catch (error) {
-      console.error('❌ stockApi: Error al obtener todos los movimientos:', error);
+      console.error('❌ stockApi: Error al obtener movimientos consulta rápida:', error);
       throw error;
     }
   },

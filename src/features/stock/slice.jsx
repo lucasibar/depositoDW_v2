@@ -1,23 +1,24 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { stockApi } from '../../services/stock/stockApi';
 
-// Async thunks
-export const fetchStock = createAsyncThunk(
-  'stock/fetchStock',
+
+
+export const fetchMovimientosConsultaRapida = createAsyncThunk(
+  'stock/fetchMovimientosConsultaRapida',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await stockApi.getAllMovimientos();
-      return response.data;
+      const response = await stockApi.getMovimientosConsultaRapida();
+      return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Error al cargar stock');
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Error al cargar movimientos consulta rápida'
+      );
     }
   }
 );
 
 const initialState = {
   stock: [],
-  posiciones: [],
-  stockByMaterial: [],
   isLoading: false,
   error: null,
   selectedStock: null,
@@ -37,16 +38,16 @@ const stockSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch stock
-      .addCase(fetchStock.pending, (state) => {
+      // Fetch movimientos consulta rápida
+      .addCase(fetchMovimientosConsultaRapida.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchStock.fulfilled, (state, action) => {
+      .addCase(fetchMovimientosConsultaRapida.fulfilled, (state, action) => {
         state.isLoading = false;
         state.stock = action.payload;
       })
-      .addCase(fetchStock.rejected, (state, action) => {
+      .addCase(fetchMovimientosConsultaRapida.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
