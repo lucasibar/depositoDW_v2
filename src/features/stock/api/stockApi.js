@@ -192,15 +192,26 @@ export const stockApi = {
       
       console.log('📡 stockApi: Respuesta del servidor:', response.status, response.statusText);
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('❌ stockApi: Error del servidor:', errorData);
-        throw new Error(errorData.message || 'Error en movimiento interno');
+      const result = await response.json();
+      
+      // El servidor puede devolver un HttpException incluso en caso de éxito
+      // Si el status es 200, consideramos que fue exitoso
+      if (response.ok || response.status === 200) {
+        console.log('✅ stockApi: Movimiento interno exitoso:', result);
+        // Si la respuesta es un string (mensaje del HttpException), lo convertimos a objeto
+        if (typeof result === 'string') {
+          return { success: true, message: result };
+        }
+        // Si es un objeto con message, lo retornamos tal cual
+        if (result.message) {
+          return { success: true, message: result.message, ...result };
+        }
+        return result;
       }
       
-      const result = await response.json();
-      console.log('✅ stockApi: Movimiento interno exitoso:', result);
-      return result;
+      // Si hay un error
+      console.error('❌ stockApi: Error del servidor:', result);
+      throw new Error(result.message || result.error || 'Error en movimiento interno');
     } catch (error) {
       console.error('❌ stockApi: Error en movimiento interno:', error);
       throw error;

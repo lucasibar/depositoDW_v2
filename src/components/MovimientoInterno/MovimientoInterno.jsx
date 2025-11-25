@@ -261,7 +261,16 @@ const MovimientoInterno = ({
 
       const response = await apiClient.post('/movimientos/movimiento-interno', movimientoData);
       
-      setSuccess('Movimiento interno realizado correctamente');
+      console.log('MovimientoInterno - Respuesta del servidor:', response);
+      
+      // El servidor puede devolver un HttpException incluso en caso de éxito
+      // Si la respuesta tiene status 200 o data, consideramos que fue exitoso
+      const responseData = response.data || response;
+      const successMessage = typeof responseData === 'string' 
+        ? responseData 
+        : (responseData?.message || 'Movimiento interno realizado correctamente');
+      
+      setSuccess(successMessage);
       
       // Limpiar formulario
       setFormData({
@@ -286,7 +295,27 @@ const MovimientoInterno = ({
 
     } catch (error) {
       console.error('Error al realizar movimiento interno:', error);
-      setError(error.response?.data?.message || 'Error al realizar el movimiento interno');
+      
+      // Manejar diferentes formatos de error
+      let errorMessage = 'Error al realizar el movimiento interno';
+      
+      if (error.response) {
+        // Error de axios con respuesta del servidor
+        const errorData = error.response.data;
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData?.message) {
+          errorMessage = errorData.message;
+        } else if (errorData?.error) {
+          errorMessage = errorData.error;
+        } else {
+          errorMessage = `Error ${error.response.status}: ${error.response.statusText}`;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
