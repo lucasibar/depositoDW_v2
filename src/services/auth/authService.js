@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://derwill-deposito-backend.onrender.com';
+const API_BASE_URL = 'https://derwill-deposito-backend.onrender.com';
 
 class AuthService {
   async login(username, password) {
@@ -10,14 +10,8 @@ class AuthService {
         },
         body: JSON.stringify({ username, password }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Error al iniciar sesión');
-      }
-
+      
       const data = await response.json();
-
       if (data.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
@@ -26,11 +20,11 @@ class AuthService {
       return {
         role: data.role || data.user?.role,
         token: data.token,
-        user: data.user,
+        user: data.name,
       };
     } catch (error) {
-      if (error.message === 'Failed to fetch') {
-        throw new Error('No se pudo conectar con el servidor');
+      if (error.message) {
+        throw new Error(error.message);
       }
       throw error;
     }

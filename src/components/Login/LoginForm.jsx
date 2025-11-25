@@ -2,11 +2,10 @@ import React, { useCallback, useState } from 'react';
 import {
   Button,
   IconButton,
-  InputAdornment,
   TextField
 } from '@mui/material';
 import { Lock, Person, Visibility, VisibilityOff } from '@mui/icons-material';
-import { buttonStyles, textFieldStyles } from '../../styles/login/loginStyles';
+import { buttonStyles } from '../../styles/login/loginStyles';
 import { authService } from '../../services/auth/authService';
 import { useNavigate } from 'react-router-dom';
 import LoadingButton from '../../shared/loading/LoadingButton';
@@ -30,10 +29,7 @@ const LoginForm = () => {
     try {
       const response = await authService.login(formData.username, formData.password);
       const redirectPath = roleRedirect[response.role];
-      
-      if (!redirectPath) {throw new Error('Rol no válido')}
-      
-      navigate(redirectPath);
+     console.log("bla")
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
     } finally {
@@ -54,14 +50,7 @@ const LoginForm = () => {
         margin="normal"
         required
         disabled={loading}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Person sx={{ color: 'var(--color-text-secondary)' }} />
-            </InputAdornment>
-          )
-        }}
-        sx={textFieldStyles}
+        InputProps={{startAdornment: (<Person sx={{ color: 'var(--color-text-secondary)' }} />)}}
       />
 
       <TextField
@@ -75,13 +64,8 @@ const LoginForm = () => {
         required
         disabled={loading}
         InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Lock sx={{ color: 'var(--color-text-secondary)' }} />
-            </InputAdornment>
-          ),
+          startAdornment: (<Lock sx={{ color: 'var(--color-text-secondary)' }} />),
           endAdornment: (
-            <InputAdornment position="end">
               <IconButton
                 aria-label="alternar visibilidad de la contraseña"
                 onClick={handleTogglePassword}
@@ -90,10 +74,8 @@ const LoginForm = () => {
               >
                 {showPassword ? <VisibilityOff /> : <Visibility />}
               </IconButton>
-            </InputAdornment>
           )
         }}
-        sx={textFieldStyles}
       />
 
 
