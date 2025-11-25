@@ -1,8 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { authService } from '../../services/auth/authService';
+import stockReducer from '../../features/stock/slice';
 
 export const store = configureStore({
   reducer: {
-  authService
+    stock: stockReducer,
   },
 }); 

@@ -28,8 +28,13 @@ const LoginForm = () => {
 
     try {
       const response = await authService.login(formData.username, formData.password);
+     
+     console.log(response)
       const redirectPath = roleRedirect[response.role];
-     console.log("bla")
+      
+      if (!redirectPath) {throw new Error('Rol no válido')}
+      
+      navigate(redirectPath);
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
     } finally {

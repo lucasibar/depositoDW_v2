@@ -8,13 +8,17 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ name: username, password }),
       });
-      
       const data = await response.json();
+
       if (data.token) {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        const storedUser = {
+          name: data.name ?? data.user?.name ?? '',
+          role: data.role || data.user?.role || '',
+        };
+        localStorage.setItem('user', JSON.stringify(storedUser));
       }
 
       return {
@@ -36,7 +40,7 @@ class AuthService {
   }
 
   isAuthenticated() {
-    return !!localStorage.getItem('token');
+    return Boolean(localStorage.getItem('token'));
   }
 
   getToken() {
@@ -45,7 +49,16 @@ class AuthService {
 
   getUser() {
     const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    if (!user) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(user);
+    } catch (error) {
+      localStorage.removeItem('user');
+      return null;
+    }
   }
 }
 

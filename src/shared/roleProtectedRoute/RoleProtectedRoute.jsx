@@ -7,7 +7,7 @@ const RoleProtectedRoute = ({ children, allowedRoles }) => {
   const user = authService.getUser();
 
   // Si no está autenticado, redirigir al login
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user) {
     console.log('No autenticado, redirigiendo al login');
     return <Navigate to="/depositoDW_v2/login" replace />;
   }
@@ -18,16 +18,11 @@ const RoleProtectedRoute = ({ children, allowedRoles }) => {
     // Redirigir según el rol del usuario
     switch (user.role) {
       case 'admin':
-        return <Navigate to="/depositoDW_v2/admin" replace />;
-      case 'compras':
-        return <Navigate to="/depositoDW_v2/compras" replace />;
-      case 'calidad':
-        return <Navigate to="/depositoDW_v2/calidad" replace />;
-      case 'salida':
-        return <Navigate to="/depositoDW_v2/salida" replace />;
-      case 'deposito':
-      default:
         return <Navigate to="/depositoDW_v2/deposito" replace />;
+      case 'deposito':
+        return <Navigate to="/depositoDW_v2/deposito" replace />;
+      default:
+        return <Navigate to="/depositoDW_v2/login" replace />;
     }
   }
 
