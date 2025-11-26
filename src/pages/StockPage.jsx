@@ -29,9 +29,7 @@ export const StockPage = () => {
       />
 
       <div style={layoutStyles.listsWrapper}>
-        <div style={layoutStyles.menuContainer}>
-          <p style={layoutStyles.listTitle}>Menú</p>
-        </div>
+
 
         <ListadoStock
           title="Listado de stock"
