@@ -1,0 +1,29 @@
+DEPOSITO
+Cargar mercaderia por remito desde las ordenes de compra
+Cargar mercaderia por adicion rapida
+Mover mercaderia de posicion a posicion
+Buscar mercaderia en el deposito
+Mantener un control de los chequeos
+Armado de tareas para el personal con control de objetivos
+Proximo a consumir(segun reserva y fifo)
+(Ver mapa)
+
+COMPRAS
+Ver stock con el dashboard de compras para lo principal(productos calientes)
+Controlas entre el stock, lo que falta producir y lo que esta pedido
+Poder cargar las ordenes de compra
+Ver los consumos segun periodo de tiempo de materiales a eleccion
+Reserva de mercaderia 
+
+CALIDAD
+Area de cuarentena
+Que partida se esta usando
+Alerta cuando hay poco de un material especifico(tambien cuando haya un cambio de partida)
+Matchear articulo con hilados(sale la reserva o la alerta de que no va a alcanzar)
+Proxima partida a utilizar
+
+PRODUCCION
+Control de lo que se va a consumir en el dia, semana, quincena, mes y temporada
+Reserva de mercaderia
+
+
