@@ -132,14 +132,44 @@ export default function RemitoSalidaDesdePosicionModal({ open, onClose, resultad
 
     try {
       // Debug: Verificar estructura de los datos
-      console.log('🔍 Resultado recibido:', resultado);
-      console.log('🔍 Posicion actual:', posicionActual);
-      console.log('🔍 Proveedor seleccionado:', proveedor);
-      console.log('🔍 Kilos:', kilos);
-      console.log('🔍 Unidades:', unidades);
-      console.log('🔍 Fecha:', fecha);
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log('🔍 [FRONTEND] Datos antes de enviar al backend:');
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log('📦 Resultado completo:', JSON.stringify(resultado, null, 2));
+      console.log('📍 Posicion actual completa:', JSON.stringify(posicionActual, null, 2));
+      console.log('👤 Proveedor seleccionado (ID):', proveedor);
+      console.log('⚖️ Kilos calculados:', kilos, '(tipo:', typeof kilos, ')');
+      console.log('📊 Unidades calculadas:', unidades, '(tipo:', typeof unidades, ')');
+      console.log('📅 Fecha:', fecha);
+      console.log('📦 Cajas especificadas:', cajas);
+
+      // Validar que todos los campos requeridos estén presentes
+      if (!resultado.item?.id) {
+        console.error('❌ ERROR: resultado.item.id no está definido');
+        alert('Error: El item no tiene ID. Por favor, seleccione un material válido.');
+        setLoading(false);
+        return;
+      }
+      
+      if (!resultado.partida?.numeroPartida) {
+        console.error('❌ ERROR: resultado.partida.numeroPartida no está definido');
+        alert('Error: La partida no tiene número. Por favor, seleccione un material con partida válida.');
+        setLoading(false);
+        return;
+      }
+      
+      if (!posicionActual?.id) {
+        console.error('❌ ERROR: posicionActual.id no está definido');
+        alert('Error: La posición no tiene ID. Por favor, seleccione una posición válida.');
+        setLoading(false);
+        return;
+      }
 
       // Crear los datos del remito
+      const partidaId = resultado.partida?.id;
+      console.log('🔍 DEBUG: partidaId extraído:', partidaId);
+      console.log('🔍 DEBUG: resultado.partida completo:', resultado.partida);
+      
       const remitoData = {
         selectedItem: {
           itemId: resultado.item?.id,
@@ -147,6 +177,7 @@ export default function RemitoSalidaDesdePosicionModal({ open, onClose, resultad
           descripcion: resultado.item?.descripcion,
           proveedor: resultado.proveedor || resultado.item?.proveedor,
           partida: resultado.partida?.numeroPartida,
+          partidaId: partidaId, // Enviar también el ID de la partida para evitar ambigüedad
           kilos: parseFloat(kilos),
           unidades: parseInt(unidades)
         },
@@ -156,13 +187,49 @@ export default function RemitoSalidaDesdePosicionModal({ open, onClose, resultad
         proveedor: proveedor,
         fecha: fecha
       };
+      
+      console.log('🔍 DEBUG: remitoData.selectedItem.partidaId:', remitoData.selectedItem.partidaId);
+      
+      // Validar que los valores numéricos sean válidos
+      if (isNaN(remitoData.kilos) || isNaN(remitoData.unidades)) {
+        console.error('❌ ERROR: kilos o unidades no son números válidos');
+        console.error('   - kilos:', remitoData.kilos, '(tipo:', typeof remitoData.kilos, ')');
+        console.error('   - unidades:', remitoData.unidades, '(tipo:', typeof remitoData.unidades, ')');
+        alert('Error: Los valores de kilos y unidades deben ser números válidos.');
+        setLoading(false);
+        return;
+      }
 
-      console.log('📤 Enviando remito de salida desde posición:', remitoData);
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log('📤 [FRONTEND] Datos que se enviarán al backend:');
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log(JSON.stringify(remitoData, null, 2));
+      console.log('🔍 Detalles del selectedItem:');
+      console.log('   - itemId:', remitoData.selectedItem.itemId);
+      console.log('   - partida:', remitoData.selectedItem.partida);
+      console.log('   - partidaId:', remitoData.selectedItem.partidaId);
+      console.log('   - proveedor:', remitoData.selectedItem.proveedor);
+      console.log('   - kilos:', remitoData.selectedItem.kilos);
+      console.log('   - unidades:', remitoData.selectedItem.unidades);
+      console.log('🔍 Detalles principales:');
+      console.log('   - id (posicion):', remitoData.id);
+      console.log('   - proveedor (cliente):', remitoData.proveedor);
+      console.log('   - kilos:', remitoData.kilos);
+      console.log('   - unidades:', remitoData.unidades);
+      console.log('   - fecha:', remitoData.fecha);
+      console.log('═══════════════════════════════════════════════════════════');
 
       // Llamar al endpoint
+      console.log('🌐 [FRONTEND] Enviando petición POST a /movimientos/salida-desde-posicion');
       const response = await apiClient.post('/movimientos/salida-desde-posicion', remitoData);
       
-      console.log('Respuesta del servidor:', response.data);
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log('✅ [FRONTEND] Respuesta del servidor recibida:');
+      console.log('═══════════════════════════════════════════════════════════');
+      console.log('Status:', response.status);
+      console.log('Status Text:', response.statusText);
+      console.log('Data:', JSON.stringify(response.data, null, 2));
+      console.log('═══════════════════════════════════════════════════════════');
 
       // Llamar a la función onSubmit que se pasa como prop
       if (onSubmit) {
