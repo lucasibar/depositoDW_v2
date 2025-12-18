@@ -4,7 +4,7 @@ const API_BASE_URL = 'https://derwill-deposito-backend.onrender.com';
 export const stockApi = {
   // Obtener movimientos de consulta rápida consolidados
   getMovimientosConsultaRapida: async () => {
-    const endpoint = `${API_BASE_URL}/movimientos/consulta-rapida-agrupado`;
+    const endpoint = `${API_BASE_URL}/movimientos-consulta-rapida/consulta-rapida-agrupado`;
     try {
       const response = await fetch(endpoint);
 
