@@ -8,13 +8,11 @@ const RoleProtectedRoute = ({ children, allowedRoles }) => {
 
   // Si no está autenticado, redirigir al login
   if (!isAuthenticated || !user) {
-    console.log('No autenticado, redirigiendo al login');
     return <Navigate to="/depositoDW_v2/login" replace />;
   }
 
   // Verificar si el rol del usuario está permitido
   if (!allowedRoles.includes(user.role)) {
-    console.log(`Rol ${user.role} no permitido. Roles permitidos:`, allowedRoles);
     // Redirigir según el rol del usuario
     switch (user.role) {
       case 'admin':
@@ -26,7 +24,6 @@ const RoleProtectedRoute = ({ children, allowedRoles }) => {
     }
   }
 
-  console.log('Acceso permitido, renderizando componente');
   return children;
 };
 
