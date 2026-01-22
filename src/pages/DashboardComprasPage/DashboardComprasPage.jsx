@@ -21,7 +21,6 @@ import {
 import { authService } from '../../services/auth/authService';
 import { dashboardComprasService } from '../../services/dashboardComprasService';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
-import PageNavigationMenu from '../../components/PageNavigationMenu';
 import { useLocation } from 'react-router-dom';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { DashboardComprasCard } from '../../components/DashboardComprasCard/DashboardComprasCard';
@@ -437,42 +436,6 @@ export const DashboardComprasPage = () => {
   return (
     <AppLayout user={user} onLogout={handleLogoutClick} pageTitle="Dashboard de Compras">
       <Container maxWidth="xl" sx={{ py: isMobile ? 2 : 4 }}>
-        {/* Header */}
-        {!isMobile && (
-          <Box sx={{ 
-            mb: 4,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <DashboardIcon sx={{ fontSize: '2.5rem', color: 'primary.main' }} />
-              <Box>
-                <Typography 
-                  variant="h3" 
-                  sx={{ 
-                    fontWeight: 700,
-                    color: 'var(--color-text-primary)',
-                    mb: 0.5
-                  }}
-                >
-                  Dashboard de Compras
-                </Typography>
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    color: 'var(--color-text-secondary)',
-                    fontSize: '1.1rem'
-                  }}
-                >
-                  Stock consolidado de materiales por categoría
-                </Typography>
-              </Box>
-            </Box>
-            <PageNavigationMenu user={user} currentPath={location.pathname} />
-          </Box>
-        )}
-
         {/* Contenido principal */}
         <ModernCard
           title={isMobile ? undefined : "Stock de Materiales"}

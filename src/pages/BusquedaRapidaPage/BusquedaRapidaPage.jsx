@@ -18,15 +18,12 @@ import {
   Paper,
   useTheme,
   useMediaQuery,
-  AppBar,
-  Toolbar,
   IconButton
 } from '@mui/material';
-import { Search as SearchIcon, Delete as DeleteIcon, Menu as MenuIcon } from '@mui/icons-material';
+import { Search as SearchIcon, Delete as DeleteIcon, Block as BlockIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import { useAuth } from '../../hooks/useAuth';
 import { busquedaRapidaService } from '../../features/busquedaRapida/busquedaRapidaService';
-import PageNavigationMenu from '../../components/PageNavigationMenu/PageNavigationMenu';
 
 const BusquedaRapidaPage = () => {
   const navigate = useNavigate();
@@ -44,12 +41,15 @@ const BusquedaRapidaPage = () => {
   const [cargandoKilos, setCargandoKilos] = useState({});
   const [busquedasRealizadas, setBusquedasRealizadas] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [todosLosItems, setTodosLosItems] = useState([]);
+  const [cargandoBusquedaPredeterminada, setCargandoBusquedaPredeterminada] = useState(false);
   const touchStartRef = useRef(null);
   const touchEndRef = useRef(null);
 
   useEffect(() => {
     if (!isLoading && user) {
       cargarProveedores();
+      cargarTodosLosItems();
     }
   }, [user, isLoading]);
 
@@ -70,6 +70,15 @@ const BusquedaRapidaPage = () => {
       console.error('Error al cargar proveedores:', error);
     } finally {
       setCargandoProveedores(false);
+    }
+  };
+
+  const cargarTodosLosItems = async () => {
+    try {
+      const data = await busquedaRapidaService.obtenerTodosLosItems();
+      setTodosLosItems(data);
+    } catch (error) {
+      console.error('Error al cargar todos los items:', error);
     }
   };
 
@@ -136,7 +145,7 @@ const BusquedaRapidaPage = () => {
     const busqueda = {
       id: Date.now().toString(),
       fecha: new Date().toLocaleString(),
-      materiales: [...materialesSeleccionados]
+      materiales: materialesSeleccionados.map(m => ({ ...m, deshabilitado: false }))
     };
 
     setBusquedasRealizadas([busqueda, ...busquedasRealizadas]);
@@ -171,6 +180,93 @@ const BusquedaRapidaPage = () => {
         )
       );
     }
+  };
+
+  const handleBusquedaPredeterminada = async () => {
+    setCargandoBusquedaPredeterminada(true);
+    try {
+      // Búsqueda 1: Nylon con descripción que incluya "blanco" y "negro"
+      const busqueda1Items = todosLosItems.filter(item => {
+        const categoria = (item.categoria || '').toLowerCase();
+        const descripcion = (item.descripcion || '').toLowerCase();
+        return categoria.includes('nylon') && 
+               descripcion.includes('blanco') && 
+               descripcion.includes('negro');
+      });
+
+      // Búsqueda 2: Algodón con descripción que incluya "blanco", "negro", "lycra" o "goma"
+      const busqueda2Items = todosLosItems.filter(item => {
+        const categoria = (item.categoria || '').toLowerCase();
+        const descripcion = (item.descripcion || '').toLowerCase();
+        return categoria.includes('algodon') && 
+               (descripcion.includes('blanco') || 
+                descripcion.includes('negro') || 
+                descripcion.includes('lycra') || 
+                descripcion.includes('goma'));
+      });
+
+      // Cargar kilos para cada item y crear las búsquedas
+      const procesarItems = async (items, nombreBusqueda) => {
+        const materiales = await Promise.all(
+          items.map(async (item) => {
+            const kilos = await cargarKilosItem(item.id);
+            // El backend devuelve items con proveedor cargado
+            const proveedor = item.proveedor || { id: '', nombre: 'Sin proveedor' };
+            return {
+              item,
+              proveedor,
+              kilos,
+              deshabilitado: false
+            };
+          })
+        );
+        return {
+          id: Date.now().toString() + Math.random(),
+          fecha: new Date().toLocaleString(),
+          nombre: nombreBusqueda,
+          materiales,
+          tipo: 'predeterminada'
+        };
+      };
+
+      const busqueda1 = await procesarItems(busqueda1Items, 'Nylon - Blanco y Negro');
+      const busqueda2 = await procesarItems(busqueda2Items, 'Algodón - Blanco, Negro, Lycra, Goma');
+
+      setBusquedasRealizadas([busqueda1, busqueda2, ...busquedasRealizadas]);
+      setCurrentIndex(0);
+    } catch (error) {
+      console.error('Error en búsqueda predeterminada:', error);
+    } finally {
+      setCargandoBusquedaPredeterminada(false);
+    }
+  };
+
+  const handleEliminarItemDeBusqueda = (busquedaId, itemId) => {
+    setBusquedasRealizadas(
+      busquedasRealizadas.map(busqueda =>
+        busqueda.id === busquedaId
+          ? {
+              ...busqueda,
+              materiales: busqueda.materiales.filter(m => m.item.id !== itemId)
+            }
+          : busqueda
+      )
+    );
+  };
+
+  const handleDeshabilitarItemDeBusqueda = (busquedaId, itemId) => {
+    setBusquedasRealizadas(
+      busquedasRealizadas.map(busqueda =>
+        busqueda.id === busquedaId
+          ? {
+              ...busqueda,
+              materiales: busqueda.materiales.map(m =>
+                m.item.id === itemId ? { ...m, deshabilitado: !m.deshabilitado } : m
+              )
+            }
+          : busqueda
+      )
+    );
   };
 
   // Funciones para el carrusel móvil
@@ -231,52 +327,30 @@ const BusquedaRapidaPage = () => {
   // Vista móvil
   if (isMobile) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100vh',
-          overflow: 'hidden',
-          backgroundColor: 'background.default'
-        }}
+      <AppLayout
+        user={user}
+        pageTitle="Búsqueda Rápida"
+        onLogout={() => navigate('/depositoDW_v2/')}
       >
-        {/* Barra superior blanca con título y menú */}
-        <AppBar
-          position="static"
-          elevation={0}
-          sx={{
-            backgroundColor: 'white',
-            color: 'text.primary',
-            borderBottom: '1px solid',
-            borderColor: 'divider'
-          }}
-        >
-          <Toolbar sx={{ minHeight: '48px !important', px: 1.5 }}>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{
-                flexGrow: 1,
-                fontWeight: 600,
-                fontSize: '1rem'
-              }}
-            >
-              Búsqueda Rápida
-            </Typography>
-            <PageNavigationMenu user={user} currentPath="/depositoDW_v2/busqueda-rapida" />
-          </Toolbar>
-        </AppBar>
-
-        {/* Sección de búsqueda compacta pegada a la barra */}
         <Box
           sx={{
-            backgroundColor: 'white',
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            p: 1,
-            pt: 1.5
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'calc(100vh - 73px)',
+            overflow: 'hidden',
+            backgroundColor: 'background.default'
           }}
         >
+          {/* Sección de búsqueda compacta */}
+          <Box
+            sx={{
+              backgroundColor: 'white',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              p: 1,
+              pt: 1.5
+            }}
+          >
           <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
             <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
               <InputLabel>Proveedor</InputLabel>
@@ -411,17 +485,32 @@ const BusquedaRapidaPage = () => {
             </Box>
           )}
 
-          <Button
-            variant="contained"
-            color="success"
-            size="small"
-            onClick={handleRealizarBusqueda}
-            disabled={materialesSeleccionados.length === 0}
-            fullWidth
-            sx={{ mt: 0.5 }}
-          >
-            Buscar
-          </Button>
+          <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5 }}>
+            <Button
+              variant="contained"
+              color="success"
+              size="small"
+              onClick={handleRealizarBusqueda}
+              disabled={materialesSeleccionados.length === 0}
+              sx={{ flex: 1 }}
+            >
+              Buscar
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              size="small"
+              onClick={handleBusquedaPredeterminada}
+              disabled={cargandoBusquedaPredeterminada || todosLosItems.length === 0}
+              sx={{ minWidth: 'auto', px: 1.5 }}
+            >
+              {cargandoBusquedaPredeterminada ? (
+                <CircularProgress size={16} />
+              ) : (
+                'Predet.'
+              )}
+            </Button>
+          </Box>
         </Box>
 
         {/* Carrusel de búsquedas */}
@@ -480,14 +569,7 @@ const BusquedaRapidaPage = () => {
                         }}
                       >
                         <CardContent sx={{ flex: 1, overflow: 'auto' }}>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              mb: 2
-                            }}
-                          >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                             <Typography variant="caption" color="text.secondary">
                               {busqueda.fecha}
                             </Typography>
@@ -495,65 +577,107 @@ const BusquedaRapidaPage = () => {
                               {currentIndex + 1} / {busquedasRealizadas.length}
                             </Typography>
                           </Box>
-                          <Typography variant="h6" gutterBottom>
-                            Materiales: {busqueda.materiales.length}
+                          {busqueda.nombre && (
+                            <Typography variant="subtitle2" color="primary" gutterBottom sx={{ mb: 1, fontWeight: 600 }}>
+                              {busqueda.nombre}
+                            </Typography>
+                          )}
+                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                            Materiales: {busqueda.materiales.filter(m => !m.deshabilitado).length} / {busqueda.materiales.length}
                           </Typography>
-                          <Box sx={{ mt: 2 }}>
+                          <Box sx={{ mt: 1.5, maxHeight: '50vh', overflow: 'auto' }}>
                             {busqueda.materiales.map((material, index) => (
                               <Box
                                 key={`${material.item.id}-${index}`}
                                 sx={{
                                   p: 1.5,
                                   mb: 1,
-                                  backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                                  backgroundColor: material.deshabilitado ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 0, 0, 0.02)',
                                   borderRadius: 1,
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center'
+                                  opacity: material.deshabilitado ? 0.5 : 1,
+                                  border: material.deshabilitado ? '1px dashed rgba(0,0,0,0.2)' : 'none'
                                 }}
                               >
-                                <Box sx={{ flex: 1, mr: 1 }}>
-                                  <Typography variant="body2" fontWeight="bold" noWrap>
-                                    {material.item.descripcion}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary" noWrap>
-                                    {material.proveedor.nombre}
-                                  </Typography>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                  <Box sx={{ flex: 1, mr: 1 }}>
+                                    <Typography 
+                                      variant="body2" 
+                                      fontWeight="bold" 
+                                      sx={{ 
+                                        textDecoration: material.deshabilitado ? 'line-through' : 'none',
+                                        mb: 0.5
+                                      }}
+                                    >
+                                      {material.item.categoria || 'Sin categoría'} - {material.item.descripcion}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {material.proveedor?.nombre || 'Sin proveedor'}
+                                    </Typography>
+                                  </Box>
+                                  <Box sx={{ textAlign: 'right', minWidth: '70px' }}>
+                                    <Typography
+                                      variant="body2"
+                                      fontWeight="bold"
+                                      color={material.deshabilitado ? 'text.secondary' : 'primary'}
+                                    >
+                                      {material.kilos.toFixed(2)} kg
+                                    </Typography>
+                                  </Box>
                                 </Box>
-                                <Box sx={{ textAlign: 'right', minWidth: '80px' }}>
-                                  <Typography
-                                    variant="body2"
-                                    fontWeight="bold"
-                                    color="primary"
-                                  >
-                                    {material.kilos.toFixed(2)} kg
-                                  </Typography>
+                                <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
                                   <Button
                                     size="small"
                                     onClick={() => handleActualizarKilos(material.item.id, busqueda.id)}
                                     disabled={cargandoKilos[material.item.id]}
-                                    sx={{ mt: 0.5, minWidth: 'auto', p: 0.5, fontSize: '0.7rem' }}
+                                    sx={{ minWidth: 'auto', p: 0.5, fontSize: '0.65rem' }}
                                   >
                                     {cargandoKilos[material.item.id] ? (
-                                      <CircularProgress size={14} />
+                                      <CircularProgress size={12} />
                                     ) : (
                                       'Actualizar'
                                     )}
                                   </Button>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleDeshabilitarItemDeBusqueda(busqueda.id, material.item.id)}
+                                    sx={{ p: 0.5 }}
+                                    color={material.deshabilitado ? 'success' : 'default'}
+                                  >
+                                    {material.deshabilitado ? (
+                                      <CheckCircleIcon fontSize="small" />
+                                    ) : (
+                                      <BlockIcon fontSize="small" />
+                                    )}
+                                  </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleEliminarItemDeBusqueda(busqueda.id, material.item.id)}
+                                    sx={{ p: 0.5, color: 'error.main' }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
                                 </Box>
                               </Box>
                             ))}
                           </Box>
                           <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(0,0,0,0.1)' }}>
                             <Typography variant="body2" color="text.secondary">
-                              Total Kilos:
+                              Total Kilos (activos):
                             </Typography>
                             <Typography variant="h6" color="primary" fontWeight="bold">
                               {busqueda.materiales
+                                .filter(m => !m.deshabilitado)
                                 .reduce((sum, m) => sum + m.kilos, 0)
                                 .toFixed(2)}{' '}
                               kg
                             </Typography>
+                            {busqueda.materiales.some(m => m.deshabilitado) && (
+                              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                                Total con deshabilitados: {busqueda.materiales
+                                  .reduce((sum, m) => sum + m.kilos, 0)
+                                  .toFixed(2)} kg
+                              </Typography>
+                            )}
                           </Box>
                         </CardContent>
                       </Card>
@@ -593,6 +717,7 @@ const BusquedaRapidaPage = () => {
             )}
         </Box>
       </Box>
+      </AppLayout>
     );
   }
 
@@ -603,10 +728,6 @@ const BusquedaRapidaPage = () => {
       onLogout={() => navigate('/depositoDW_v2/')}
     >
       <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom sx={{ mb: 4, fontWeight: 600 }}>
-          Búsqueda Rápida de Materiales
-        </Typography>
-
         <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
           <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
             Seleccionar Materiales

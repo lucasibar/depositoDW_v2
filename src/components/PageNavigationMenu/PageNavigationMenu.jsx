@@ -48,6 +48,8 @@ const PageNavigationMenu = ({ user, currentPath }) => {
         onClick={() => setSidebarOpen(!sidebarOpen)}
         sx={{
           color: 'text.secondary',
+          position: 'relative',
+          zIndex: 1301,
           '&:hover': {
             backgroundColor: 'rgba(0, 0, 0, 0.04)'
           },
@@ -337,7 +339,7 @@ const PageNavigationMenu = ({ user, currentPath }) => {
             width: '100vw',
             height: '100vh',
             backgroundColor: 'rgba(0, 0, 0, 0.3)',
-            zIndex: 1299
+            zIndex: 1298
           }}
           onClick={() => setSidebarOpen(false)}
         />

@@ -45,19 +45,25 @@ export const StockPage = () => {
 
   if (isMobile) {
     return (
-      <>
-        <MobileStockView
-          data={data}
-          loading={loading}
-          error={error}
-          search={searchState.searchTerm}
-          setSearch={searchState.onSearchChange}
-          selectedIndex={searchState.selectedIndex}
-          setSelectedIndex={searchState.setSelectedIndex}
-          onMenuOpen={modals.openMenu}
-          itemMatchesSearch={searchState.itemMatchesSearch}
-          onAbrirModalAdicionRapida={modals.openAdicionRapida}
-        />
+      <AppLayout
+        user={user}
+        pageTitle="Stock"
+        onLogout={() => navigate('/depositoDW_v2/')}
+      >
+        <Box sx={{ height: 'calc(100vh - 73px)', overflow: 'hidden' }}>
+          <MobileStockView
+            data={data}
+            loading={loading}
+            error={error}
+            search={searchState.searchTerm}
+            setSearch={searchState.onSearchChange}
+            selectedIndex={searchState.selectedIndex}
+            setSelectedIndex={searchState.setSelectedIndex}
+            onMenuOpen={modals.openMenu}
+            itemMatchesSearch={searchState.itemMatchesSearch}
+            onAbrirModalAdicionRapida={modals.openAdicionRapida}
+          />
+        </Box>
 
         <StockPageActionsMenu
           anchorEl={modals.menuAnchor}
@@ -79,7 +85,7 @@ export const StockPage = () => {
           notification={notification}
           onClose={closeNotification}
         />
-      </>
+      </AppLayout>
     );
   }
 
@@ -95,6 +101,7 @@ export const StockPage = () => {
         onSearchChange={searchState.onSearchChange}
         user={user}
         currentPath={location.pathname}
+        showNotification={showNotification}
       />
 
       <Box sx={layoutWrapperStyles(isMobile)}>

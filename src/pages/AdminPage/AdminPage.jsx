@@ -26,7 +26,6 @@ import {
 } from '@mui/icons-material';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
-import PageNavigationMenu from '../../components/PageNavigationMenu';
 import { authService } from '../../services/auth/authService';
 import { userService } from '../../services/userService';
 import NotificacionesPanel from '../../features/notificaciones/ui/NotificacionesPanel';
@@ -287,38 +286,6 @@ export const AdminPage = () => {
         overflow: 'hidden',
         boxSizing: 'border-box'
       }}>
-        {/* Header compacto */}
-        <Box sx={{ 
-          mb: isMobile ? 2 : 4,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start'
-        }}>
-          <Box>
-            <Typography 
-              variant={isMobile ? "h5" : isTablet ? "h4" : "h3"} 
-              sx={{ 
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                mb: 0.5
-              }}
-            >
-              Administración
-            </Typography>
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: 'var(--color-text-secondary)',
-                mb: isMobile ? 1 : 3
-              }}
-            >
-              Gestiona usuarios, configuración y reportes
-            </Typography>
-          </Box>
-          {!isMobile && (
-            <PageNavigationMenu user={user} currentPath={location.pathname} />
-          )}
-        </Box>
 
         {/* Tabs compactos */}
         <Box sx={{ 

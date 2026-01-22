@@ -32,5 +32,16 @@ export const busquedaRapidaService = {
       console.error('Error al obtener kilos del item:', error);
       throw error;
     }
+  },
+
+  // Obtener todos los items
+  obtenerTodosLosItems: async () => {
+    try {
+      const response = await apiClient.get('/items');
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener todos los items:', error);
+      throw error;
+    }
   }
 };
