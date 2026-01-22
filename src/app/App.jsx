@@ -12,6 +12,7 @@ import StockPage from '../pages/StockPage/StockPage';
 import { ReporteConsumoPage } from '../pages/ReporteConsumoPage/ReporteConsumoPage';
 import ChecklistChequeoPage from '../pages/ChecklistChequeoPage/ChecklistChequeoPage';
 import RemitosSalidaPage from '../pages/RemitosSalidaPage/RemitosSalidaPage';
+import BusquedaRapidaPage from '../pages/BusquedaRapidaPage/BusquedaRapidaPage';
 
 export const App = () => {
 
@@ -113,6 +114,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <RemitosSalidaPage />
+            </RoleProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de Búsqueda Rápida - Accesible para deposito y admin */}
+        <Route 
+          exact 
+          path="/depositoDW_v2/busqueda-rapida" 
+          element={
+            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
+              <BusquedaRapidaPage />
             </RoleProtectedRoute>
           } 
         />

@@ -19,7 +19,8 @@ import {
   Report as ReportIcon,
   Logout as LogoutIcon,
   BarChart as BarChartIcon,
-  LocalShipping as LocalShippingIcon
+  LocalShipping as LocalShippingIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 
 const PageNavigationMenu = ({ user, currentPath }) => {
@@ -256,6 +257,26 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   }}
                 >
                   Remitos de Salida
+                </Button>
+              )}
+              
+              {/* Búsqueda Rápida */}
+              {(user?.role === 'admin' || user?.role === 'deposito') && (
+                <Button
+                  variant="text"
+                  startIcon={<SearchIcon />}
+                  onClick={() => handleNavigation('/depositoDW_v2/busqueda-rapida')}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textAlign: 'left',
+                    color: isCurrentPage('/depositoDW_v2/busqueda-rapida') ? 'primary.main' : 'text.primary',
+                    backgroundColor: isCurrentPage('/depositoDW_v2/busqueda-rapida') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: isCurrentPage('/depositoDW_v2/busqueda-rapida') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                    }
+                  }}
+                >
+                  Búsqueda Rápida
                 </Button>
               )}
               
