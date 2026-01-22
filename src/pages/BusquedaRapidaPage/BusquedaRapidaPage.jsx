@@ -185,25 +185,27 @@ const BusquedaRapidaPage = () => {
   const handleBusquedaPredeterminada = async () => {
     setCargandoBusquedaPredeterminada(true);
     try {
-      // Búsqueda 1: Nylon con descripción que incluya "blanco" y "negro"
-      const busqueda1Items = todosLosItems.filter(item => {
-        const categoria = (item.categoria || '').toLowerCase();
-        const descripcion = (item.descripcion || '').toLowerCase();
-        return categoria.includes('nylon') && 
-               descripcion.includes('blanco') && 
-               descripcion.includes('negro');
-      });
+      // Función auxiliar para filtrar items por material y color
+      const filtrarItems = (material, color) => {
+        return todosLosItems.filter(item => {
+          const categoria = (item.categoria || '').toLowerCase();
+          const descripcion = (item.descripcion || '').toLowerCase();
+          return categoria.includes(material.toLowerCase()) && 
+                 descripcion.includes(color.toLowerCase());
+        });
+      };
 
-      // Búsqueda 2: Algodón con descripción que incluya "blanco", "negro", "lycra" o "goma"
-      const busqueda2Items = todosLosItems.filter(item => {
-        const categoria = (item.categoria || '').toLowerCase();
-        const descripcion = (item.descripcion || '').toLowerCase();
-        return categoria.includes('algodon') && 
-               (descripcion.includes('blanco') || 
-                descripcion.includes('negro') || 
-                descripcion.includes('lycra') || 
-                descripcion.includes('goma'));
-      });
+      // Definir las 8 búsquedas predeterminadas
+      const busquedasConfig = [
+        { material: 'nylon', color: 'blanco', nombre: 'Nylon Blanco' },
+        { material: 'nylon', color: 'negro', nombre: 'Nylon Negro' },
+        { material: 'lycra', color: 'blanco', nombre: 'Lycra Blanco' },
+        { material: 'lycra', color: 'negro', nombre: 'Lycra Negro' },
+        { material: 'algodon', color: 'blanco', nombre: 'Algodón Blanco' },
+        { material: 'algodon', color: 'negro', nombre: 'Algodón Negro' },
+        { material: 'goma', color: 'blanco', nombre: 'Goma Blanco' },
+        { material: 'goma', color: 'negro', nombre: 'Goma Negro' }
+      ];
 
       // Cargar kilos para cada item y crear las búsquedas
       const procesarItems = async (items, nombreBusqueda) => {
@@ -229,10 +231,15 @@ const BusquedaRapidaPage = () => {
         };
       };
 
-      const busqueda1 = await procesarItems(busqueda1Items, 'Nylon - Blanco y Negro');
-      const busqueda2 = await procesarItems(busqueda2Items, 'Algodón - Blanco, Negro, Lycra, Goma');
+      // Generar las 8 búsquedas
+      const busquedasPromesas = busquedasConfig.map(async (config) => {
+        const itemsFiltrados = filtrarItems(config.material, config.color);
+        return await procesarItems(itemsFiltrados, config.nombre);
+      });
 
-      setBusquedasRealizadas([busqueda1, busqueda2, ...busquedasRealizadas]);
+      const busquedas = await Promise.all(busquedasPromesas);
+
+      setBusquedasRealizadas([...busquedas, ...busquedasRealizadas]);
       setCurrentIndex(0);
     } catch (error) {
       console.error('Error en búsqueda predeterminada:', error);
