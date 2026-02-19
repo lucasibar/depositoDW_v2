@@ -53,5 +53,16 @@ export const pedidosService = {
             console.error('Error al eliminar el pedido:', error);
             throw error;
         }
+    },
+
+    // Obtener estadísticas de picking
+    obtenerPickingStats: async (fecha) => {
+        try {
+            const response = await apiClient.get(`/pedidos/picking?fecha=${fecha}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error al obtener estadísticas de picking:', error);
+            throw error;
+        }
     }
 };

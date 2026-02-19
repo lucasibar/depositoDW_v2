@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Box, Tabs, Tab, Container, Typography } from '@mui/material';
 import { GenerarPedido } from '../components/Pedidos/GenerarPedido';
 import { HistorialPedidos } from '../components/Pedidos/HistorialPedidos';
-import { Description as DescriptionIcon, History as HistoryIcon } from '@mui/icons-material';
+import { ZonaPicking } from '../components/Pedidos/ZonaPicking';
+import { Description as DescriptionIcon, History as HistoryIcon, Warehouse as WarehouseIcon } from '@mui/icons-material';
 
 export const PedidosPage = () => {
     const [tabIndex, setTabIndex] = useState(0);
@@ -29,6 +30,7 @@ export const PedidosPage = () => {
                     >
                         <Tab icon={<DescriptionIcon />} iconPosition="start" label="Nuevo Pedido" />
                         <Tab icon={<HistoryIcon />} iconPosition="start" label="Historial de Pedidos" />
+                        <Tab icon={<WarehouseIcon />} iconPosition="start" label="Zona de Picking" />
                     </Tabs>
                 </Container>
             </Box>
@@ -37,6 +39,7 @@ export const PedidosPage = () => {
             <Container maxWidth="xl" sx={{ mt: 4 }}>
                 {tabIndex === 0 && <GenerarPedido />}
                 {tabIndex === 1 && <HistorialPedidos />}
+                {tabIndex === 2 && <ZonaPicking />}
             </Container>
         </Box>
     );
