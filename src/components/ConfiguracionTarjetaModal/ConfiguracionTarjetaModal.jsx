@@ -193,7 +193,7 @@ export const ConfiguracionTarjetaModal = ({
   const filteredItems = items.filter(item => {
     if (!searchTerm) return true;
     const terms = searchTerm.toLowerCase().split(' ').filter(Boolean);
-    const itemText = `${item.descripcion} ${item.categoria || ''} ${getProveedorNombre(item.proveedor?.id)}`.toLowerCase();
+    const itemText = `${item.descripcion} ${item.categoria || ''}`.toLowerCase();
     return terms.every(term => itemText.includes(term));
   });
 
