@@ -45,6 +45,18 @@ class DashboardComprasService {
     }
   }
 
+  // Obtener detalles de items por IDs (Optimizado)
+  async obtenerDetallesItems(itemIds) {
+    try {
+      if (!itemIds || itemIds.length === 0) return [];
+      const response = await apiClient.post('/dashboard-compras/items-details', { itemIds });
+      return response.data;
+    } catch (error) {
+      console.error('Error obteniendo detalles de items:', error);
+      throw error;
+    }
+  }
+
   // Actualizar configuración de una tarjeta
   async actualizarConfiguracion(tarjetaId, itemIds) {
     try {
