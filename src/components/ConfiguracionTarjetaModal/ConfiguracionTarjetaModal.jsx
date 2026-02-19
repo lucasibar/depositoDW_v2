@@ -188,6 +188,15 @@ export const ConfiguracionTarjetaModal = ({
     };
   };
 
+
+
+  const filteredItems = items.filter(item => {
+    if (!searchTerm) return true;
+    const terms = searchTerm.toLowerCase().split(' ').filter(Boolean);
+    const itemText = `${item.descripcion} ${item.categoria || ''} ${getProveedorNombre(item.proveedor?.id)}`.toLowerCase();
+    return terms.every(term => itemText.includes(term));
+  });
+
   return (
     <Dialog
       open={open}
@@ -312,10 +321,7 @@ export const ConfiguracionTarjetaModal = ({
                 border: '1px solid',
                 borderColor: 'divider'
               }}>
-                {items.filter(item =>
-                  item.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  item.categoria?.toLowerCase().includes(searchTerm.toLowerCase())
-                ).length === 0 ? (
+                {filteredItems.length === 0 ? (
                   <ListItem>
                     <ListItemText
                       primary={searchTerm ? "No se encontraron items con esa búsqueda" : "No hay items disponibles para este proveedor"}
@@ -323,11 +329,7 @@ export const ConfiguracionTarjetaModal = ({
                     />
                   </ListItem>
                 ) : (
-                  items
-                    .filter(item =>
-                      item.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      item.categoria?.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
+                  filteredItems
                     .map((item) => (
                       <ListItem key={item.id} dense divider>
                         <ListItemIcon>
