@@ -13,6 +13,7 @@ import { ReporteConsumoPage } from '../pages/ReporteConsumoPage/ReporteConsumoPa
 import ChecklistChequeoPage from '../pages/ChecklistChequeoPage/ChecklistChequeoPage';
 import RemitosSalidaPage from '../pages/RemitosSalidaPage/RemitosSalidaPage';
 import BusquedaRapidaPage from '../pages/BusquedaRapidaPage/BusquedaRapidaPage';
+import { PedidosPage } from '../pages/PedidosPage';
 
 export const App = () => {
 
@@ -21,121 +22,132 @@ export const App = () => {
       <Routes>
 
         {/* Ruta de Remito Entrada - Accesible solo para compras y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/remito-entrada" 
+        <Route
+          exact
+          path="/depositoDW_v2/remito-entrada"
           element={
             <RoleProtectedRoute allowedRoles={['compras', 'admin']}>
               <RemitoEntradaPage />
             </RoleProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Ruta de Dashboard de Compras - Accesible solo para compras y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/dashboard-compras" 
+        <Route
+          exact
+          path="/depositoDW_v2/dashboard-compras"
           element={
             <RoleProtectedRoute allowedRoles={['compras', 'admin']}>
               <DashboardComprasPage />
             </RoleProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Ruta de Admin - Accesible solo para admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/admin" 
+        <Route
+          exact
+          path="/depositoDW_v2/admin"
           element={
             <RoleProtectedRoute allowedRoles={['admin']}>
               <AdminPage />
             </RoleProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Ruta de Calidad - Accesible para calidad y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/calidad" 
+        <Route
+          exact
+          path="/depositoDW_v2/calidad"
           element={
             <RoleProtectedRoute allowedRoles={['calidad', 'admin']}>
               <CalidadPage />
             </RoleProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Ruta de Mapa - Accesible para deposito y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/mapa" 
+        <Route
+          exact
+          path="/depositoDW_v2/mapa"
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <MapaPage />
             </RoleProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Ruta de Chequeo de Posiciones - Accesible para deposito y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/chequeo-posiciones" 
+        <Route
+          exact
+          path="/depositoDW_v2/chequeo-posiciones"
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <ChecklistChequeoPage />
             </RoleProtectedRoute>
-          } 
+          }
         />
 
         {/* Ruta de Stock - Accesible para deposito y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/posiciones-composicion" 
+        <Route
+          exact
+          path="/depositoDW_v2/posiciones-composicion"
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <StockPage />
             </RoleProtectedRoute>
-          } 
+          }
         />
         {/* Ruta de Reporte de Consumo - Accesible para admin y deposito */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/reporte-consumo" 
+        <Route
+          exact
+          path="/depositoDW_v2/reporte-consumo"
           element={
             <RoleProtectedRoute allowedRoles={['admin', 'deposito']}>
               <ReporteConsumoPage />
             </RoleProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Ruta de Remitos de Salida - Accesible para deposito y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/remitos-salida" 
+        <Route
+          exact
+          path="/depositoDW_v2/remitos-salida"
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <RemitosSalidaPage />
             </RoleProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Ruta de Búsqueda Rápida - Accesible para deposito y admin */}
-        <Route 
-          exact 
-          path="/depositoDW_v2/busqueda-rapida" 
+        <Route
+          exact
+          path="/depositoDW_v2/busqueda-rapida"
           element={
             <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
               <BusquedaRapidaPage />
             </RoleProtectedRoute>
-          } 
+          }
         />
-        
+
+        {/* Ruta de Pedidos de Producción - Accesible para deposito y admin */}
+        <Route
+          exact
+          path="/depositoDW_v2/pedidos-produccion"
+          element={
+            <RoleProtectedRoute allowedRoles={['deposito', 'admin']}>
+              <PedidosPage />
+            </RoleProtectedRoute>
+          }
+        />
+
         {/* Ruta de Login */}
         <Route path="/depositoDW_v2/login" element={<LoginPage />} />
-        
+
         {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/depositoDW_v2/login" replace />} />
       </Routes>
-      
+
 
     </div>
   );

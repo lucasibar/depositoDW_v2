@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Box, 
-  Typography, 
-  Button, 
+import {
+  Box,
+  Typography,
+  Button,
   IconButton
 } from '@mui/material';
-import { 
+import {
   Menu as MenuIcon,
   ShoppingCart as ShoppingCartIcon,
   Receipt as ReceiptIcon,
@@ -97,7 +97,7 @@ const PageNavigationMenu = ({ user, currentPath }) => {
           {/* Contenido del menú */}
           <Box sx={{ flex: 1, p: 2 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              
+
               {/* Remito Entrada */}
               {(user?.role === 'admin' || user?.role === 'compras') && (
                 <Button
@@ -117,7 +117,7 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   Remito Entrada
                 </Button>
               )}
-              
+
               {/* Dashboard Compras */}
               {(user?.role === 'admin' || user?.role === 'compras') && (
                 <Button
@@ -137,7 +137,7 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   Dashboard Compras
                 </Button>
               )}
-              
+
               {/* Calidad */}
               {(user?.role === 'admin' || user?.role === 'calidad') && (
                 <Button
@@ -157,9 +157,9 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   Calidad
                 </Button>
               )}
-              
-              
-              
+
+
+
               {/* Mapa */}
               {(user?.role === 'admin' || user?.role === 'deposito') && (
                 <Button
@@ -179,7 +179,7 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   Mapa
                 </Button>
               )}
-              
+
               {/* Chequeo de Posiciones */}
               {(user?.role === 'admin' || user?.role === 'deposito') && (
                 <Button
@@ -200,7 +200,7 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                 </Button>
               )}
 
-              
+
               {/* Stock */}
               {(user?.role === 'admin' || user?.role === 'deposito') && (
                 <Button
@@ -220,8 +220,8 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   Stock por Posición
                 </Button>
               )}
-              
-              
+
+
               {/* Reporte de Consumo */}
               {(user?.role === 'admin' || user?.role === 'deposito') && (
                 <Button
@@ -241,7 +241,7 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   Reporte de Consumo
                 </Button>
               )}
-              
+
               {/* Remitos de Salida */}
               {(user?.role === 'admin' || user?.role === 'deposito') && (
                 <Button
@@ -261,7 +261,7 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   Remitos de Salida
                 </Button>
               )}
-              
+
               {/* Búsqueda Rápida */}
               {(user?.role === 'admin' || user?.role === 'deposito') && (
                 <Button
@@ -281,7 +281,27 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   Búsqueda Rápida
                 </Button>
               )}
-              
+
+              {/* Pedidos de Producción */}
+              {(user?.role === 'admin' || user?.role === 'deposito') && (
+                <Button
+                  variant="text"
+                  startIcon={<ShoppingCartIcon />}
+                  onClick={() => handleNavigation('/depositoDW_v2/pedidos-produccion')}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textAlign: 'left',
+                    color: isCurrentPage('/depositoDW_v2/pedidos-produccion') ? 'primary.main' : 'text.primary',
+                    backgroundColor: isCurrentPage('/depositoDW_v2/pedidos-produccion') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: isCurrentPage('/depositoDW_v2/pedidos-produccion') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                    }
+                  }}
+                >
+                  Pedidos Diarios / Producción
+                </Button>
+              )}
+
               {/* Admin */}
               {user?.role === 'admin' && (
                 <Button
@@ -301,10 +321,10 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                   Administración
                 </Button>
               )}
-              
+
               {/* Separador */}
               <Box sx={{ my: 2, borderTop: '1px solid var(--color-border)' }} />
-              
+
               {/* Cerrar Sesión */}
               <Button
                 variant="text"

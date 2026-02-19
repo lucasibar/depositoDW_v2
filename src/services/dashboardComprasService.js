@@ -45,6 +45,17 @@ class DashboardComprasService {
     }
   }
 
+  // Obtener todos los items
+  async obtenerTodosLosItems() {
+    try {
+      const response = await apiClient.get('/items');
+      return response.data;
+    } catch (error) {
+      console.error('Error obteniendo todos los items:', error);
+      throw error;
+    }
+  }
+
   // Obtener detalles de items por IDs (Optimizado)
   async obtenerDetallesItems(itemIds) {
     try {
