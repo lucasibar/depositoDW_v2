@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
+import {
+  Box,
+  Typography,
   Container,
   Grid,
   Alert,
@@ -12,7 +12,7 @@ import {
   useTheme,
   useMediaQuery
 } from '@mui/material';
-import { 
+import {
   Refresh as RefreshIcon,
   Add as AddIcon,
   Dashboard as DashboardIcon,
@@ -25,14 +25,17 @@ import { useLocation } from 'react-router-dom';
 import ModernCard from '../../shared/ui/ModernCard/ModernCard';
 import { DashboardComprasCard } from '../../components/DashboardComprasCard/DashboardComprasCard';
 import { ConfiguracionTarjetaModal } from '../../components/ConfiguracionTarjetaModal/ConfiguracionTarjetaModal';
+import { StockPorPartidaTable } from '../../components/StockPorPartidaTable/StockPorPartidaTable';
+import { SeleccionProveedoresModal } from '../../components/SeleccionProveedoresModal/SeleccionProveedoresModal';
 import * as XLSX from 'xlsx';
+import { FilterList as FilterIcon } from '@mui/icons-material';
 
 export const DashboardComprasPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
-  
+
   const [user, setUser] = useState(null);
   const [tarjetas, setTarjetas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,13 +46,36 @@ export const DashboardComprasPage = () => {
   const [descargando, setDescargando] = useState(false);
   const [descargandoFiltrado, setDescargandoFiltrado] = useState(false);
 
+  // Nuevos estados para la lista agrupada
+  const [proveedoresSeleccionados, setProveedoresSeleccionados] = useState([]);
+  const [stockAgrupado, setStockAgrupado] = useState([]);
+  const [loadingAgrupado, setLoadingAgrupado] = useState(false);
+  const [modalProveedoresOpen, setModalProveedoresOpen] = useState(false);
+
   useEffect(() => {
     const currentUser = authService.getUser();
     if (currentUser) {
       setUser(currentUser);
       cargarDashboard();
+      cargarFiltrosYStock();
     }
   }, []);
+
+  const cargarFiltrosYStock = async () => {
+    try {
+      setLoadingAgrupado(true);
+      const ids = await dashboardComprasService.obtenerFiltros();
+      setProveedoresSeleccionados(ids);
+      if (ids && ids.length > 0) {
+        const stock = await dashboardComprasService.obtenerStockPorProveedores(ids);
+        setStockAgrupado(stock);
+      }
+    } catch (error) {
+      console.error('Error cargando filtros persistidos:', error);
+    } finally {
+      setLoadingAgrupado(false);
+    }
+  };
 
   const cargarDashboard = async () => {
     try {
@@ -77,18 +103,18 @@ export const DashboardComprasPage = () => {
 
   const handleConfiguracionGuardada = (tarjetaId, itemIds) => {
     // Actualizar la tarjeta localmente
-    setTarjetas(prev => prev.map(tarjeta => 
-      tarjeta.id === tarjetaId 
+    setTarjetas(prev => prev.map(tarjeta =>
+      tarjeta.id === tarjetaId
         ? { ...tarjeta, itemIds }
         : tarjeta
     ));
-    
+
     setSnackbar({
       open: true,
       message: 'Configuración guardada exitosamente',
       severity: 'success'
     });
-    
+
     // Recargar el dashboard para obtener el stock actualizado
     setTimeout(() => {
       cargarDashboard();
@@ -97,6 +123,24 @@ export const DashboardComprasPage = () => {
 
   const handleRefresh = () => {
     cargarDashboard();
+    cargarFiltrosYStock();
+  };
+
+  const handleProveedoresGuardados = async (ids) => {
+    setProveedoresSeleccionados(ids);
+    try {
+      setLoadingAgrupado(true);
+      const stock = await dashboardComprasService.obtenerStockPorProveedores(ids);
+      setStockAgrupado(stock);
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: 'Error al cargar stock por proveedores',
+        severity: 'error'
+      });
+    } finally {
+      setLoadingAgrupado(false);
+    }
   };
 
   const handleSnackbarClose = () => {
@@ -112,58 +156,58 @@ export const DashboardComprasPage = () => {
     try {
       setDescargando(true);
       const response = await dashboardComprasService.descargarReporteStockExcel();
-      
+
       if (!response.success || !response.data) {
         throw new Error('Error en la respuesta del servidor');
       }
-      
+
       // Función para extraer componentes de la posición
       const extraerComponentesPosicion = (posicion) => {
         if (!posicion) {
           return { rack: '', fila: '', pasillo: '', nivel: '' };
         }
-        
+
         console.log('Procesando posición:', posicion); // Debug
-        
+
         // Inicializar valores
         let rack = '';
         let fila = '';
         let pasillo = '';
         let nivel = '';
-        
+
         // Buscar Rack con formato "Rack: X"
         const rackMatch = posicion.match(/Rack:\s*(\d+)/i);
         if (rackMatch) {
           rack = rackMatch[1];
         }
-        
+
         // Buscar Fila con formato "Fila: X"
         const filaMatch = posicion.match(/Fila:\s*([A-Za-z0-9]+)/i);
         if (filaMatch) {
           fila = filaMatch[1];
         }
-        
+
         // Buscar Nivel con formato "Nivel: X"
         const nivelMatch = posicion.match(/Nivel:\s*([A-Za-z0-9]+)/i);
         if (nivelMatch) {
           nivel = nivelMatch[1];
         }
-        
+
         // Buscar Pasillo con formato "Pasillo: X"
         const pasilloMatch = posicion.match(/Pasillo:\s*(\d+)/i);
         if (pasilloMatch) {
           pasillo = pasilloMatch[1];
         }
-        
+
         console.log('Componentes extraídos:', { rack, fila, pasillo, nivel }); // Debug
-        
+
         return { rack, fila, pasillo, nivel };
       };
 
       // Preparar datos para Excel
       const datosExcel = response.data.map(item => {
         const componentes = extraerComponentesPosicion(item.posicion);
-        
+
         return {
           'Descripción del Item': item.itemDescripcion,
           'Número de Partida': item.numeroPartida,
@@ -176,11 +220,11 @@ export const DashboardComprasPage = () => {
           'Unidades': item.unidades
         };
       });
-      
+
       // Crear libro de trabajo
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.json_to_sheet(datosExcel);
-      
+
       // Ajustar ancho de columnas
       const colWidths = [
         { wch: 50 }, // Descripción del Item
@@ -194,31 +238,31 @@ export const DashboardComprasPage = () => {
         { wch: 15 }  // Unidades
       ];
       ws['!cols'] = colWidths;
-      
+
       // Agregar hoja al libro
       XLSX.utils.book_append_sheet(wb, ws, 'Reporte de Stock');
-      
+
       // Generar archivo Excel
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      
+
       // Crear blob y descargar
       const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      
+
       // Generar nombre de archivo con fecha actual
       const fecha = new Date().toISOString().split('T')[0];
       link.download = `reporte-stock-${fecha}.xlsx`;
-      
+
       // Simular click para descargar
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // Limpiar URL
       window.URL.revokeObjectURL(url);
-      
+
       setSnackbar({
         open: true,
         message: 'Reporte de stock descargado exitosamente',
@@ -240,11 +284,11 @@ export const DashboardComprasPage = () => {
     try {
       setDescargandoFiltrado(true);
       const response = await dashboardComprasService.descargarReporteStockExcel();
-      
+
       if (!response.success || !response.data) {
         throw new Error('Error en la respuesta del servidor');
       }
-      
+
       // Filtrar solo registros con Número de Partida de 11 o más dígitos
       const datosFiltrados = response.data.filter(item => {
         const numeroPartida = item.numeroPartida || '';
@@ -252,7 +296,7 @@ export const DashboardComprasPage = () => {
         const digitos = numeroPartida.replace(/\D/g, '').length;
         return digitos >= 11;
       });
-      
+
       // Preparar datos para Excel
       const datosExcel = datosFiltrados.map(item => ({
         'Descripción del Item': item.itemDescripcion,
@@ -262,11 +306,11 @@ export const DashboardComprasPage = () => {
         'Kilos': item.kilos,
         'Unidades': item.unidades
       }));
-      
+
       // Crear libro de trabajo
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.json_to_sheet(datosExcel);
-      
+
       // Ajustar ancho de columnas
       const colWidths = [
         { wch: 50 }, // Descripción del Item
@@ -277,17 +321,17 @@ export const DashboardComprasPage = () => {
         { wch: 15 }  // Unidades
       ];
       ws['!cols'] = colWidths;
-      
+
       // Agregar hoja al libro
       XLSX.utils.book_append_sheet(wb, ws, 'Reporte de Stock Filtrado');
-      
+
       // HOJA 1: Resumen por partida y posición
       const resumenPorPartidaPosicion = {};
       datosFiltrados.forEach(item => {
         const numeroPartida = item.numeroPartida || 'Sin partida';
         const posicion = item.posicion || 'Sin posición';
         const key = `${numeroPartida}_${posicion}`;
-        
+
         if (!resumenPorPartidaPosicion[key]) {
           resumenPorPartidaPosicion[key] = {
             numeroPartida: numeroPartida,
@@ -299,16 +343,16 @@ export const DashboardComprasPage = () => {
             cantidadRegistros: 0
           };
         }
-        
+
         resumenPorPartidaPosicion[key].kilosTotales += parseFloat(item.kilos) || 0;
         resumenPorPartidaPosicion[key].unidadesTotales += parseInt(item.unidades) || 0;
         resumenPorPartidaPosicion[key].cantidadRegistros += 1;
       });
-      
+
       // Convertir a array y ordenar por kilos totales (descendente)
       const resumenPartidaPosicionArray = Object.values(resumenPorPartidaPosicion)
         .sort((a, b) => b.kilosTotales - a.kilosTotales);
-      
+
       // HOJA 2: Resumen por partida y combinación de material + descripción
       const resumenPorPartidaMaterialDescripcion = {};
       datosFiltrados.forEach(item => {
@@ -316,7 +360,7 @@ export const DashboardComprasPage = () => {
         const material = item.itemDescripcion ? item.itemDescripcion.split(' - ')[0] : 'Sin material';
         const descripcion = item.itemDescripcion || 'Sin descripción';
         const key = `${numeroPartida}_${material}_${descripcion}`;
-        
+
         if (!resumenPorPartidaMaterialDescripcion[key]) {
           resumenPorPartidaMaterialDescripcion[key] = {
             numeroPartida: numeroPartida,
@@ -327,16 +371,16 @@ export const DashboardComprasPage = () => {
             cantidadRegistros: 0
           };
         }
-        
+
         resumenPorPartidaMaterialDescripcion[key].kilosTotales += parseFloat(item.kilos) || 0;
         resumenPorPartidaMaterialDescripcion[key].unidadesTotales += parseInt(item.unidades) || 0;
         resumenPorPartidaMaterialDescripcion[key].cantidadRegistros += 1;
       });
-      
+
       // Convertir a array y ordenar por kilos totales (descendente)
       const resumenPartidaMaterialDescripcionArray = Object.values(resumenPorPartidaMaterialDescripcion)
         .sort((a, b) => b.kilosTotales - a.kilosTotales);
-      
+
       // Preparar datos para la hoja 1: Por partida y posición
       const datosHoja1 = resumenPartidaPosicionArray.map(item => ({
         'Número de Partida': item.numeroPartida,
@@ -347,7 +391,7 @@ export const DashboardComprasPage = () => {
         'Unidades Totales': item.unidadesTotales,
         'Cantidad de Registros': item.cantidadRegistros
       }));
-      
+
       // Preparar datos para la hoja 2: Por partida y combinación material + descripción
       const datosHoja2 = resumenPartidaMaterialDescripcionArray.map(item => ({
         'Número de Partida': item.numeroPartida,
@@ -357,10 +401,10 @@ export const DashboardComprasPage = () => {
         'Unidades Totales': item.unidadesTotales,
         'Cantidad de Registros': item.cantidadRegistros
       }));
-      
+
       // Crear hoja 1: Por partida y posición
       const wsHoja1 = XLSX.utils.json_to_sheet(datosHoja1);
-      
+
       // Ajustar ancho de columnas para la hoja 1
       const colWidthsHoja1 = [
         { wch: 25 }, // Número de Partida
@@ -372,10 +416,10 @@ export const DashboardComprasPage = () => {
         { wch: 25 }  // Cantidad de Registros
       ];
       wsHoja1['!cols'] = colWidthsHoja1;
-      
+
       // Crear hoja 2: Por partida y material
       const wsHoja2 = XLSX.utils.json_to_sheet(datosHoja2);
-      
+
       // Ajustar ancho de columnas para la hoja 2
       const colWidthsHoja2 = [
         { wch: 25 }, // Número de Partida
@@ -386,32 +430,32 @@ export const DashboardComprasPage = () => {
         { wch: 25 }  // Cantidad de Registros
       ];
       wsHoja2['!cols'] = colWidthsHoja2;
-      
+
       // Agregar hojas al libro
       XLSX.utils.book_append_sheet(wb, wsHoja1, 'Por Partida y Posicion');
       XLSX.utils.book_append_sheet(wb, wsHoja2, 'Por Partida y Material-Desc');
-      
+
       // Generar archivo Excel
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      
+
       // Crear blob y descargar
       const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      
+
       // Generar nombre de archivo con fecha actual
       const fecha = new Date().toISOString().split('T')[0];
       link.download = `reporte-importaciones-${fecha}.xlsx`;
-      
+
       // Simular click para descargar
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // Limpiar URL
       window.URL.revokeObjectURL(url);
-      
+
       setSnackbar({
         open: true,
         message: `Reporte de importaciones descargado exitosamente (${datosFiltrados.length} registros) - Incluye resumen por partida y posición, y por partida y combinación material-descripción`,
@@ -444,11 +488,11 @@ export const DashboardComprasPage = () => {
           sx={{ mb: isMobile ? 2 : 4 }}
         >
           {/* Botones de acción */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'flex-end', 
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
             gap: 2,
-            mb: 3 
+            mb: 3
           }}>
             <Button
               variant="outlined"
@@ -488,9 +532,9 @@ export const DashboardComprasPage = () => {
 
           {/* Loading */}
           {loading ? (
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'center',
               alignItems: 'center',
               minHeight: 400,
               flexDirection: 'column',
@@ -506,8 +550,8 @@ export const DashboardComprasPage = () => {
             <Grid container spacing={isMobile ? 2 : 3}>
               {tarjetas.length === 0 ? (
                 <Grid item xs={12}>
-                  <Box sx={{ 
-                    textAlign: 'center', 
+                  <Box sx={{
+                    textAlign: 'center',
                     py: 8,
                     color: 'text.secondary'
                   }}>
@@ -535,12 +579,43 @@ export const DashboardComprasPage = () => {
           )}
         </ModernCard>
 
+        {/* Nueva sección: Stock por Partida */}
+        <ModernCard
+          title="Stock Detallado por Partida"
+          subtitle="Materiales agrupados por partida de los proveedores seleccionados"
+          padding={isMobile ? "compact" : "normal"}
+        >
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              startIcon={<FilterIcon />}
+              onClick={() => setModalProveedoresOpen(true)}
+              sx={{ borderRadius: 2 }}
+            >
+              Seleccionar Proveedores
+            </Button>
+          </Box>
+
+          <StockPorPartidaTable
+            data={stockAgrupado}
+            loading={loadingAgrupado}
+          />
+        </ModernCard>
+
         {/* Modal de configuración */}
         <ConfiguracionTarjetaModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
           tarjeta={tarjetaSeleccionada}
           onConfiguracionGuardada={handleConfiguracionGuardada}
+        />
+
+        {/* Modal Seleccion de Proveedores */}
+        <SeleccionProveedoresModal
+          open={modalProveedoresOpen}
+          onClose={() => setModalProveedoresOpen(false)}
+          proveedoresSeleccionadosIniciales={proveedoresSeleccionados}
+          onGuardar={handleProveedoresGuardados}
         />
 
         {/* Snackbar para notificaciones */}
@@ -550,8 +625,8 @@ export const DashboardComprasPage = () => {
           onClose={handleSnackbarClose}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         >
-          <Alert 
-            onClose={handleSnackbarClose} 
+          <Alert
+            onClose={handleSnackbarClose}
             severity={snackbar.severity}
             sx={{ width: '100%' }}
           >

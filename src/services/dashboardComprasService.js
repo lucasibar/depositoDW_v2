@@ -129,6 +129,44 @@ class DashboardComprasService {
       throw error;
     }
   }
+
+  // Obtener stock agrupado por partida para proveedores seleccionados
+  async obtenerStockPorProveedores(proveedorIds) {
+    try {
+      if (!proveedorIds || proveedorIds.length === 0) return [];
+      const response = await apiClient.post('/dashboard-compras/stock-por-proveedores', {
+        proveedorIds
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error obteniendo stock por proveedores:', error);
+      throw error;
+    }
+  }
+
+  // Obtener filtros/proveedores persistidos
+  async obtenerFiltros() {
+    try {
+      const response = await apiClient.get('/dashboard-compras/filtros');
+      return response.data;
+    } catch (error) {
+      console.error('Error obteniendo filtros:', error);
+      throw error;
+    }
+  }
+
+  // Guardar filtros/proveedores para persistencia
+  async guardarFiltros(proveedorIds) {
+    try {
+      const response = await apiClient.post('/dashboard-compras/filtros', {
+        proveedorIds
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error guardando filtros:', error);
+      throw error;
+    }
+  }
 }
 
 export const dashboardComprasService = new DashboardComprasService();
