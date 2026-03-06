@@ -16,8 +16,22 @@ import {
   Refresh as RefreshIcon,
   Add as AddIcon,
   Dashboard as DashboardIcon,
-  Download as DownloadIcon
+  Download as DownloadIcon,
+  VisibilityOff as VisibilityOffIcon,
+  Delete as DeleteIcon,
+  Settings as SettingsIcon
 } from '@mui/icons-material';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Tooltip
+} from '@mui/material';
 import { authService } from '../../services/auth/authService';
 import { dashboardComprasService } from '../../services/dashboardComprasService';
 import AppLayout from '../../shared/ui/AppLayout/AppLayout';
@@ -44,7 +58,6 @@ export const DashboardComprasPage = () => {
   const [tarjetaSeleccionada, setTarjetaSeleccionada] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [descargando, setDescargando] = useState(false);
-  const [descargandoFiltrado, setDescargandoFiltrado] = useState(false);
 
   // Nuevos estados para la lista agrupada
   const [proveedoresSeleccionados, setProveedoresSeleccionados] = useState([]);
@@ -52,14 +65,28 @@ export const DashboardComprasPage = () => {
   const [loadingAgrupado, setLoadingAgrupado] = useState(false);
   const [modalProveedoresOpen, setModalProveedoresOpen] = useState(false);
 
+  // Estados para exclusiones
+  const [exclusiones, setExclusiones] = useState([]);
+  const [modalExclusionesOpen, setModalExclusionesOpen] = useState(false);
+
   useEffect(() => {
     const currentUser = authService.getUser();
     if (currentUser) {
       setUser(currentUser);
       cargarDashboard();
       cargarFiltrosYStock();
+      cargarExclusiones();
     }
   }, []);
+
+  const cargarExclusiones = async () => {
+    try {
+      const data = await dashboardComprasService.obtenerExclusiones();
+      setExclusiones(data);
+    } catch (error) {
+      console.error('Error cargando exclusiones:', error);
+    }
+  };
 
   const cargarFiltrosYStock = async () => {
     try {
@@ -76,6 +103,33 @@ export const DashboardComprasPage = () => {
       setLoadingAgrupado(false);
     }
   };
+
+  const handleExcluir = async (material, descripcion) => {
+    try {
+      await dashboardComprasService.excluirItem(material, descripcion);
+      await cargarExclusiones();
+      setSnackbar({ open: true, message: 'Item excluido permanentemente', severity: 'success' });
+    } catch (error) {
+      setSnackbar({ open: true, message: 'Error al excluir item', severity: 'error' });
+    }
+  };
+
+  const handleRestaurar = async (id) => {
+    try {
+      await dashboardComprasService.restaurarItem(id);
+      await cargarExclusiones();
+      setSnackbar({ open: true, message: 'Item restaurado', severity: 'success' });
+    } catch (error) {
+      setSnackbar({ open: true, message: 'Error al restaurar item', severity: 'error' });
+    }
+  };
+
+  // Filtrar stockAgrupado según las exclusiones
+  const stockFiltrado = stockAgrupado.filter(item => {
+    return !exclusiones.some(ex =>
+      ex.material === item.material && ex.descripcion === item.descripcion
+    );
+  });
 
   const cargarDashboard = async () => {
     try {
@@ -150,6 +204,89 @@ export const DashboardComprasPage = () => {
   const handleLogoutClick = () => {
     authService.logout();
     window.location.href = '/depositoDW_v2/login';
+  };
+
+  const handleDescargarAgrupadoExcel = () => {
+    try {
+      if (!stockFiltrado || stockFiltrado.length === 0) {
+        setSnackbar({
+          open: true,
+          message: 'No hay datos para exportar. Selecciona proveedores primero.',
+          severity: 'warning'
+        });
+        return;
+      }
+
+      // Preparar datos normalizados para Excel
+      const materialNames = {
+        'algodon': 'Algodón',
+        'algodon-color': 'Algodón Color',
+        'nylon': 'Nylon',
+        'nylon-color': 'Nylon Color',
+        'laicra': 'Lycra',
+        'lycra': 'Lycra',
+        'goma': 'Goma',
+        'costura': 'Costura'
+      };
+
+      const formatMaterialName = (id) => {
+        if (materialNames[id]) return materialNames[id];
+        return id.charAt(0).toUpperCase() + id.slice(1).replace(/-/g, ' ');
+      };
+
+      const datosExcel = stockFiltrado.map(row => ({
+        'Material': formatMaterialName(row.material),
+        'Descripción': row.descripcion || '',
+        'Proveedor': row.proveedorNombre,
+        'Partida': row.numeroPartida,
+        'Kilos Totales': Number(row.totalKilos),
+        'Unidades Totales (Cajas)': Number(row.totalCajas)
+      }));
+
+      // Crear libro de trabajo
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(datosExcel);
+
+      // Ajustar ancho de columnas
+      const colWidths = [
+        { wch: 15 }, // Material
+        { wch: 40 }, // Descripción
+        { wch: 30 }, // Proveedor
+        { wch: 20 }, // Partida
+        { wch: 15 }, // Kilos
+        { wch: 20 }  // Unidades
+      ];
+      ws['!cols'] = colWidths;
+
+      // Agregar hoja al libro
+      XLSX.utils.book_append_sheet(wb, ws, 'Importaciones');
+
+      // Generar archivo Excel
+      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const fecha = new Date().toISOString().split('T')[0];
+      link.download = `importaciones-agrupadas-${fecha}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setSnackbar({
+        open: true,
+        message: 'Reporte de importaciones descargado exitosamente',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error exportando Excel:', error);
+      setSnackbar({
+        open: true,
+        message: 'Error al exportar a Excel',
+        severity: 'error'
+      });
+    }
   };
 
   const handleDescargarStock = async () => {
@@ -280,199 +417,6 @@ export const DashboardComprasPage = () => {
     }
   };
 
-  const handleDescargarStockFiltrado = async () => {
-    try {
-      setDescargandoFiltrado(true);
-      const response = await dashboardComprasService.descargarReporteStockExcel();
-
-      if (!response.success || !response.data) {
-        throw new Error('Error en la respuesta del servidor');
-      }
-
-      // Filtrar solo registros con Número de Partida de 11 o más dígitos
-      const datosFiltrados = response.data.filter(item => {
-        const numeroPartida = item.numeroPartida || '';
-        // Contar solo dígitos en el número de partida
-        const digitos = numeroPartida.replace(/\D/g, '').length;
-        return digitos >= 11;
-      });
-
-      // Preparar datos para Excel
-      const datosExcel = datosFiltrados.map(item => ({
-        'Descripción del Item': item.itemDescripcion,
-        'Número de Partida': item.numeroPartida,
-        'Proveedor': item.proveedor,
-        'Posición': item.posicion,
-        'Kilos': item.kilos,
-        'Unidades': item.unidades
-      }));
-
-      // Crear libro de trabajo
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(datosExcel);
-
-      // Ajustar ancho de columnas
-      const colWidths = [
-        { wch: 50 }, // Descripción del Item
-        { wch: 20 }, // Número de Partida
-        { wch: 30 }, // Proveedor
-        { wch: 40 }, // Posición
-        { wch: 15 }, // Kilos
-        { wch: 15 }  // Unidades
-      ];
-      ws['!cols'] = colWidths;
-
-      // Agregar hoja al libro
-      XLSX.utils.book_append_sheet(wb, ws, 'Reporte de Stock Filtrado');
-
-      // HOJA 1: Resumen por partida y posición
-      const resumenPorPartidaPosicion = {};
-      datosFiltrados.forEach(item => {
-        const numeroPartida = item.numeroPartida || 'Sin partida';
-        const posicion = item.posicion || 'Sin posición';
-        const key = `${numeroPartida}_${posicion}`;
-
-        if (!resumenPorPartidaPosicion[key]) {
-          resumenPorPartidaPosicion[key] = {
-            numeroPartida: numeroPartida,
-            posicion: posicion,
-            descripcion: item.itemDescripcion || 'Sin descripción',
-            material: item.itemDescripcion ? item.itemDescripcion.split(' - ')[0] : 'Sin material',
-            kilosTotales: 0,
-            unidadesTotales: 0,
-            cantidadRegistros: 0
-          };
-        }
-
-        resumenPorPartidaPosicion[key].kilosTotales += parseFloat(item.kilos) || 0;
-        resumenPorPartidaPosicion[key].unidadesTotales += parseInt(item.unidades) || 0;
-        resumenPorPartidaPosicion[key].cantidadRegistros += 1;
-      });
-
-      // Convertir a array y ordenar por kilos totales (descendente)
-      const resumenPartidaPosicionArray = Object.values(resumenPorPartidaPosicion)
-        .sort((a, b) => b.kilosTotales - a.kilosTotales);
-
-      // HOJA 2: Resumen por partida y combinación de material + descripción
-      const resumenPorPartidaMaterialDescripcion = {};
-      datosFiltrados.forEach(item => {
-        const numeroPartida = item.numeroPartida || 'Sin partida';
-        const material = item.itemDescripcion ? item.itemDescripcion.split(' - ')[0] : 'Sin material';
-        const descripcion = item.itemDescripcion || 'Sin descripción';
-        const key = `${numeroPartida}_${material}_${descripcion}`;
-
-        if (!resumenPorPartidaMaterialDescripcion[key]) {
-          resumenPorPartidaMaterialDescripcion[key] = {
-            numeroPartida: numeroPartida,
-            material: material,
-            descripcion: descripcion,
-            kilosTotales: 0,
-            unidadesTotales: 0,
-            cantidadRegistros: 0
-          };
-        }
-
-        resumenPorPartidaMaterialDescripcion[key].kilosTotales += parseFloat(item.kilos) || 0;
-        resumenPorPartidaMaterialDescripcion[key].unidadesTotales += parseInt(item.unidades) || 0;
-        resumenPorPartidaMaterialDescripcion[key].cantidadRegistros += 1;
-      });
-
-      // Convertir a array y ordenar por kilos totales (descendente)
-      const resumenPartidaMaterialDescripcionArray = Object.values(resumenPorPartidaMaterialDescripcion)
-        .sort((a, b) => b.kilosTotales - a.kilosTotales);
-
-      // Preparar datos para la hoja 1: Por partida y posición
-      const datosHoja1 = resumenPartidaPosicionArray.map(item => ({
-        'Número de Partida': item.numeroPartida,
-        'Posición': item.posicion,
-        'Material': item.material,
-        'Descripción': item.descripcion,
-        'Kilos Totales': item.kilosTotales,
-        'Unidades Totales': item.unidadesTotales,
-        'Cantidad de Registros': item.cantidadRegistros
-      }));
-
-      // Preparar datos para la hoja 2: Por partida y combinación material + descripción
-      const datosHoja2 = resumenPartidaMaterialDescripcionArray.map(item => ({
-        'Número de Partida': item.numeroPartida,
-        'Material': item.material,
-        'Descripción': item.descripcion,
-        'Kilos Totales': item.kilosTotales,
-        'Unidades Totales': item.unidadesTotales,
-        'Cantidad de Registros': item.cantidadRegistros
-      }));
-
-      // Crear hoja 1: Por partida y posición
-      const wsHoja1 = XLSX.utils.json_to_sheet(datosHoja1);
-
-      // Ajustar ancho de columnas para la hoja 1
-      const colWidthsHoja1 = [
-        { wch: 25 }, // Número de Partida
-        { wch: 40 }, // Posición
-        { wch: 30 }, // Material
-        { wch: 50 }, // Descripción
-        { wch: 20 }, // Kilos Totales
-        { wch: 20 }, // Unidades Totales
-        { wch: 25 }  // Cantidad de Registros
-      ];
-      wsHoja1['!cols'] = colWidthsHoja1;
-
-      // Crear hoja 2: Por partida y material
-      const wsHoja2 = XLSX.utils.json_to_sheet(datosHoja2);
-
-      // Ajustar ancho de columnas para la hoja 2
-      const colWidthsHoja2 = [
-        { wch: 25 }, // Número de Partida
-        { wch: 30 }, // Material
-        { wch: 50 }, // Descripción
-        { wch: 20 }, // Kilos Totales
-        { wch: 20 }, // Unidades Totales
-        { wch: 25 }  // Cantidad de Registros
-      ];
-      wsHoja2['!cols'] = colWidthsHoja2;
-
-      // Agregar hojas al libro
-      XLSX.utils.book_append_sheet(wb, wsHoja1, 'Por Partida y Posicion');
-      XLSX.utils.book_append_sheet(wb, wsHoja2, 'Por Partida y Material-Desc');
-
-      // Generar archivo Excel
-      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-
-      // Crear blob y descargar
-      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-
-      // Generar nombre de archivo con fecha actual
-      const fecha = new Date().toISOString().split('T')[0];
-      link.download = `reporte-importaciones-${fecha}.xlsx`;
-
-      // Simular click para descargar
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Limpiar URL
-      window.URL.revokeObjectURL(url);
-
-      setSnackbar({
-        open: true,
-        message: `Reporte de importaciones descargado exitosamente (${datosFiltrados.length} registros) - Incluye resumen por partida y posición, y por partida y combinación material-descripción`,
-        severity: 'success'
-      });
-    } catch (error) {
-      console.error('Error descargando reporte filtrado:', error);
-      setSnackbar({
-        open: true,
-        message: 'Error al descargar el reporte de importaciones',
-        severity: 'error'
-      });
-    } finally {
-      setDescargandoFiltrado(false);
-    }
-  };
-
   if (!user) {
     return null;
   }
@@ -498,19 +442,10 @@ export const DashboardComprasPage = () => {
               variant="outlined"
               startIcon={<DownloadIcon />}
               onClick={handleDescargarStock}
-              disabled={descargando || descargandoFiltrado || loading}
+              disabled={descargando || loading}
               sx={{ borderRadius: 2 }}
             >
               {descargando ? 'Descargando...' : 'Descargar Stock'}
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<DownloadIcon />}
-              onClick={handleDescargarStockFiltrado}
-              disabled={descargando || descargandoFiltrado || loading}
-              sx={{ borderRadius: 2 }}
-            >
-              {descargandoFiltrado ? 'Descargando...' : 'Importaciones'}
             </Button>
             <Button
               variant="outlined"
@@ -585,11 +520,133 @@ export const DashboardComprasPage = () => {
           subtitle="Materiales agrupados por partida de los proveedores seleccionados"
           padding={isMobile ? "compact" : "normal"}
         >
-          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+          {/* Resumen de Totales por Item (Material + Descripción) */}
+          {!loadingAgrupado && stockFiltrado.length > 0 && (
+            <Box sx={{ mb: 4, p: 2, borderRadius: 2, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Resumen de Totales por Item
+                </Typography>
+                <Tooltip title="Gestionar items ocultos">
+                  <IconButton size="small" onClick={() => setModalExclusionesOpen(true)}>
+                    <SettingsIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <Grid container spacing={2}>
+                {(() => {
+                  // Calcular colores por categoría
+                  const getColor = (cat) => {
+                    const c = cat?.toLowerCase() || '';
+                    if (c.includes('algodon')) return '#4CAF50';
+                    if (c.includes('nylon')) return '#2196F3';
+                    if (c.includes('lycra') || c.includes('laicra')) return '#9C27B0';
+                    if (c.includes('goma')) return '#FF9800';
+                    return '#757575';
+                  };
+
+                  // Agrupar stockFiltrado por material + descripcion para las cartitas
+                  const summaryGroups = stockFiltrado.reduce((acc, item) => {
+                    const key = `${item.material}_${item.descripcion}`;
+                    if (!acc[key]) {
+                      acc[key] = {
+                        material: item.material,
+                        descripcion: item.descripcion,
+                        totalKilos: 0,
+                        totalCajas: 0
+                      };
+                    }
+                    acc[key].totalKilos += Number(item.totalKilos);
+                    acc[key].totalCajas += Number(item.totalCajas);
+                    return acc;
+                  }, {});
+
+                  return Object.values(summaryGroups).map((group, idx) => {
+                    const color = getColor(group.material);
+                    return (
+                      <Grid item xs={12} sm={6} md={3} key={`card-${idx}`}>
+                        <Box sx={{
+                          p: 1.5,
+                          borderRadius: 2,
+                          bgcolor: 'background.paper',
+                          borderLeft: `4px solid ${color}`,
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          position: 'relative',
+                          '&:hover .excluir-btn': { opacity: 1 }
+                        }}>
+                          <Tooltip title="Ocultar de este reporte">
+                            <IconButton
+                              className="excluir-btn"
+                              size="small"
+                              onClick={() => handleExcluir(group.material, group.descripcion)}
+                              sx={{
+                                position: 'absolute',
+                                top: 4,
+                                right: 4,
+                                opacity: 0,
+                                transition: 'opacity 0.2s',
+                                bgcolor: 'rgba(255,255,255,0.8)',
+                                '&:hover': { bgcolor: 'error.light', color: 'white' }
+                              }}
+                            >
+                              <VisibilityOffIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Box>
+                            <Typography variant="caption" sx={{ fontWeight: 'bold', color: color, textTransform: 'uppercase', display: 'block' }}>
+                              {group.material?.replace(/-/g, ' ')}
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, lineHeight: 1.2, fontSize: '0.85rem', pr: 3 }}>
+                              {group.descripcion}
+                            </Typography>
+                          </Box>
+                          <Box>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
+                              {group.totalKilos.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {group.totalCajas.toLocaleString()} unidades/cajas
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Grid>
+                    );
+                  });
+                })()}
+              </Grid>
+            </Box>
+          )}
+
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            {exclusiones.length > 0 && (
+              <Button
+                variant="text"
+                size="small"
+                startIcon={<VisibilityOffIcon />}
+                onClick={() => setModalExclusionesOpen(true)}
+                sx={{ color: 'text.secondary' }}
+              >
+                Ver items ocultos ({exclusiones.length})
+              </Button>
+            )}
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              onClick={handleDescargarAgrupadoExcel}
+              disabled={loadingAgrupado || stockFiltrado.length === 0}
+              sx={{ borderRadius: 2 }}
+            >
+              Descargar Excel
+            </Button>
             <Button
               variant="contained"
               startIcon={<FilterIcon />}
               onClick={() => setModalProveedoresOpen(true)}
+              disabled={loadingAgrupado}
               sx={{ borderRadius: 2 }}
             >
               Seleccionar Proveedores
@@ -597,7 +654,7 @@ export const DashboardComprasPage = () => {
           </Box>
 
           <StockPorPartidaTable
-            data={stockAgrupado}
+            data={stockFiltrado}
             loading={loadingAgrupado}
           />
         </ModernCard>
@@ -609,6 +666,50 @@ export const DashboardComprasPage = () => {
           tarjeta={tarjetaSeleccionada}
           onConfiguracionGuardada={handleConfiguracionGuardada}
         />
+
+        {/* Modal de Exclusiones */}
+        <Dialog
+          open={modalExclusionesOpen}
+          onClose={() => setModalExclusionesOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <VisibilityOffIcon color="action" />
+            Items Ocultos del Reporte
+          </DialogTitle>
+          <DialogContent dividers>
+            {exclusiones.length === 0 ? (
+              <Box sx={{ py: 4, textAlign: 'center' }}>
+                <Typography color="text.secondary">No hay items ocultos actualmente.</Typography>
+              </Box>
+            ) : (
+              <List>
+                {exclusiones.map((ex) => (
+                  <ListItem
+                    key={ex.id}
+                    secondaryAction={
+                      <Tooltip title="Restaurar al reporte">
+                        <IconButton edge="end" onClick={() => handleRestaurar(ex.id)} color="primary">
+                          <AddIcon />
+                        </IconButton>
+                      </Tooltip>
+                    }
+                  >
+                    <ListItemText
+                      primary={ex.descripcion}
+                      secondary={ex.material?.toUpperCase().replace(/-/g, ' ')}
+                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setModalExclusionesOpen(false)}>Cerrar</Button>
+          </DialogActions>
+        </Dialog>
 
         {/* Modal Seleccion de Proveedores */}
         <SeleccionProveedoresModal

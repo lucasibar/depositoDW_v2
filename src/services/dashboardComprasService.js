@@ -167,6 +167,37 @@ class DashboardComprasService {
       throw error;
     }
   }
+
+  // --- Exclusiones ---
+  async obtenerExclusiones() {
+    try {
+      const response = await apiClient.get('/dashboard-exclusions');
+      return response.data;
+    } catch (error) {
+      console.error('Error obteniendo exclusiones:', error);
+      throw error;
+    }
+  }
+
+  async excluirItem(material, descripcion) {
+    try {
+      const response = await apiClient.post('/dashboard-exclusions', { material, descripcion });
+      return response.data;
+    } catch (error) {
+      console.error('Error excluyendo item:', error);
+      throw error;
+    }
+  }
+
+  async restaurarItem(id) {
+    try {
+      const response = await apiClient.delete(`/dashboard-exclusions/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error restaurando item:', error);
+      throw error;
+    }
+  }
 }
 
 export const dashboardComprasService = new DashboardComprasService();

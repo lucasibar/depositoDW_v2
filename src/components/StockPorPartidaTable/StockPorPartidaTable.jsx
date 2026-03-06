@@ -32,13 +32,20 @@ export const StockPorPartidaTable = ({ data, loading }) => {
         );
     }
 
-    // Agrupar los datos por material en el frontend
-    const groupedByMaterial = data.reduce((acc, row) => {
+    // Agrupar los datos por material + descripción en una sola lista plana de tablas
+    const groupedList = data.reduce((acc, row) => {
         const material = row.material || 'otros';
-        if (!acc[material]) {
-            acc[material] = [];
+        const descripcion = row.descripcion || 'Sin descripción';
+        const key = `${material}_${descripcion}`;
+
+        if (!acc[key]) {
+            acc[key] = {
+                material,
+                descripcion,
+                rows: []
+            };
         }
-        acc[material].push(row);
+        acc[key].rows.push(row);
         return acc;
     }, {});
 
@@ -60,10 +67,16 @@ export const StockPorPartidaTable = ({ data, loading }) => {
         return id.charAt(0).toUpperCase() + id.slice(1).replace(/-/g, ' ');
     };
 
+    // Ordenar la lista: primero por material, luego por descripción
+    const sortedGroups = Object.values(groupedList).sort((a, b) => {
+        if (a.material !== b.material) return a.material.localeCompare(b.material);
+        return a.descripcion.localeCompare(b.descripcion);
+    });
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {Object.entries(groupedByMaterial).map(([materialId, rows]) => (
-                <Box key={materialId}>
+            {sortedGroups.map((group, groupIdx) => (
+                <Box key={`${group.material}-${group.descripcion}-${groupIdx}`}>
                     <Typography
                         variant="h6"
                         sx={{
@@ -76,7 +89,7 @@ export const StockPorPartidaTable = ({ data, loading }) => {
                         }}
                     >
                         <Box component="span" sx={{ width: 4, height: 24, bgcolor: 'primary.main', borderRadius: 1 }} />
-                        {formatMaterialName(materialId)}
+                        {formatMaterialName(group.material)} - {group.descripcion}
                     </Typography>
 
                     <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
@@ -90,7 +103,7 @@ export const StockPorPartidaTable = ({ data, loading }) => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {rows.map((row, index) => (
+                                {group.rows.map((row, index) => (
                                     <TableRow
                                         key={`${row.proveedorNombre}-${row.numeroPartida}-${index}`}
                                         sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { bgcolor: 'action.hover' } }}
@@ -118,6 +131,19 @@ export const StockPorPartidaTable = ({ data, loading }) => {
                                     </TableRow>
                                 ))}
                             </TableBody>
+                            <TableHead sx={{ bgcolor: 'action.selected' }}>
+                                <TableRow>
+                                    <TableCell colSpan={2} sx={{ fontWeight: 'bold', pl: 2 }}>
+                                        TOTAL {group.descripcion.toUpperCase()}
+                                    </TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 'bold', color: 'primary.dark', fontSize: '1rem' }}>
+                                        {Number(group.rows.reduce((sum, row) => sum + Number(row.totalKilos), 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg
+                                    </TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                                        {Number(group.rows.reduce((sum, row) => sum + Number(row.totalCajas), 0)).toLocaleString()}
+                                    </TableCell>
+                                </TableRow>
+                            </TableHead>
                         </Table>
                     </TableContainer>
                 </Box>
