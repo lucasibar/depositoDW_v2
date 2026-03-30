@@ -138,6 +138,26 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                 </Button>
               )}
 
+              {/* Dashboard Salidas */}
+              {(user?.role === 'admin' || user?.role === 'deposito') && (
+                <Button
+                  variant="text"
+                  startIcon={<BarChartIcon />}
+                  onClick={() => handleNavigation('/depositoDW_v2/dashboard-salidas')}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textAlign: 'left',
+                    color: isCurrentPage('/depositoDW_v2/dashboard-salidas') ? 'primary.main' : 'text.primary',
+                    backgroundColor: isCurrentPage('/depositoDW_v2/dashboard-salidas') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: isCurrentPage('/depositoDW_v2/dashboard-salidas') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                    }
+                  }}
+                >
+                  Dashboard de Salidas
+                </Button>
+              )}
+
               {/* Calidad */}
               {(user?.role === 'admin' || user?.role === 'calidad') && (
                 <Button
