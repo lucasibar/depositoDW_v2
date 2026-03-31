@@ -158,6 +158,26 @@ const PageNavigationMenu = ({ user, currentPath }) => {
                 </Button>
               )}
 
+              {/* Dashboard Stock */}
+              {(user?.role === 'admin' || user?.role === 'deposito') && (
+                <Button
+                  variant="text"
+                  startIcon={<BarChartIcon />}
+                  onClick={() => handleNavigation('/depositoDW_v2/dashboard-stock')}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textAlign: 'left',
+                    color: isCurrentPage('/depositoDW_v2/dashboard-stock') ? 'primary.main' : 'text.primary',
+                    backgroundColor: isCurrentPage('/depositoDW_v2/dashboard-stock') ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: isCurrentPage('/depositoDW_v2/dashboard-stock') ? 'rgba(25, 118, 210, 0.12)' : 'rgba(0, 0, 0, 0.04)'
+                    }
+                  }}
+                >
+                  Dashboard de Stock
+                </Button>
+              )}
+
               {/* Calidad */}
               {(user?.role === 'admin' || user?.role === 'calidad') && (
                 <Button

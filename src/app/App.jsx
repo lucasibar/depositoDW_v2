@@ -15,6 +15,7 @@ import RemitosSalidaPage from '../pages/RemitosSalidaPage/RemitosSalidaPage';
 import BusquedaRapidaPage from '../pages/BusquedaRapidaPage/BusquedaRapidaPage';
 import { PedidosPage } from '../pages/PedidosPage';
 import DashboardSalidasPage from '../pages/DashboardSalidasPage/DashboardSalidasPage';
+import DashboardStockPage from '../pages/DashboardStockPage/DashboardStockPage';
 
 export const App = () => {
 
@@ -105,6 +106,17 @@ export const App = () => {
           element={
             <RoleProtectedRoute allowedRoles={['admin', 'deposito']}>
               <DashboardSalidasPage />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* Ruta de Dashboard de Stock - Accesible para admin y deposito */}
+        <Route
+          exact
+          path="/depositoDW_v2/dashboard-stock"
+          element={
+            <RoleProtectedRoute allowedRoles={['admin', 'deposito']}>
+              <DashboardStockPage />
             </RoleProtectedRoute>
           }
         />
